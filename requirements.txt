@@ -1,0 +1,32 @@
+# GUI 프레임워크
+PyQt6>=6.5.0
+PyQt6-WebEngine>=6.5.0
+
+# 웹 자동화 (키워드 추출용)
+selenium>=4.0.0
+webdriver-manager>=3.8.0
+
+# AI API 클라이언트
+openai>=1.0.0
+# xAI Grok API 지원 (LangChain 통합)
+langchain-xai>=0.2.0
+
+# 데이터 처리
+numpy>=1.21.0
+pandas>=1.5.0
+openpyxl>=3.0.0
+
+# HTTP 요청
+requests>=2.28.0
+
+# 빌드 도구
+pyinstaller>=5.0.0
+
+# 날짜/시간 처리 (표준 라이브러리지만 명시)
+# datetime - 표준 라이브러리
+
+# JSON 처리 (표준 라이브러리지만 명시)  
+# json - 표준 라이브러리
+
+# 기타 유틸리티
+pathlib2>=2.3.0; python_version < "3.4" 
