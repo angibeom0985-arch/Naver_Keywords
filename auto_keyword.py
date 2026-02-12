@@ -75,13 +75,6 @@ from PyQt6.QtGui import (
     QPainter, QColor, QDesktopServices, QCursor
 )
 
-try:
-    from PyQt6.QtWebEngineWidgets import QWebEngineView
-    WEBENGINE_AVAILABLE = True
-except ImportError:
-    QWebEngineView = None
-    WEBENGINE_AVAILABLE = False
-
 import pandas as pd
 
 # BeautifulSoup for HTML parsing (釉뚮씪?곗? ?놁씠 HTML ?뚯떛)
@@ -154,6 +147,56 @@ def get_icon_path():
     return None
 
 
+def get_app_base_dir():
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+def sanitize_display_text(text):
+    if text is None:
+        return ""
+    clean = str(text).replace("�", " ").replace("?", " ")
+    clean = re.sub(r"[^\w\s가-힣.,:;!()\[\]\-_/+|%#@'\"~]", " ", clean)
+    clean = re.sub(r"\s{2,}", " ", clean).strip()
+    return clean or "진행 상태 업데이트"
+
+
+def load_api_credentials_from_file():
+    required_keys = [
+        "searchad_access_key",
+        "searchad_secret_key",
+        "searchad_customer_id",
+        "naver_client_id",
+        "naver_client_secret",
+    ]
+    api_file = get_app_base_dir() / "api_keys.json"
+
+    if not api_file.exists():
+        template = {k: "" for k in required_keys}
+        with open(api_file, "w", encoding="utf-8") as f:
+            json.dump(template, f, ensure_ascii=False, indent=2)
+        raise FileNotFoundError(str(api_file))
+
+    with open(api_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, dict):
+        raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
+
+    credentials = {}
+    missing = []
+    for key in required_keys:
+        value = str(data.get(key, "")).strip()
+        credentials[key] = value
+        if not value:
+            missing.append(key)
+
+    if missing:
+        raise ValueError("api_keys.json 필수 항목 누락: " + ", ".join(missing))
+    return credentials, api_file
+
+
 def get_machine_id():
     """怨좎쑀 癒몄떊 ID 異붿텧 (1PC 1?쇱씠?좎뒪 ?뺤콉??hardware lock)"""
     machine_id = None
@@ -216,11 +259,11 @@ def check_license_from_sheet(machine_id):
 
 
 class UnregisteredDialog(QDialog):
-    """誘몃벑濡?湲곌린 ?뚮┝ ?ㅼ씠?쇰줈洹?- ?붿옄??媛쒖꽑"""
+    """미등록 기기 안내 다이얼로그"""
     def __init__(self, machine_id):
         super().__init__()
-        self.setWindowTitle("?꾨줈洹몃옩 ?ъ슜 沅뚰븳")
-        self.setFixedSize(500, 380)  # ?믪씠 利앷? (320 -> 380)
+        self.setWindowTitle("프로그램 사용 권한")
+        self.setFixedSize(500, 380)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self.setStyleSheet("QDialog { background-color: #ffffff; }")
         
@@ -230,11 +273,11 @@ class UnregisteredDialog(QDialog):
         
         # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
         warning_layout = QHBoxLayout()
-        warning_icon = QLabel("?좑툘")
+        warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
         warning_layout.addWidget(warning_icon)
         
-        warning_text = QLabel("?깅줉?섏? ?딆? ?ъ슜?먯엯?덈떎.")
+        warning_text = QLabel("등록되지 않은 사용자입니다.")
         warning_text.setStyleSheet("font-size: 20px; font-weight: bold; color: #FF4444; background-color: transparent;")
         warning_layout.addWidget(warning_text)
         warning_layout.addStretch()
@@ -253,7 +296,7 @@ class UnregisteredDialog(QDialog):
         box_layout.setSpacing(15)
         box_layout.setContentsMargins(20, 20, 20, 20)
         
-        info_label = QLabel("?꾨옒 癒몄떊 ID瑜??먮ℓ?먯뿉寃??꾨떖?댁＜?몄슂.")
+        info_label = QLabel("아래 머신 ID를 판매자에게 전달해 주세요.")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #0066CC; border: none;")
         box_layout.addWidget(info_label)
@@ -274,7 +317,7 @@ class UnregisteredDialog(QDialog):
             }
         """)
         
-        copy_btn = QPushButton("蹂듭궗")
+        copy_btn = QPushButton("복사")
         copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         copy_btn.setFixedWidth(80)
         copy_btn.setStyleSheet("""
@@ -300,9 +343,9 @@ class UnregisteredDialog(QDialog):
         
         # 3. ?섎떒 李멸퀬 臾멸뎄
         note_layout = QHBoxLayout()
-        bulb_icon = QLabel("?뮕")
+        bulb_icon = QLabel("💡")
         bulb_icon.setStyleSheet("font-size: 16px; background-color: transparent;")
-        note_text = QLabel("李멸퀬: ??댄뙆??蹂寃? ?щ????쒖뿉??癒몄떊 ID??蹂寃쎈릺吏 ?딆뒿?덈떎")
+        note_text = QLabel("참고: PC를 변경하면 머신 ID가 바뀔 수 있습니다.")
         note_text.setStyleSheet("font-size: 13px; color: #888888; background-color: transparent;")
         note_layout.addWidget(bulb_icon)
         note_layout.addWidget(note_text)
@@ -312,7 +355,7 @@ class UnregisteredDialog(QDialog):
         # 4. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
-        ok_btn = QPushButton("?뺤씤")
+        ok_btn = QPushButton("확인")
         ok_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         ok_btn.setFixedWidth(100)
         ok_btn.setStyleSheet(f"""
@@ -337,21 +380,21 @@ class UnregisteredDialog(QDialog):
         clipboard.setText(self.id_input.text())
         sender = self.sender()
         if sender:
-            sender.setText("?꾨즺")
+            sender.setText("완료")
             sender.setEnabled(False)
             QTimer.singleShot(2000, lambda: self._reset_btn(sender))
 
     def _reset_btn(self, btn):
-        btn.setText("蹂듭궗")
+        btn.setText("복사")
         btn.setEnabled(True)
 
 
 class ExpiredDialog(QDialog):
-    """?ъ슜 湲곌컙 留뚮즺 ?뚮┝ ?ㅼ씠?쇰줈洹?- ?붿옄??媛쒖꽑"""
+    """사용 기간 만료 안내 다이얼로그"""
     def __init__(self, expiry_date):
         super().__init__()
-        self.setWindowTitle("?꾨줈洹몃옩 ?ъ슜 沅뚰븳")
-        self.setFixedSize(500, 380)  # ?믪씠 利앷? (280 -> 380)
+        self.setWindowTitle("프로그램 사용 권한")
+        self.setFixedSize(500, 380)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.WindowCloseButtonHint)
         self.setStyleSheet("QDialog { background-color: #ffffff; }")
         
@@ -361,11 +404,11 @@ class ExpiredDialog(QDialog):
         
         # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
         warning_layout = QHBoxLayout()
-        warning_icon = QLabel("?좑툘")
+        warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
         warning_layout.addWidget(warning_icon)
         
-        warning_text = QLabel("?ъ슜 湲곌컙??留뚮즺?섏뿀?듬땲??")
+        warning_text = QLabel("사용 기간이 만료되었습니다.")
         warning_text.setStyleSheet("font-size: 20px; font-weight: bold; color: #FF4444; background-color: transparent;")
         warning_layout.addWidget(warning_text)
         warning_layout.addStretch()
@@ -384,7 +427,7 @@ class ExpiredDialog(QDialog):
         box_layout.setSpacing(15)
         box_layout.setContentsMargins(20, 20, 20, 20)
         
-        info_label = QLabel("湲곌컙 ?곗옣???꾩슂?⑸땲?? ?꾨옒 ?ㅽ뵂移댄넚?쇰줈 臾몄쓽?댁＜?몄슂.")
+        info_label = QLabel("기간 연장이 필요합니다. 아래 카카오톡으로 문의해 주세요.")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         info_label.setStyleSheet("font-size: 15px; color: #333333; border: none;")
         box_layout.addWidget(info_label)
@@ -414,7 +457,7 @@ class ExpiredDialog(QDialog):
         # 3. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
-        ok_btn = QPushButton("?뺤씤")
+        ok_btn = QPushButton("확인")
         ok_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         ok_btn.setFixedWidth(100)
         ok_btn.setStyleSheet(f"""
@@ -552,13 +595,13 @@ class SmartProgressTextEdit(ResizableTextEdit):
             scrollbar.setValue(scrollbar.maximum())
     
     def show_search_dialog(self):
-        """寃???ㅼ씠?쇰줈洹??쒖떆"""
+        """로그 검색 다이얼로그 표시"""
         from PyQt6.QtWidgets import QInputDialog
         
         text, ok = QInputDialog.getText(
             self, 
-            'Log Search',
-            'Enter text to search:',
+            "로그 검색",
+            "찾을 텍스트를 입력하세요:",
             text=self.last_search_text
         )
         
@@ -567,7 +610,7 @@ class SmartProgressTextEdit(ResizableTextEdit):
             self.search_in_text(text)
     
     def search_in_text(self, search_text):
-        """Open link in browser."""
+        """로그 텍스트 내 검색."""
         if not search_text:
             return
         
@@ -591,9 +634,9 @@ class SmartProgressTextEdit(ResizableTextEdit):
             cursor.setPosition(found_index + len(search_text), cursor.MoveMode.KeepAnchor)
             self.setTextCursor(cursor)
             self.ensureCursorVisible()
-            QMessageBox.information(self, "寃???꾨즺", f"'{search_text}' ?띿뒪?몃? 李얠븯?듬땲??")
+            QMessageBox.information(self, "검색 완료", f"'{search_text}' 텍스트를 찾았습니다.")
         else:
-            QMessageBox.information(self, "寃??寃곌낵 ?놁쓬", f"'{search_text}' ?띿뒪?몃? 李얠쓣 ???놁뒿?덈떎.")
+            QMessageBox.information(self, "검색 결과 없음", f"'{search_text}' 텍스트를 찾을 수 없습니다.")
 
 
 def emergency_save_data():
@@ -1744,7 +1787,7 @@ class NaverMobileSearchScraper:
                                 # ?뱀닔臾몄옄 ?뺣━
                                 keyword_text = re.sub(r'[\u200b-\u200d\ufeff]', '', keyword_text)  # ?쒕줈??臾몄옄 ?쒓굅
                                 # 遺덉셿?꾪븳 ?띿뒪???뺣━ (?앹뿉 ?ㅻ뒗 遺덉셿?꾪븳 ?⑥뼱 ?쒓굅)
-                                keyword_text = re.sub(r'\s+[媛-??{1}$', '', keyword_text)  # ?앹뿉 ?쒓? 1湲?먮쭔 ?덈뒗 寃쎌슦 ?쒓굅
+                                keyword_text = re.sub(r'\s+[가-힣]{1}$', '', keyword_text)
                                 keyword_text = re.sub(r'\s+[a-zA-Z]{1}$', '', keyword_text)  # ?앹뿉 ?곷Ц 1湲?먮쭔 ?덈뒗 寃쎌슦 ?쒓굅
                                 keyword_text = keyword_text.strip()
                                 
@@ -1754,7 +1797,7 @@ class NaverMobileSearchScraper:
                                     
                                 # 異붽? 寃利? 遺덉셿?꾪븳 ?ㅼ썙???꾪꽣留?
                                 # ?섎??덈뒗 ?⑥뼱濡??앸굹?붿? ?뺤씤
-                                if keyword_text and not re.search(r'[媛-??{1}$|[a-zA-Z]{1}$', keyword_text):
+                                if keyword_text and not re.search(r'[가-힣]{1}$|[a-zA-Z]{1}$', keyword_text):
                                     # ?좏슚???ㅼ썙?쒖씤吏 ?뺤씤 (以묐났 ?쒓굅 諛?湲몄씠 泥댄겕)
                                     if (keyword_text not in keywords and
                                         len(keyword_text) <= 50 and
@@ -2220,7 +2263,8 @@ class Settings:
             "searchad_secret_key": "",
             "searchad_customer_id": "",
             "naver_client_id": "",
-            "naver_client_secret": ""
+            "naver_client_secret": "",
+            "api_keys_file": str(Path.home() / ".naver_keyword_api_keys.json")
         }
         if self.settings_file.exists():
             try:
@@ -2274,6 +2318,14 @@ class Settings:
 
     def should_remember_api_keys(self):
         return self.settings.get("remember_api_keys", False)
+
+    def get_api_keys_file(self):
+        default_path = str(Path.home() / ".naver_keyword_api_keys.json")
+        return self.settings.get("api_keys_file", default_path)
+
+    def set_api_keys_file(self, file_path):
+        self.settings["api_keys_file"] = file_path
+        self.save_settings()
 
 
 class KeywordHunter:
@@ -2334,7 +2386,7 @@ class KeywordHunter:
         )
         if response.status_code != 200:
             raise ValueError(
-                f"寃?됯킅怨?API ?붿껌 ?ㅽ뙣 ({response.status_code}): {response.text[:200]}"
+                f"검색광고 API 요청 실패 ({response.status_code}): {response.text[:200]}"
             )
 
         payload = response.json()
@@ -2377,7 +2429,7 @@ class KeywordHunter:
         )
         if response.status_code != 200:
             raise ValueError(
-                f"寃??API ?붿껌 ?ㅽ뙣 ({response.status_code}): {response.text[:200]}"
+                f"블로그 검색 API 요청 실패 ({response.status_code}): {response.text[:200]}"
             )
         payload = response.json()
         return int(payload.get("total", 0))
@@ -2388,10 +2440,10 @@ class KeywordHunter:
     def find_golden_keywords(self, category_keyword, max_candidates=30, progress_callback=None):
         seed = category_keyword.strip()
         if not seed:
-            raise ValueError("移댄뀒怨좊━ ?ㅼ썙?쒕? ?낅젰??二쇱꽭??")
+            raise ValueError("카테고리 키워드를 입력해 주세요.")
 
         if progress_callback:
-            progress_callback(f"'{seed}' ?곌? ?ㅼ썙?쒕? 議고쉶?⑸땲??")
+            progress_callback(f"'{seed}' 연관 키워드를 조회합니다.")
         keyword_rows = self.get_searchad_related_keywords(seed)
         if not keyword_rows:
             return []
@@ -2403,7 +2455,7 @@ class KeywordHunter:
         )
         candidates = keyword_rows[:max(1, max_candidates)]
         if progress_callback:
-            progress_callback(f"?꾨낫 {len(candidates)}媛쒖뿉 ???釉붾줈洹?臾몄꽌 ?섎? 議고쉶?⑸땲??")
+            progress_callback(f"후보 {len(candidates)}개에 대해 블로그 문서 수를 조회합니다.")
 
         scored = []
         for idx, row in enumerate(candidates, start=1):
@@ -2419,7 +2471,7 @@ class KeywordHunter:
             }
             scored.append(result)
             if progress_callback:
-                progress_callback(f"[{idx}/{len(candidates)}] {row['keyword']} 怨꾩궛 ?꾨즺")
+                progress_callback(f"[{idx}/{len(candidates)}] {row['keyword']} 계산 완료")
 
         scored.sort(key=lambda x: x["efficiency_index"], reverse=True)
         return scored
@@ -2470,12 +2522,12 @@ class ParallelKeywordThread(QThread):
         
     def run(self):
         try:
-            self.log.emit(self.keyword, f"?? '{self.keyword}' 寃?됱쓣 ?쒖옉?⑸땲??(媛쒕퀎 釉뚮씪?곗?)...")
+            self.log.emit(self.keyword, f"'{self.keyword}' 검색을 시작합니다...")
             
             # 釉뚮씪?곗? ?앹꽦
             self.driver = create_chrome_driver()
             if not self.driver:
-                self.error.emit(f"??'{self.keyword}' 釉뚮씪?곗? ?앹꽦 ?ㅽ뙣")
+                self.error.emit(f"'{self.keyword}' 브라우저 생성 실패")
                 return
 
             # 寃?됯린 珥덇린??
@@ -2492,20 +2544,20 @@ class ParallelKeywordThread(QThread):
             if success and self.is_running:
                 # 寃곌낵 ???
                 current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
-                safe_keyword = re.sub(r'[^\w媛-??s]', '', self.keyword).strip()[:20]
-                filename = f"{safe_keyword}_?쒕ぉ留뚮뱾湲?{current_time}.xlsx"
+                safe_keyword = re.sub(r"[^\w가-힣\s]", "", self.keyword).strip()[:20]
+                filename = f"{safe_keyword}_키워드추출_{current_time}.xlsx"
                 save_path = os.path.join(self.save_dir, filename)
             
                 if self.searcher.save_recursive_results_to_excel(save_path, self._log_wrapper):
                     self.finished.emit(save_path)
-                    self.log.emit(self.keyword, f"??'{self.keyword}' 泥섎━ ?꾨즺: {filename}")
+                    self.log.emit(self.keyword, f"'{self.keyword}' 처리 완료: {filename}")
                 else:
-                    self.error.emit(f"??'{self.keyword}' ?뚯씪 ????ㅽ뙣")
+                    self.error.emit(f"'{self.keyword}' 파일 저장 실패")
             else:
                 self.error.emit(f"'{self.keyword}' 추출 실패 또는 중단됨")
                 
         except Exception as e:
-            self.error.emit(f"??'{self.keyword}' ?묒뾽 以??ㅻ쪟: {str(e)}")
+            self.error.emit(f"'{self.keyword}' 작업 중 오류: {str(e)}")
             
         finally:
             # 釉뚮씪?곗? 醫낅즺 諛??뺣━
@@ -2726,12 +2778,12 @@ class KeywordExtractorMainWindow(QMainWindow):
                     self.show_license_dialog(machine_id, expired=True)
                 else:
                     # ?좏슚??
-                    self.usage_label.setText(f"?ъ슜 湲곌컙: {expiration_date}源뚯?")
+                    self.usage_label.setText(f"사용 기간: {expiration_date}까지")
                     self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
             except:
                 # ?좎쭨 ?뺤떇???꾨땲硫??쇰떒 ?듦낵 (?⑥닚 ?띿뒪???? ?먮뒗 留뚮즺???놁쓬?쇰줈 媛꾩＜
                 # ?ш린?쒕뒗 ?띿뒪??洹몃?濡??쒖떆 (?? "臾댁젣??)
-                self.usage_label.setText(f"?ъ슜 湲곌컙: {expiration_date}")
+                self.usage_label.setText(f"사용 기간: {expiration_date}")
                 self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
         else:
             # ?깅줉?섏? ?딆쓬
@@ -2780,20 +2832,25 @@ class KeywordExtractorMainWindow(QMainWindow):
         """Initialize UI."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-        
+
+        central_layout = QVBoxLayout(central_widget)
+        central_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_tabs = QTabWidget()
+        central_layout.addWidget(self.main_tabs)
+
+        extractor_tab = QWidget()
+        extractor_tab_layout = QVBoxLayout(extractor_tab)
+        extractor_tab_layout.setContentsMargins(0, 0, 0, 0)
+
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
-        
+        extractor_tab_layout.addWidget(scroll_area)
+
         scroll_content = QWidget()
         main_layout = QVBoxLayout(scroll_content)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(10, 10, 10, 10)
-        
         scroll_area.setWidget(scroll_content)
-        
-        central_layout = QVBoxLayout(central_widget)
-        central_layout.setContentsMargins(0, 0, 0, 0)
-        central_layout.addWidget(scroll_area)
 
         # ?ㅻ뜑 而⑦뀒?대꼫 (?쒕ぉ + ?ъ슜 湲곌컙)
         header_widget = QWidget()
@@ -2842,7 +2899,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         
         # ????꾩튂 ?뱀뀡 (?섎떒)
         self.setup_save_section(main_layout)
-        self.setup_webview_section(main_layout)
+        self.main_tabs.addTab(extractor_tab, "연관 키워드 추출")
+
+        analysis_tab = QWidget()
+        analysis_tab_layout = QVBoxLayout(analysis_tab)
+        analysis_tab_layout.setContentsMargins(10, 10, 10, 10)
+        self.setup_golden_keyword_section(analysis_tab_layout)
+        self.main_tabs.addTab(analysis_tab, "황금 키워드 분석")
             
         # ?곹깭諛?
         self.status_bar = QStatusBar()
@@ -2931,51 +2994,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.remember_checkbox = QCheckBox("저장 경로 기억하기")
         self.remember_checkbox.setChecked(self.settings.should_remember_dir())
         save_layout.addWidget(self.remember_checkbox)
-        self.setup_golden_keyword_section(save_layout)
         
         main_layout.addWidget(save_group)
-
-    def setup_webview_section(self, main_layout):
-        web_group = QGroupBox("웹 도구")
-        web_layout = QVBoxLayout(web_group)
-
-        top_row = QHBoxLayout()
-        self.web_url_input = QLineEdit("https://naver-keywords.money-hotissue.com")
-        self.web_url_input.setReadOnly(True)
-        top_row.addWidget(self.web_url_input)
-
-        self.web_refresh_button = QPushButton("새로고침")
-        top_row.addWidget(self.web_refresh_button)
-
-        self.web_open_external_button = QPushButton("브라우저로 열기")
-        top_row.addWidget(self.web_open_external_button)
-        web_layout.addLayout(top_row)
-
-        self.web_open_external_button.clicked.connect(self.open_webview_url_in_browser)
-
-        if WEBENGINE_AVAILABLE:
-            self.web_view = QWebEngineView()
-            self.web_view.setMinimumHeight(380)
-            self.web_view.setUrl(QUrl(self.web_url_input.text().strip()))
-            self.web_refresh_button.clicked.connect(self.web_view.reload)
-            web_layout.addWidget(self.web_view)
-        else:
-            self.web_view = None
-            self.web_refresh_button.setEnabled(False)
-            warning = QLabel(
-                "PyQt6 WebEngine이 없어 내장 웹뷰를 표시할 수 없습니다.\n"
-                "아래 버튼으로 기본 브라우저에서 열 수 있습니다."
-            )
-            warning.setStyleSheet("color: #a33; font-size: 12px;")
-            web_layout.addWidget(warning)
-
-        main_layout.addWidget(web_group)
-
-    def open_webview_url_in_browser(self):
-        url = self.web_url_input.text().strip()
-        if not url:
-            return
-        QDesktopServices.openUrl(QUrl(url))
 
     def setup_progress_section(self, main_layout):
         """진행 상황 섹션 설정"""
@@ -3024,43 +3044,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         desc_label.setStyleSheet("color: #4a4a4a; font-size: 12px;")
         golden_layout.addWidget(desc_label)
 
+        api_file_info = QLabel("API 키는 프로그램 폴더의 `api_keys.json` 파일에서 읽습니다.")
+        api_file_info.setStyleSheet("color: #6c757d; font-size: 12px;")
+        golden_layout.addWidget(api_file_info)
+
         self.golden_category_input = QLineEdit()
         self.golden_category_input.setPlaceholderText("카테고리 키워드 (예: 생활꿀팁)")
         golden_layout.addWidget(self.golden_category_input)
-
-        api_grid = QGridLayout()
-        api_grid.setHorizontalSpacing(8)
-        api_grid.setVerticalSpacing(8)
-
-        self.searchad_access_key_input = QLineEdit()
-        self.searchad_access_key_input.setPlaceholderText("검색광고 Access Key")
-        self.searchad_secret_key_input = QLineEdit()
-        self.searchad_secret_key_input.setPlaceholderText("검색광고 Secret Key")
-        self.searchad_secret_key_input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.searchad_customer_id_input = QLineEdit()
-        self.searchad_customer_id_input.setPlaceholderText("검색광고 Customer ID")
-        self.naver_client_id_input = QLineEdit()
-        self.naver_client_id_input.setPlaceholderText("네이버 Client ID")
-        self.naver_client_secret_input = QLineEdit()
-        self.naver_client_secret_input.setPlaceholderText("네이버 Client Secret")
-        self.naver_client_secret_input.setEchoMode(QLineEdit.EchoMode.Password)
-
-        api_grid.addWidget(self.searchad_access_key_input, 0, 0)
-        api_grid.addWidget(self.searchad_secret_key_input, 0, 1)
-        api_grid.addWidget(self.searchad_customer_id_input, 0, 2)
-        api_grid.addWidget(self.naver_client_id_input, 1, 0)
-        api_grid.addWidget(self.naver_client_secret_input, 1, 1)
 
         self.golden_candidate_spin = QSpinBox()
         self.golden_candidate_spin.setRange(5, 100)
         self.golden_candidate_spin.setValue(30)
         self.golden_candidate_spin.setSuffix(" 개 후보")
-        api_grid.addWidget(self.golden_candidate_spin, 1, 2)
-        golden_layout.addLayout(api_grid)
-
-        self.remember_api_checkbox = QCheckBox("API 키 저장")
-        self.remember_api_checkbox.setChecked(self.settings.should_remember_api_keys())
-        golden_layout.addWidget(self.remember_api_checkbox)
+        golden_layout.addWidget(self.golden_candidate_spin)
 
         button_layout = QHBoxLayout()
         self.golden_start_button = QPushButton("황금 키워드 분석")
@@ -3078,24 +3074,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_log_text.setPlaceholderText("분석 결과가 여기에 표시됩니다.")
         golden_layout.addWidget(self.golden_log_text)
 
-        saved_api = self.settings.get_api_credentials()
-        if self.settings.should_remember_api_keys():
-            self.searchad_access_key_input.setText(saved_api.get("searchad_access_key", ""))
-            self.searchad_secret_key_input.setText(saved_api.get("searchad_secret_key", ""))
-            self.searchad_customer_id_input.setText(saved_api.get("searchad_customer_id", ""))
-            self.naver_client_id_input.setText(saved_api.get("naver_client_id", ""))
-            self.naver_client_secret_input.setText(saved_api.get("naver_client_secret", ""))
-
         parent_layout.addWidget(golden_group)
-
-    def _collect_golden_api_credentials(self):
-        return {
-            "searchad_access_key": self.searchad_access_key_input.text().strip(),
-            "searchad_secret_key": self.searchad_secret_key_input.text().strip(),
-            "searchad_customer_id": self.searchad_customer_id_input.text().strip(),
-            "naver_client_id": self.naver_client_id_input.text().strip(),
-            "naver_client_secret": self.naver_client_secret_input.text().strip()
-        }
 
     def start_golden_keyword_search(self):
         if self.golden_keyword_thread and self.golden_keyword_thread.isRunning():
@@ -3107,17 +3086,19 @@ class KeywordExtractorMainWindow(QMainWindow):
             QMessageBox.warning(self, "입력 오류", "카테고리 키워드를 입력해 주세요.")
             return
 
-        credentials = self._collect_golden_api_credentials()
-        missing = [k for k, v in credentials.items() if not v]
-        if missing:
+        try:
+            credentials, api_file = load_api_credentials_from_file()
+            self.update_progress("전체", f"API 키 로드 완료: {api_file}")
+        except FileNotFoundError as e:
             QMessageBox.warning(
                 self,
-                "API 키 누락",
-                "API 입력값을 모두 채워주세요.\n누락: " + ", ".join(missing)
+                "API 키 파일 필요",
+                f"다음 파일을 생성한 뒤 API 키를 입력해 주세요.\n{e}"
             )
             return
-
-        self.settings.set_api_credentials(credentials, self.remember_api_checkbox.isChecked())
+        except Exception as e:
+            QMessageBox.warning(self, "API 키 오류", str(e))
+            return
 
         self.golden_keyword_results = []
         self.golden_log_text.clear()
@@ -3330,6 +3311,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             target_keyword = keyword_or_msg
             msg_content = message
 
+        target_keyword = sanitize_display_text(target_keyword)
+        msg_content = sanitize_display_text(msg_content)
         formatted_message = f"[{current_time}] {msg_content}"
         
         # 1. ?대떦 ?ㅼ썙?쒖쓽 媛쒕퀎 ??뿉 濡쒓렇 異붽?
@@ -3357,7 +3340,7 @@ class KeywordExtractorMainWindow(QMainWindow):
 
     def on_search_paused(self):
         """?쇱떆?뺤? ??UI ?낅뜲?댄듃"""
-        self.pause_button.setText("?ш컻")
+        self.pause_button.setText("재개")
         self.status_bar.showMessage("키워드 추출이 일시정지되었습니다.")
     
     def on_search_resumed(self):
@@ -3383,14 +3366,14 @@ class KeywordExtractorMainWindow(QMainWindow):
             
             if running_threads:
                 reply = QMessageBox.question(
-                    self, '?뺤씤', 
-                    f'?꾩옱 {len(running_threads)}媛쒖쓽 ?ㅼ썙??異붿텧 ?묒뾽??吏꾪뻾 以묒엯?덈떎.\n\n?묒뾽??以묐떒?섍퀬 醫낅즺?섏떆寃좎뒿?덇퉴?',
+                    self, "확인",
+                    f"현재 {len(running_threads)}개의 키워드 추출 작업이 진행 중입니다.\n\n작업을 중단하고 종료하시겠습니까?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                     QMessageBox.StandardButton.Yes
                 )
                 
                 if reply == QMessageBox.StandardButton.Yes:
-                    self.update_progress("?꾩껜", "?뮶 醫낅즺瑜??꾪빐 ?묒뾽???뺣━?섍퀬 ?덉뒿?덈떎...")
+                    self.update_progress("전체", "프로그램 종료를 위해 작업을 정리하고 있습니다...")
                     
                     # 紐⑤뱺 ?ㅻ젅??以묐떒
                     for thread in running_threads:
@@ -3460,7 +3443,7 @@ def main():
             # ?쇱씠?좎뒪 ?좏슚??-> 硫붿씤 ?꾨줈洹몃옩 ?ㅽ뻾
             print(f"???쇱씠?좎뒪 ?뺤씤?? {expiry_date_str}")
             window = KeywordExtractorMainWindow()
-            window.usage_label.setText(f"?ъ슜 湲곌컙: {expiry_date_str}")
+            window.usage_label.setText(f"사용 기간: {expiry_date_str}")
             window.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
             window.show()
             
@@ -3474,7 +3457,7 @@ def main():
             # ?좎쭨 ?뺤떇???섎せ??寃쎌슦?먮룄 ?쇰떒 ?ㅽ뻾? ?쒖폒二쇰릺 寃쎄퀬 (?좎? ?몄쓽)
             print(f"?좑툘 ?좎쭨 ?뺤떇 ?ㅻ쪟: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
-            window.usage_label.setText(f"?ъ슜 湲곌컙: {expiry_date_str}")
+            window.usage_label.setText(f"사용 기간: {expiry_date_str}")
             window.show()
             sys.exit(app.exec())
             

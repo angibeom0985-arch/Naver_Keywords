@@ -1,6 +1,5 @@
 # GUI 프레임워크
 PyQt6>=6.5.0
-PyQt6-WebEngine>=6.5.0
 
 # 웹 자동화 (키워드 추출용)
 selenium>=4.0.0
