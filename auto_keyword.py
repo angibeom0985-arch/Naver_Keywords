@@ -15,6 +15,7 @@ import threading
 import traceback
 import subprocess
 import io
+import builtins
 import uuid
 from pathlib import Path
 from datetime import datetime
@@ -35,7 +36,7 @@ try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
 except ImportError:
-    print("?좑툘 BeautifulSoup???ㅼ튂?댁＜?몄슂: pip install beautifulsoup4")
+    print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
 # 釉뚮씪?곗? ?놁씠 ?묒뾽?섍린 ?꾪빐 selenium ?쒓굅
@@ -49,7 +50,7 @@ try:
         'plugins')
     if os.path.exists(qt_plugin_path):
         os.environ['QT_PLUGIN_PATH'] = qt_plugin_path
-        print(f"Qt ?뚮윭洹몄씤 寃쎈줈 ?ㅼ젙: {qt_plugin_path}")
+        print(f"Qt 플러그인 경로 설정: {qt_plugin_path}")
     else:
         # ???寃쎈줈 ?쒕룄
         alt_path = os.path.join(
@@ -58,7 +59,7 @@ try:
             'plugins')
         if os.path.exists(alt_path):
             os.environ['QT_PLUGIN_PATH'] = alt_path
-            print(f"Qt ?뚮윭洹몄씤 寃쎈줈 ?ㅼ젙 (???: {alt_path}")
+            print(f"Qt 플러그인 대체 경로 설정: {alt_path}")
 except ImportError:
     pass
 
@@ -67,7 +68,7 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QTextEdit, QMessageBox, 
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
-    QTabWidget, QTabBar, QSpinBox
+    QTabWidget, QTabBar, QSpinBox, QTableWidget, QTableWidgetItem, QHeaderView
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -82,7 +83,7 @@ try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
 except ImportError:
-    print("?좑툘 BeautifulSoup???ㅼ튂?댁＜?몄슂: pip install beautifulsoup4")
+    print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
 # ?ㅼ썙??異붿텧 ?꾩슜 - OpenAI API 遺덊븘??
@@ -142,7 +143,7 @@ def get_icon_path():
             return cwd_icon
             
     except Exception as e:
-        print(f"?꾩씠肄?寃쎈줈 ?뺤씤 以??ㅻ쪟: {e}")
+        safe_print(f"아이콘 경로 확인 중 오류: {e}")
     
     return None
 
@@ -162,6 +163,11 @@ def sanitize_display_text(text):
     return clean or "진행 상태 업데이트"
 
 
+def safe_print(*args, **kwargs):
+    normalized = [sanitize_display_text(arg) for arg in args]
+    builtins.print(*normalized, **kwargs)
+
+
 def load_api_credentials_from_file():
     required_keys = [
         "searchad_access_key",
@@ -178,7 +184,7 @@ def load_api_credentials_from_file():
             json.dump(template, f, ensure_ascii=False, indent=2)
         raise FileNotFoundError(str(api_file))
 
-    with open(api_file, "r", encoding="utf-8") as f:
+    with open(api_file, "r", encoding="utf-8-sig") as f:
         data = json.load(f)
 
     if not isinstance(data, dict):
@@ -236,7 +242,7 @@ def check_license_from_sheet(machine_id):
     """援ш? ?쒗듃?먯꽌 ?쇱씠?좎뒪 ?뺣낫 ?뺤씤"""
     sheet_url = "https://docs.google.com/spreadsheets/d/10-AseeTNvE97wo29HT2ajui918bg5ICj5L9UOYV0NBo/export?format=csv&gid=0"
     try:
-        print(f"?쇱씠?좎뒪 ?뺤씤 以?.. ID: {machine_id}")
+        safe_print(f"라이선스 확인 중... ID: {machine_id}")
         response = requests.get(sheet_url, timeout=5)
         if response.status_code == 200:
             # CSV ?뚯떛
@@ -254,7 +260,7 @@ def check_license_from_sheet(machine_id):
                 
         return None
     except Exception as e:
-        print(f"?쇱씠?좎뒪 ?뺤씤 ?ㅽ뙣: {e}")
+        safe_print(f"라이선스 확인 실패: {e}")
         return None
 
 
@@ -647,7 +653,7 @@ def emergency_save_data():
         return
     
     try:
-        print("?슚 ?묎툒 ????쒖옉...")
+        safe_print("?슚 ?묎툒 ????쒖옉...")
         
         saved_count = 0
         
@@ -687,22 +693,22 @@ def emergency_save_data():
                         
                         # ?곗씠?????
                         if searcher.save_recursive_results_to_excel(emergency_file):
-                            print(f"???묎툒 ????꾨즺 ({base_keyword}): {emergency_file}")
+                            safe_print(f"???묎툒 ????꾨즺 ({base_keyword}): {emergency_file}")
                             saved_count += 1
                 except Exception as inner_e:
-                    print(f"?좑툘 媛쒕퀎 ?ㅻ젅??????ㅽ뙣: {str(inner_e)}")
+                    safe_print(f"?좑툘 媛쒕퀎 ?ㅻ젅??????ㅽ뙣: {str(inner_e)}")
                     continue
             
             if saved_count > 0:
-                print(f"?뱤 珥?{saved_count}媛쒖쓽 ?묒뾽???묎툒 ??λ릺?덉뒿?덈떎.")
+                safe_print(f"?뱤 珥?{saved_count}媛쒖쓽 ?묒뾽???묎툒 ??λ릺?덉뒿?덈떎.")
             else:
-                print("?좑툘 ??ν븷 ?곗씠?곌? ?녾굅???ㅽ뙣?덉뒿?덈떎.")
+                safe_print("?좑툘 ??ν븷 ?곗씠?곌? ?녾굅???ㅽ뙣?덉뒿?덈떎.")
             
     except Exception as e:
-        print(f"???묎툒 ???珥덇린???ㅽ뙣: {str(e)}")
+        safe_print(f"???묎툒 ???珥덇린???ㅽ뙣: {str(e)}")
         
     except Exception as e:
-        print(f"???묎툒 ????ㅽ뙣: {str(e)}")
+        safe_print(f"???묎툒 ????ㅽ뙣: {str(e)}")
         # ?묎툒 ??λ룄 ?ㅽ뙣??寃쎌슦 理쒖냼??JSON?쇰줈?쇰룄 ????쒕룄
         try:
             if (_current_window and _current_window.search_thread and 
@@ -718,9 +724,9 @@ def emergency_save_data():
                     json.dump(_current_window.search_thread.searcher.all_related_keywords, f, 
                              ensure_ascii=False, indent=2)
                 
-                print(f"?뱞 JSON 諛깆뾽 ????꾨즺: {backup_file}")
+                safe_print(f"?뱞 JSON 諛깆뾽 ????꾨즺: {backup_file}")
         except:
-            print("??JSON 諛깆뾽 ??λ룄 ?ㅽ뙣")
+            safe_print("??JSON 諛깆뾽 ??λ룄 ?ㅽ뙣")
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -728,9 +734,9 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     global _crash_save_enabled
     
     if _crash_save_enabled:
-        print("?슚 泥섎━?섏? ?딆? ?덉쇅 諛쒖깮!")
-        print(f"?덉쇅 ??? {exc_type.__name__}")
-        print(f"?덉쇅 ?댁슜: {str(exc_value)}")
+        safe_print("?슚 泥섎━?섏? ?딆? ?덉쇅 諛쒖깮!")
+        safe_print(f"?덉쇅 ??? {exc_type.__name__}")
+        safe_print(f"?덉쇅 ?댁슜: {str(exc_value)}")
         
         # ?묎툒 ????섑뻾
         emergency_save_data()
@@ -752,7 +758,7 @@ def handle_exception(exc_type, exc_value, exc_traceback):
                 traceback.print_exception(
     exc_type, exc_value, exc_traceback, file=f)
             
-            print(f"?뱷 ?щ옒??濡쒓렇 ??? {crash_file}")
+            safe_print(f"?뱷 ?щ옒??濡쒓렇 ??? {crash_file}")
         except:
             pass
     
@@ -768,7 +774,7 @@ def handle_signal(signum, frame):
     }
     
     signal_name = signal_names.get(signum, f"Signal {signum}")
-    print(f"?슚 {signal_name} ?좏샇 ?섏떊! ?묎툒 ???以?..")
+    safe_print(f"?슚 {signal_name} ?좏샇 ?섏떊! ?묎툒 ???以?..")
     
     emergency_save_data()
     
@@ -1182,7 +1188,7 @@ class NaverMobileSearchScraper:
     def initialize_browser(self):
         """釉뚮씪?곗? 珥덇린??- 諛깃렇?쇱슫??紐⑤뱶 ?꾩슜 (媛쒖꽑??踰꾩쟾)"""
         try:
-            print("?봽 釉뚮씪?곗? 珥덇린?붾? ?쒖옉?⑸땲??.. (諛깃렇?쇱슫??紐⑤뱶)")
+            safe_print("?봽 釉뚮씪?곗? 珥덇린?붾? ?쒖옉?⑸땲??.. (諛깃렇?쇱슫??紐⑤뱶)")
             
             driver_path = None
             
@@ -1200,7 +1206,7 @@ class NaverMobileSearchScraper:
             for base_path in base_paths:
                 local_driver = os.path.join(base_path, "chromedriver.exe")
                 if os.path.exists(local_driver):
-                    print(f"?뱛 濡쒖뺄 ?쒕씪?대쾭 諛쒓껄: {local_driver}")
+                    safe_print(f"?뱛 濡쒖뺄 ?쒕씪?대쾭 諛쒓껄: {local_driver}")
                     driver_path = local_driver
                     break
             
@@ -1208,17 +1214,17 @@ class NaverMobileSearchScraper:
             if not driver_path:
                 try:
                     from webdriver_manager.chrome import ChromeDriverManager
-                    print("燧뉛툘 ChromeDriverManager濡??쒕씪?대쾭 ?ㅼ튂/?뺤씤 以?..")
+                    safe_print("燧뉛툘 ChromeDriverManager濡??쒕씪?대쾭 ?ㅼ튂/?뺤씤 以?..")
                     # cache_valid_range=1濡??ㅼ젙?섏뿬 留ㅻ쾲 泥댄겕?섏? ?딅룄濡?理쒖쟻??
                     driver_path = ChromeDriverManager().install()
-                    print(f"???쒕씪?대쾭 寃쎈줈 ?뺣낫: {driver_path}")
+                    safe_print(f"???쒕씪?대쾭 寃쎈줈 ?뺣낫: {driver_path}")
                 except Exception as e:
-                    print(f"?좑툘 ChromeDriverManager ?ㅽ뙣: {str(e)}")
+                    safe_print(f"?좑툘 ChromeDriverManager ?ㅽ뙣: {str(e)}")
             
             # 3. ?쒖뒪??PATH ?뺤씤 (理쒗썑???섎떒)
             if not driver_path and shutil.which("chromedriver"):
                 driver_path = "chromedriver"
-                print("???쒖뒪??PATH?먯꽌 chromedriver 諛쒓껄")
+                safe_print("???쒖뒪??PATH?먯꽌 chromedriver 諛쒓껄")
             
             if not driver_path:
                 raise Exception("ChromeDriver瑜?李얠쓣 ???놁뒿?덈떎.\n?꾨줈洹몃옩 ?대뜑??'chromedriver.exe'瑜??ｌ뼱二쇨굅??\n?명꽣???곌껐???뺤씤?댁＜?몄슂.")
@@ -1245,7 +1251,7 @@ class NaverMobileSearchScraper:
             
             # ?ㅻ뱶由ъ뒪 紐⑤뱶 媛뺤젣 ?쒖꽦??(??긽 諛깃렇?쇱슫??紐⑤뱶)
             options.add_argument("--headless")  # ?ㅻ뱶由ъ뒪 紐⑤뱶 ?쒖꽦??
-            print("?뵁 諛깃렇?쇱슫??紐⑤뱶: 釉뚮씪?곗? 李쎌씠 ?④꺼吏묐땲??")
+            safe_print("?뵁 諛깃렇?쇱슫??紐⑤뱶: 釉뚮씪?곗? 李쎌씠 ?④꺼吏묐땲??")
             
             options.add_argument("--window-size=1920,1080")  # ?쒖? FHD ?댁긽?꾨줈 ?ㅼ젙
             options.add_argument("--start-maximized")  # 釉뚮씪?곗? 理쒕???(?ㅻ뱶由ъ뒪?먯꽌???좏슚)
@@ -1306,13 +1312,13 @@ class NaverMobileSearchScraper:
             
             # ?쒕씪?대쾭 ?앹꽦
             self.driver = webdriver.Chrome(service=service, options=options)
-            print("??Chrome ?쒕씪?대쾭 ?앹꽦 ?깃났!")
+            safe_print("??Chrome ?쒕씪?대쾭 ?앹꽦 ?깃났!")
             
             # WebDriver ??꾩븘???ㅼ젙 (理쒖쟻??
             self.driver.set_page_load_timeout(15)  # ?섏씠吏 濡쒕뵫 ??꾩븘??15珥덈줈 ?⑥텞
             self.driver.implicitly_wait(3)  # ?붿떆???湲?3珥덈줈 ?⑥텞
             
-            print("釉뚮씪?곗?媛 ?ㅽ뻾?섏뿀?듬땲??")
+            safe_print("釉뚮씪?곗?媛 ?ㅽ뻾?섏뿀?듬땲??")
             
             # ?ㅼ씠踰??묒냽 ?쒕룄
             max_retries = 3
@@ -1375,22 +1381,22 @@ class NaverMobileSearchScraper:
                     WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "body"))
                     )
-                    print("?ㅼ씠踰?紐⑤컮?쇱뿉 ?묒냽?덉뒿?덈떎. (釉뚮씪?곗? 李??ш린??留욊쾶 理쒖쟻?붾맖)")
+                    safe_print("?ㅼ씠踰?紐⑤컮?쇱뿉 ?묒냽?덉뒿?덈떎. (釉뚮씪?곗? 李??ш린??留욊쾶 理쒖쟻?붾맖)")
                     time.sleep(2)
                     return True
                 except Exception as e:
                     if attempt < max_retries - 1:
-                        print(f"?ㅼ씠踰??묒냽 ?쒕룄 {attempt + 1} ?ㅽ뙣, ?ъ떆??以?..")
+                        safe_print(f"?ㅼ씠踰??묒냽 ?쒕룄 {attempt + 1} ?ㅽ뙣, ?ъ떆??以?..")
                         time.sleep(3)
                     else:
-                        print(f"?ㅼ씠踰??묒냽 理쒖쥌 ?ㅽ뙣: {str(e)}")
+                        safe_print(f"?ㅼ씠踰??묒냽 理쒖쥌 ?ㅽ뙣: {str(e)}")
                         return False
             
             return True
 
         except Exception as e:
             error_msg = f"釉뚮씪?곗? 珥덇린???ㅻ쪟:\n{str(e)}\n\nChrome 釉뚮씪?곗?媛 ?ㅼ튂?섏뼱 ?덈뒗吏 ?뺤씤?댁＜?몄슂."
-            print(f"??{error_msg}")
+            safe_print(f"??{error_msg}")
             
             # GUI ?ㅻ젅?쒖뿉??硫붿떆吏 諛뺤뒪 ?쒖떆 ?쒕룄
             try:
@@ -2434,16 +2440,64 @@ class KeywordHunter:
         payload = response.json()
         return int(payload.get("total", 0))
 
-    def calculate_efficiency_index(self, monthly_search, blog_docs):
-        return monthly_search / (blog_docs + 1)
+    def calculate_content_saturation_index(self, monthly_search, blog_docs):
+        return (blog_docs + 1) / (monthly_search + 1)
+
+    def _score_keyword_rows(self, keyword_rows, limit, progress_callback=None):
+        scored = []
+        limited_rows = keyword_rows[:max(1, limit)]
+        for idx, row in enumerate(limited_rows, start=1):
+            blog_docs = self.get_blog_document_count(row["keyword"])
+            saturation = self.calculate_content_saturation_index(
+                row["monthly_total_search"], blog_docs
+            )
+            result = {
+                "keyword": row["keyword"],
+                "monthly_pc_search": row["monthly_pc_search"],
+                "monthly_mobile_search": row["monthly_mobile_search"],
+                "monthly_total_search": row["monthly_total_search"],
+                "blog_document_count": blog_docs,
+                "content_saturation_index": saturation
+            }
+            scored.append(result)
+            if progress_callback:
+                progress_callback(f"[{idx}/{len(limited_rows)}] {row['keyword']} 계산 완료")
+        return scored
+
+    def analyze_related_keywords_with_content(self, seed_keyword, limit=30, progress_callback=None):
+        seed = seed_keyword.strip()
+        if not seed:
+            raise ValueError("키워드를 입력해 주세요.")
+
+        if progress_callback:
+            progress_callback(f"'{seed}' 연관 키워드를 조회합니다.")
+        keyword_rows = self.get_searchad_related_keywords(seed)
+        if not keyword_rows:
+            return []
+
+        # 입력 키워드가 포함된 연관 키워드만 분석
+        contains_seed = [
+            row for row in keyword_rows
+            if seed.replace(" ", "").lower() in row["keyword"].replace(" ", "").lower()
+        ]
+        source_rows = contains_seed if contains_seed else keyword_rows
+        source_rows = sorted(
+            source_rows,
+            key=lambda x: x["monthly_total_search"],
+            reverse=True
+        )
+        if progress_callback:
+            progress_callback(f"후보 {min(len(source_rows), limit)}개를 분석합니다.")
+
+        return self._score_keyword_rows(source_rows, limit, progress_callback)
 
     def find_golden_keywords(self, category_keyword, max_candidates=30, progress_callback=None):
         seed = category_keyword.strip()
         if not seed:
-            raise ValueError("카테고리 키워드를 입력해 주세요.")
+            raise ValueError("카테고리를 선택해 주세요.")
 
         if progress_callback:
-            progress_callback(f"'{seed}' 연관 키워드를 조회합니다.")
+            progress_callback(f"카테고리 '{seed}' 관련 키워드를 조회합니다.")
         keyword_rows = self.get_searchad_related_keywords(seed)
         if not keyword_rows:
             return []
@@ -2453,27 +2507,14 @@ class KeywordHunter:
             key=lambda x: x["monthly_total_search"],
             reverse=True
         )
-        candidates = keyword_rows[:max(1, max_candidates)]
         if progress_callback:
-            progress_callback(f"후보 {len(candidates)}개에 대해 블로그 문서 수를 조회합니다.")
+            progress_callback(f"후보 {min(len(keyword_rows), max_candidates)}개를 분석합니다.")
 
-        scored = []
-        for idx, row in enumerate(candidates, start=1):
-            blog_docs = self.get_blog_document_count(row["keyword"])
-            efficiency = self.calculate_efficiency_index(row["monthly_total_search"], blog_docs)
-            result = {
-                "keyword": row["keyword"],
-                "monthly_pc_search": row["monthly_pc_search"],
-                "monthly_mobile_search": row["monthly_mobile_search"],
-                "monthly_total_search": row["monthly_total_search"],
-                "blog_document_count": blog_docs,
-                "efficiency_index": efficiency
-            }
-            scored.append(result)
-            if progress_callback:
-                progress_callback(f"[{idx}/{len(candidates)}] {row['keyword']} 계산 완료")
-
-        scored.sort(key=lambda x: x["efficiency_index"], reverse=True)
+        scored = self._score_keyword_rows(keyword_rows, max_candidates, progress_callback)
+        # 포화 지수는 낮을수록 유리, 동률이면 검색량 높은 순
+        scored.sort(
+            key=lambda x: (x["content_saturation_index"], -x["monthly_total_search"])
+        )
         return scored
 
 
@@ -2482,10 +2523,11 @@ class GoldenKeywordThread(QThread):
     error = pyqtSignal(str)
     log = pyqtSignal(str)
 
-    def __init__(self, category_keyword, max_candidates, credentials):
+    def __init__(self, analysis_type, keyword, limit, credentials):
         super().__init__()
-        self.category_keyword = category_keyword
-        self.max_candidates = max_candidates
+        self.analysis_type = analysis_type
+        self.keyword = keyword
+        self.limit = limit
         self.credentials = credentials
 
     def run(self):
@@ -2497,11 +2539,18 @@ class GoldenKeywordThread(QThread):
                 client_id=self.credentials["naver_client_id"],
                 client_secret=self.credentials["naver_client_secret"]
             )
-            results = hunter.find_golden_keywords(
-                self.category_keyword,
-                max_candidates=self.max_candidates,
-                progress_callback=lambda msg: self.log.emit(msg)
-            )
+            if self.analysis_type == "related":
+                results = hunter.analyze_related_keywords_with_content(
+                    self.keyword,
+                    limit=self.limit,
+                    progress_callback=lambda msg: self.log.emit(msg)
+                )
+            else:
+                results = hunter.find_golden_keywords(
+                    self.keyword,
+                    max_candidates=self.limit,
+                    progress_callback=lambda msg: self.log.emit(msg)
+                )
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))
@@ -2518,6 +2567,7 @@ class ParallelKeywordThread(QThread):
         self.save_dir = save_dir
         self.extract_autocomplete = extract_autocomplete
         self.driver = None
+        self.searcher = None
         self.is_running = True
         
     def run(self):
@@ -2533,6 +2583,8 @@ class ParallelKeywordThread(QThread):
             # 寃?됯린 珥덇린??
             self.searcher = NaverMobileSearchScraper(driver=self.driver)
             self.searcher.save_dir = self.save_dir
+            self.searcher.is_running = self.is_running
+            self.searcher.search_thread = self
             
             # ?ㅼ썙??異붿텧 ?ㅽ뻾
             success = self.searcher.recursive_keyword_extraction(
@@ -2541,18 +2593,34 @@ class ParallelKeywordThread(QThread):
                 extract_autocomplete=self.extract_autocomplete
             )
             
-            if success and self.is_running:
-                # 寃곌낵 ???
-                current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
-                safe_keyword = re.sub(r"[^\w가-힣\s]", "", self.keyword).strip()[:20]
-                filename = f"{safe_keyword}_키워드추출_{current_time}.xlsx"
-                save_path = os.path.join(self.save_dir, filename)
-            
+            current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+            safe_keyword = re.sub(r"[^\w가-힣\s]", "", self.keyword).strip()[:20] or "키워드"
+            filename_suffix = "키워드추출" if self.is_running and success else "중간저장"
+            filename = f"{safe_keyword}_{filename_suffix}_{current_time}.xlsx"
+            save_path = os.path.join(self.save_dir, filename)
+
+            saved_path = None
+            has_partial_result = bool(
+                self.searcher and
+                hasattr(self.searcher, "all_related_keywords") and
+                self.searcher.all_related_keywords
+            )
+            if has_partial_result:
                 if self.searcher.save_recursive_results_to_excel(save_path, self._log_wrapper):
-                    self.finished.emit(save_path)
+                    saved_path = save_path
+
+            if success and self.is_running:
+                if saved_path:
+                    self.finished.emit(saved_path)
                     self.log.emit(self.keyword, f"'{self.keyword}' 처리 완료: {filename}")
                 else:
-                    self.error.emit(f"'{self.keyword}' 파일 저장 실패")
+                    self.error.emit(f"'{self.keyword}' 저장할 결과가 없습니다.")
+            elif not self.is_running:
+                if saved_path:
+                    self.finished.emit(saved_path)
+                    self.log.emit(self.keyword, f"'{self.keyword}' 중단됨 - 중간 결과 저장 완료")
+                else:
+                    self.error.emit(f"'{self.keyword}' 중단됨 (저장할 결과 없음)")
             else:
                 self.error.emit(f"'{self.keyword}' 추출 실패 또는 중단됨")
                 
@@ -2575,6 +2643,13 @@ class ParallelKeywordThread(QThread):
     def stop(self):
         """?묒뾽 以묐떒"""
         self.is_running = False
+        if self.searcher:
+            self.searcher.is_running = False
+        if self.driver:
+            try:
+                self.driver.quit()
+            except Exception:
+                pass
 
         
 
@@ -2731,9 +2806,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         icon_path = get_icon_path()
         if icon_path:
             self.setWindowIcon(QIcon(icon_path))
-            print(f"?꾩씠肄??ㅼ젙 ?꾨즺: {icon_path}")
+            safe_print(f"아이콘 설정 완료: {icon_path}")
         else:
-            print("?꾩씠肄??뚯씪??李얠쓣 ???놁뒿?덈떎.")
+            safe_print("아이콘 파일을 찾을 수 없습니다.")
         
         self.setWindowTitle("네이버 연관키워드 추출기")
         self.resize(1200, 800) # 湲곕낯 ?ш린 ?ㅼ젙
@@ -2746,6 +2821,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.active_threads = []     # ?? ??? ??
         self.completed_threads = 0   # ??? ??? ?
         self.total_threads = 0       # ?? ??? ?
+        self.stop_requested = False
         self.golden_keyword_results = []
         self.golden_keyword_thread = None
         
@@ -2816,10 +2892,10 @@ class KeywordExtractorMainWindow(QMainWindow):
             if hasattr(signal, 'SIGBREAK'):
                 signal.signal(signal.SIGBREAK, handle_signal)
         except Exception as e:
-            print(f"?좏샇 ?몃뱾???ㅼ젙 ?ㅽ뙣: {str(e)}")
+            safe_print(f"신호 핸들러 설정 실패: {str(e)}")
         
         atexit.register(emergency_save_data)
-        print("?썳截??щ옒??蹂댄샇 ?쒖뒪?쒖씠 ?쒖꽦?붾릺?덉뒿?덈떎.")
+        safe_print("크래시 보호 시스템이 활성화되었습니다.")
 
     def setup_chrome_driver(self):
         """硫붿씤 ?덈룄?곗슜 Chrome WebDriver ?ㅼ젙 (?꾩슂 ??"""
@@ -3037,64 +3113,110 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.update_progress(f"저장 위치가 기억되었습니다: {directory}")
 
     def setup_golden_keyword_section(self, parent_layout):
-        golden_group = QGroupBox("황금 키워드 발굴")
+        golden_group = QGroupBox("키워드 검색량/콘텐츠 분석")
         golden_layout = QVBoxLayout(golden_group)
 
-        desc_label = QLabel("효율성 지수 = 월검색량 / (블로그 문서수 + 1)")
-        desc_label.setStyleSheet("color: #4a4a4a; font-size: 12px;")
-        golden_layout.addWidget(desc_label)
+        metric_label = QLabel("콘텐츠 포화 지수 = (콘텐츠양 + 1) / (월검색량 + 1)  |  낮을수록 유리")
+        metric_label.setStyleSheet("color: #4a4a4a; font-size: 12px;")
+        golden_layout.addWidget(metric_label)
 
-        api_file_info = QLabel("API 키는 프로그램 폴더의 `api_keys.json` 파일에서 읽습니다.")
-        api_file_info.setStyleSheet("color: #6c757d; font-size: 12px;")
-        golden_layout.addWidget(api_file_info)
+        related_group = QGroupBox("연관 키워드의 검색량/콘텐츠양")
+        related_layout = QVBoxLayout(related_group)
+        related_top = QHBoxLayout()
+        self.related_keyword_input = QLineEdit()
+        self.related_keyword_input.setPlaceholderText("분석할 키워드 입력")
+        self.related_keyword_input.returnPressed.connect(self.start_related_keyword_analysis)
+        self.related_keyword_button = QPushButton("연관 키워드 분석")
+        self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
+        related_top.addWidget(self.related_keyword_input)
+        related_top.addWidget(self.related_keyword_button)
+        related_layout.addLayout(related_top)
+        golden_layout.addWidget(related_group)
 
-        self.golden_category_input = QLineEdit()
-        self.golden_category_input.setPlaceholderText("카테고리 키워드 (예: 생활꿀팁)")
-        golden_layout.addWidget(self.golden_category_input)
+        category_group = QGroupBox("사용자 카테고리 황금 키워드 추천")
+        category_layout = QVBoxLayout(category_group)
+        row = QHBoxLayout()
+        self.golden_category_combo = QComboBox()
+        self.golden_category_combo.addItems([
+            "생활/리빙", "건강/의료", "교육/학습", "금융/재테크", "부동산",
+            "자동차", "여행/숙박", "뷰티/미용", "패션", "식품/요리",
+            "IT/전자", "육아/아동", "취업/자격증", "법률/행정", "반려동물",
+            "스포츠/레저", "문화/공연", "인테리어", "청소/가사", "기타 서비스"
+        ])
+        self.golden_start_button = QPushButton("카테고리 황금 키워드 추천")
+        self.golden_start_button.clicked.connect(self.start_category_golden_keyword_search)
+        row.addWidget(self.golden_category_combo)
+        row.addWidget(self.golden_start_button)
+        category_layout.addLayout(row)
+        golden_layout.addWidget(category_group)
 
-        self.golden_candidate_spin = QSpinBox()
-        self.golden_candidate_spin.setRange(5, 100)
-        self.golden_candidate_spin.setValue(30)
-        self.golden_candidate_spin.setSuffix(" 개 후보")
-        golden_layout.addWidget(self.golden_candidate_spin)
-
-        button_layout = QHBoxLayout()
-        self.golden_start_button = QPushButton("황금 키워드 분석")
-        self.golden_start_button.clicked.connect(self.start_golden_keyword_search)
-        self.golden_save_button = QPushButton("상위 키워드 keywords.txt 저장")
+        options_row = QHBoxLayout()
+        options_row.addWidget(QLabel("분석 개수"))
+        self.golden_limit_spin = QSpinBox()
+        self.golden_limit_spin.setRange(5, 200)
+        self.golden_limit_spin.setValue(30)
+        self.golden_limit_spin.setSuffix(" 개")
+        options_row.addWidget(self.golden_limit_spin)
+        options_row.addStretch()
+        self.golden_save_button = QPushButton("표의 키워드 keywords.txt 저장")
         self.golden_save_button.clicked.connect(self.save_golden_keywords_to_file)
         self.golden_save_button.setEnabled(False)
-        button_layout.addWidget(self.golden_start_button)
-        button_layout.addWidget(self.golden_save_button)
-        golden_layout.addLayout(button_layout)
+        options_row.addWidget(self.golden_save_button)
+        golden_layout.addLayout(options_row)
+
+        self.golden_result_table = QTableWidget()
+        self.golden_result_table.setColumnCount(6)
+        self.golden_result_table.setHorizontalHeaderLabels(
+            ["순위", "키워드", "월검색량", "콘텐츠양(블로그)", "콘텐츠 포화 지수", "판정"]
+        )
+        header = self.golden_result_table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        self.golden_result_table.setMinimumHeight(260)
+        self.golden_result_table.setAlternatingRowColors(True)
+        self.golden_result_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.golden_result_table.setStyleSheet("""
+            QTableWidget {
+                gridline-color: #d9e9e0;
+                border: 1px solid #d4edda;
+                border-radius: 8px;
+                background: #ffffff;
+                alternate-background-color: #f6fbf8;
+            }
+            QHeaderView::section {
+                background-color: #e8f5f0;
+                color: #1f5136;
+                font-weight: 700;
+                padding: 6px;
+                border: 0px;
+                border-bottom: 1px solid #cde9d8;
+            }
+        """)
+        golden_layout.addWidget(self.golden_result_table)
 
         self.golden_log_text = QTextEdit()
         self.golden_log_text.setReadOnly(True)
-        self.golden_log_text.setMinimumHeight(180)
-        self.golden_log_text.setPlaceholderText("분석 결과가 여기에 표시됩니다.")
+        self.golden_log_text.setMinimumHeight(120)
+        self.golden_log_text.setPlaceholderText("분석 로그가 여기에 표시됩니다.")
         golden_layout.addWidget(self.golden_log_text)
 
         parent_layout.addWidget(golden_group)
 
-    def start_golden_keyword_search(self):
+    def _start_golden_analysis(self, analysis_type, keyword):
         if self.golden_keyword_thread and self.golden_keyword_thread.isRunning():
-            QMessageBox.information(self, "진행 중", "황금 키워드 분석이 이미 실행 중입니다.")
+            QMessageBox.information(self, "진행 중", "다른 분석이 이미 실행 중입니다.")
             return
-
-        category_keyword = self.golden_category_input.text().strip()
-        if not category_keyword:
-            QMessageBox.warning(self, "입력 오류", "카테고리 키워드를 입력해 주세요.")
+        if not keyword:
+            QMessageBox.warning(self, "입력 오류", "키워드 또는 카테고리를 선택해 주세요.")
             return
-
         try:
-            credentials, api_file = load_api_credentials_from_file()
-            self.update_progress("전체", f"API 키 로드 완료: {api_file}")
+            credentials, _ = load_api_credentials_from_file()
         except FileNotFoundError as e:
-            QMessageBox.warning(
-                self,
-                "API 키 파일 필요",
-                f"다음 파일을 생성한 뒤 API 키를 입력해 주세요.\n{e}"
-            )
+            QMessageBox.warning(self, "설정 필요", "분석에 필요한 API 설정을 확인해 주세요.")
             return
         except Exception as e:
             QMessageBox.warning(self, "API 키 오류", str(e))
@@ -3102,60 +3224,84 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.golden_keyword_results = []
         self.golden_log_text.clear()
-        self.golden_start_button.setEnabled(False)
+        self.golden_result_table.setRowCount(0)
         self.golden_save_button.setEnabled(False)
-        self.status_bar.showMessage("황금 키워드 분석 중...")
+        self.related_keyword_button.setEnabled(False)
+        self.golden_start_button.setEnabled(False)
+        self.status_bar.showMessage("키워드 분석 중...")
 
         self.golden_keyword_thread = GoldenKeywordThread(
-            category_keyword=category_keyword,
-            max_candidates=int(self.golden_candidate_spin.value()),
+            analysis_type=analysis_type,
+            keyword=keyword,
+            limit=int(self.golden_limit_spin.value()),
             credentials=credentials
         )
         self.golden_keyword_thread.log.connect(self.on_golden_keyword_log)
-        self.golden_keyword_thread.finished.connect(self.on_golden_keyword_finished)
+        self.golden_keyword_thread.finished.connect(
+            lambda rows, mode=analysis_type: self.on_golden_keyword_finished(rows, mode)
+        )
         self.golden_keyword_thread.error.connect(self.on_golden_keyword_error)
         self.golden_keyword_thread.start()
 
+    def start_related_keyword_analysis(self):
+        self._start_golden_analysis("related", self.related_keyword_input.text().strip())
+
+    def start_category_golden_keyword_search(self):
+        self._start_golden_analysis("category", self.golden_category_combo.currentText().strip())
+
     def on_golden_keyword_log(self, message):
         now = datetime.now().strftime("%H:%M:%S")
-        self.golden_log_text.append(f"[{now}] {message}")
+        self.golden_log_text.append(f"[{now}] {sanitize_display_text(message)}")
 
-    def on_golden_keyword_finished(self, results):
+    def _judge_saturation(self, value):
+        if value <= 1.0:
+            return "낮음(유리)"
+        if value <= 3.0:
+            return "보통"
+        return "높음(경쟁)"
+
+    def on_golden_keyword_finished(self, results, analysis_type):
+        self.related_keyword_button.setEnabled(True)
         self.golden_start_button.setEnabled(True)
         self.golden_keyword_results = results or []
 
         if not self.golden_keyword_results:
-            self.golden_log_text.append("No keyword data returned.")
-            self.status_bar.showMessage("황금 키워드 분석 완료 (결과 없음)")
+            self.golden_log_text.append("분석 결과가 없습니다.")
+            self.status_bar.showMessage("분석 완료 (결과 없음)")
             return
 
         self.golden_save_button.setEnabled(True)
         self.render_golden_keyword_results(self.golden_keyword_results)
-        self.status_bar.showMessage(
-            f"황금 키워드 분석 완료 ({len(self.golden_keyword_results)}개)"
-        )
+        mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 추천 분석"
+        self.status_bar.showMessage(f"{mode_name} 완료 ({len(self.golden_keyword_results)}개)")
 
     def on_golden_keyword_error(self, error_message):
+        self.related_keyword_button.setEnabled(True)
         self.golden_start_button.setEnabled(True)
         self.golden_save_button.setEnabled(False)
-        self.status_bar.showMessage("황금 키워드 분석 실패")
-        QMessageBox.critical(self, "황금 키워드 오류", error_message)
+        self.status_bar.showMessage("분석 실패")
+        QMessageBox.critical(self, "키워드 분석 오류", error_message)
 
     def render_golden_keyword_results(self, results):
-        lines = []
-        top_count = min(len(results), 30)
-        lines.append(f"상위 {top_count}개 황금 키워드")
-        lines.append("-" * 72)
-        lines.append("순위 | 키워드 | 월검색량 | 블로그 문서수 | 효율성 지수")
-        lines.append("-" * 72)
+        self.golden_result_table.setRowCount(len(results))
+        for idx, row in enumerate(results, start=1):
+            saturation = float(row.get("content_saturation_index", 0.0))
+            items = [
+                QTableWidgetItem(str(idx)),
+                QTableWidgetItem(str(row["keyword"])),
+                QTableWidgetItem(f"{int(row['monthly_total_search']):,}"),
+                QTableWidgetItem(f"{int(row['blog_document_count']):,}"),
+                QTableWidgetItem(f"{saturation:.4f}"),
+                QTableWidgetItem(self._judge_saturation(saturation)),
+            ]
+            for col, item in enumerate(items):
+                align = Qt.AlignmentFlag.AlignCenter
+                if col == 1:
+                    align = Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
+                item.setTextAlignment(int(align))
+                self.golden_result_table.setItem(idx - 1, col, item)
 
-        for idx, row in enumerate(results[:top_count], start=1):
-            lines.append(
-                f"{idx:>4} | {row['keyword']} | {row['monthly_total_search']} | "
-                f"{row['blog_document_count']} | {row['efficiency_index']:.4f}"
-            )
-
-        self.golden_log_text.setPlainText("\n".join(lines))
+        self.golden_result_table.resizeRowsToContents()
 
     def save_golden_keywords_to_file(self):
         if not self.golden_keyword_results:
@@ -3166,11 +3312,11 @@ class KeywordExtractorMainWindow(QMainWindow):
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, "keywords.txt")
 
-        top_keywords = [row["keyword"] for row in self.golden_keyword_results[:30]]
+        top_keywords = [row["keyword"] for row in self.golden_keyword_results]
         with open(save_path, "w", encoding="utf-8") as f:
             f.write("\n".join(top_keywords))
 
-        self.update_progress("전체", f"황금 키워드 {len(top_keywords)}개 저장: {save_path}")
+        self.update_progress("전체", f"키워드 {len(top_keywords)}개 저장: {save_path}")
         QMessageBox.information(self, "저장 완료", f"저장 위치:\n{save_path}")
 
     def start_search(self):
@@ -3225,6 +3371,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.active_threads = []
         self.completed_threads = 0
         self.total_threads = len(keywords)
+        self.stop_requested = False
         
         # 媛??ㅼ썙?쒕퀎 ???앹꽦
         for keyword in keywords:
@@ -3249,6 +3396,8 @@ class KeywordExtractorMainWindow(QMainWindow):
 
     def on_thread_finished(self, save_path):
         """?ㅻ젅???묒뾽 ?꾨즺 泥섎━"""
+        if save_path:
+            self.update_progress("전체", f"저장 완료: {save_path}")
         self.completed_threads += 1
         self.check_all_threads_finished()
 
@@ -3261,7 +3410,10 @@ class KeywordExtractorMainWindow(QMainWindow):
     def check_all_threads_finished(self):
         """紐⑤뱺 ?ㅻ젅?쒓? ?꾨즺?섏뿀?붿? ?뺤씤"""
         if self.completed_threads >= self.total_threads:
-            self.search_finished("紐⑤뱺 ?묒뾽???꾨즺?섏뿀?듬땲??")
+            if self.stop_requested:
+                self.search_finished("중단 요청된 작업이 모두 종료되었습니다.")
+            else:
+                self.search_finished("모든 작업이 완료되었습니다.")
 
     def search_finished(self, message):
         """검색 완료 처리"""
@@ -3269,6 +3421,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.update_progress("전체", f"완료: {message}")
         self.status_bar.showMessage("완료")
         QMessageBox.information(self, "완료", message)
+        self.active_threads = []
+        self.total_threads = 0
+        self.completed_threads = 0
+        self.stop_requested = False
 
     def stop_search(self):
         """검색 중단"""
@@ -3276,20 +3432,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             return
             
         self.update_progress("전체", "작업 중단을 요청했습니다...")
+        self.stop_requested = True
         
         for thread in self.active_threads:
             if thread and thread.isRunning():
                 thread.stop()
                 
-        # UI ?곹깭 蹂듦뎄
-        self.start_button.setEnabled(True)
-        self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
-        self.search_input.setEnabled(True)  # ?낅젰李??쒖꽦??異붽?
-        self.update_progress("전체", "중단 신호를 보냈습니다.")
-        
-        # 由ъ냼???뺣━
-        self.active_threads = []
+        self.pause_button.setEnabled(False)
+        self.update_progress("전체", "중단 신호를 전송했습니다. 실행 중인 스레드가 순차 종료됩니다.")
 
     def search_error(self, error_msg):
         """검색 오류 처리"""
@@ -3410,15 +3561,15 @@ def main():
     icon_path = get_icon_path()
     if icon_path:
         app.setWindowIcon(QIcon(icon_path))
-        print(f"???꾩씠肄??ㅼ젙 ?꾨즺: {icon_path}")
+        safe_print(f"아이콘 설정 완료: {icon_path}")
     else:
-        print("???꾩씠肄??뚯씪??李얠쓣 ???놁뒿?덈떎.")
+        safe_print("아이콘 파일을 찾을 수 없습니다.")
     
     app.setApplicationName("네이버 연관키워드 추출기")
     
     # 1. 癒몄떊 ID ?뺤씤
     machine_id = get_machine_id()
-    print(f"Machine ID: {machine_id}")
+    safe_print(f"Machine ID: {machine_id}")
     
     # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
     # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
@@ -3432,7 +3583,7 @@ def main():
             
             # 留뚮즺?쇱씠 吏??寃쎌슦 (留뚮즺???ㅼ쓬?좊???李⑤떒)
             if current_date > expiry_date + pd.Timedelta(days=1):
-                print(f"???쇱씠?좎뒪 留뚮즺?? {expiry_date_str}")
+                safe_print(f"라이선스 만료: {expiry_date_str}")
                 app_dummy = QApplication.instance() or QApplication(sys.argv)
                 
                 # 留뚮즺 ?ㅼ씠?쇰줈洹??쒖떆
@@ -3441,7 +3592,7 @@ def main():
                 sys.exit(0)
             
             # ?쇱씠?좎뒪 ?좏슚??-> 硫붿씤 ?꾨줈洹몃옩 ?ㅽ뻾
-            print(f"???쇱씠?좎뒪 ?뺤씤?? {expiry_date_str}")
+            safe_print(f"라이선스 확인 완료: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
             window.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
@@ -3455,7 +3606,7 @@ def main():
                 
         except ValueError:
             # ?좎쭨 ?뺤떇???섎せ??寃쎌슦?먮룄 ?쇰떒 ?ㅽ뻾? ?쒖폒二쇰릺 寃쎄퀬 (?좎? ?몄쓽)
-            print(f"?좑툘 ?좎쭨 ?뺤떇 ?ㅻ쪟: {expiry_date_str}")
+            safe_print(f"라이선스 날짜 형식 확인 필요: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
             window.show()
@@ -3463,12 +3614,13 @@ def main():
             
     else:
         # ?쇱씠?좎뒪 ?놁쓬 -> ?ㅼ씠?쇰줈洹??쒖떆 ??醫낅즺
-        print("??誘몃벑濡?湲곌린 - ?ㅽ뻾 李⑤떒")
+        safe_print("미등록 기기 - 실행 차단")
         dialog = UnregisteredDialog(machine_id)
         dialog.exec()
         sys.exit(0)
 
 if __name__ == "__main__":
     main() 
+
 
 
