@@ -68,7 +68,7 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QTextEdit, QMessageBox, 
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
-    QTabWidget, QTabBar, QSpinBox, QTableWidget, QTableWidgetItem, QHeaderView
+    QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -3113,52 +3113,104 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.update_progress(f"저장 위치가 기억되었습니다: {directory}")
 
     def setup_golden_keyword_section(self, parent_layout):
-        golden_group = QGroupBox("키워드 검색량/콘텐츠 분석")
+        golden_group = QGroupBox("키워드 인사이트")
         golden_layout = QVBoxLayout(golden_group)
+        golden_layout.setSpacing(10)
+        golden_layout.setContentsMargins(12, 12, 12, 12)
 
         metric_label = QLabel("콘텐츠 포화 지수 = (콘텐츠양 + 1) / (월검색량 + 1)  |  낮을수록 유리")
-        metric_label.setStyleSheet("color: #4a4a4a; font-size: 12px;")
+        metric_label.setStyleSheet("color: #3f4f46; font-size: 13px; font-weight: 600;")
         golden_layout.addWidget(metric_label)
 
-        related_group = QGroupBox("연관 키워드의 검색량/콘텐츠양")
+        split_row = QHBoxLayout()
+        split_row.setSpacing(10)
+
+        related_group = QGroupBox("연관 키워드 분석")
         related_layout = QVBoxLayout(related_group)
+        related_layout.setSpacing(8)
         related_top = QHBoxLayout()
         self.related_keyword_input = QLineEdit()
-        self.related_keyword_input.setPlaceholderText("분석할 키워드 입력")
+        self.related_keyword_input.setMinimumHeight(38)
+        self.related_keyword_input.setPlaceholderText("예: 연말정산")
         self.related_keyword_input.returnPressed.connect(self.start_related_keyword_analysis)
         self.related_keyword_button = QPushButton("연관 키워드 분석")
+        self.related_keyword_button.setMinimumHeight(38)
         self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
         related_top.addWidget(self.related_keyword_input)
         related_top.addWidget(self.related_keyword_button)
         related_layout.addLayout(related_top)
-        golden_layout.addWidget(related_group)
+        split_row.addWidget(related_group, 1)
 
-        category_group = QGroupBox("사용자 카테고리 황금 키워드 추천")
+        category_group = QGroupBox("카테고리 추천 분석")
         category_layout = QVBoxLayout(category_group)
+        category_layout.setSpacing(8)
         row = QHBoxLayout()
         self.golden_category_combo = QComboBox()
+        self.golden_category_combo.setMinimumHeight(38)
+        self.golden_category_combo.setToolTip("네이버 광고 업종 분류 기준으로 사용")
         self.golden_category_combo.addItems([
             "생활/리빙", "건강/의료", "교육/학습", "금융/재테크", "부동산",
             "자동차", "여행/숙박", "뷰티/미용", "패션", "식품/요리",
             "IT/전자", "육아/아동", "취업/자격증", "법률/행정", "반려동물",
             "스포츠/레저", "문화/공연", "인테리어", "청소/가사", "기타 서비스"
         ])
-        self.golden_start_button = QPushButton("카테고리 황금 키워드 추천")
+        self.golden_start_button = QPushButton("카테고리 추천 실행")
+        self.golden_start_button.setMinimumHeight(38)
         self.golden_start_button.clicked.connect(self.start_category_golden_keyword_search)
         row.addWidget(self.golden_category_combo)
         row.addWidget(self.golden_start_button)
         category_layout.addLayout(row)
-        golden_layout.addWidget(category_group)
+        split_row.addWidget(category_group, 1)
+        golden_layout.addLayout(split_row)
 
         options_row = QHBoxLayout()
+        options_row.setSpacing(8)
         options_row.addWidget(QLabel("분석 개수"))
         self.golden_limit_spin = QSpinBox()
         self.golden_limit_spin.setRange(5, 200)
         self.golden_limit_spin.setValue(30)
         self.golden_limit_spin.setSuffix(" 개")
+        self.golden_limit_spin.setFixedWidth(100)
         options_row.addWidget(self.golden_limit_spin)
+
+        options_row.addWidget(QLabel("검색량 이하"))
+        self.filter_max_search_spin = QSpinBox()
+        self.filter_max_search_spin.setRange(0, 10000000)
+        self.filter_max_search_spin.setValue(0)
+        self.filter_max_search_spin.setSingleStep(1000)
+        self.filter_max_search_spin.setSpecialValueText("제한 없음")
+        self.filter_max_search_spin.setFixedWidth(120)
+        self.filter_max_search_spin.valueChanged.connect(self.apply_golden_filters)
+        options_row.addWidget(self.filter_max_search_spin)
+
+        options_row.addWidget(QLabel("포화 지수 이하"))
+        self.filter_max_saturation_spin = QDoubleSpinBox()
+        self.filter_max_saturation_spin.setDecimals(4)
+        self.filter_max_saturation_spin.setRange(0.0, 1000.0)
+        self.filter_max_saturation_spin.setValue(1000.0)
+        self.filter_max_saturation_spin.setSingleStep(0.1)
+        self.filter_max_saturation_spin.setFixedWidth(110)
+        self.filter_max_saturation_spin.valueChanged.connect(self.apply_golden_filters)
+        options_row.addWidget(self.filter_max_saturation_spin)
+
+        options_row.addWidget(QLabel("정렬"))
+        self.sort_column_combo = QComboBox()
+        self.sort_column_combo.addItems(["콘텐츠 포화 지수", "월검색량", "콘텐츠양(블로그)", "키워드"])
+        self.sort_column_combo.currentIndexChanged.connect(self.apply_golden_filters)
+        options_row.addWidget(self.sort_column_combo)
+
+        self.sort_order_combo = QComboBox()
+        self.sort_order_combo.addItems(["오름차순", "내림차순"])
+        self.sort_order_combo.currentIndexChanged.connect(self.apply_golden_filters)
+        options_row.addWidget(self.sort_order_combo)
+
         options_row.addStretch()
-        self.golden_save_button = QPushButton("표의 키워드 keywords.txt 저장")
+        self.result_count_label = QLabel("결과 0개")
+        self.result_count_label.setStyleSheet("font-size: 12px; color: #556;")
+        options_row.addWidget(self.result_count_label)
+
+        self.golden_save_button = QPushButton("키워드 저장")
+        self.golden_save_button.setMinimumHeight(34)
         self.golden_save_button.clicked.connect(self.save_golden_keywords_to_file)
         self.golden_save_button.setEnabled(False)
         options_row.addWidget(self.golden_save_button)
@@ -3179,6 +3231,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_result_table.setMinimumHeight(260)
         self.golden_result_table.setAlternatingRowColors(True)
         self.golden_result_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.golden_result_table.setSortingEnabled(True)
         self.golden_result_table.setStyleSheet("""
             QTableWidget {
                 gridline-color: #d9e9e0;
@@ -3200,9 +3253,33 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.golden_log_text = QTextEdit()
         self.golden_log_text.setReadOnly(True)
-        self.golden_log_text.setMinimumHeight(120)
+        self.golden_log_text.setMinimumHeight(130)
         self.golden_log_text.setPlaceholderText("분석 로그가 여기에 표시됩니다.")
         golden_layout.addWidget(self.golden_log_text)
+
+        panel_css = """
+            QGroupBox {
+                font-size: 14px;
+                font-weight: 700;
+            }
+            QGroupBox::title {
+                padding: 4px 10px;
+            }
+            QPushButton {
+                font-size: 13px;
+                font-weight: 700;
+                padding: 8px 14px;
+                border-radius: 8px;
+            }
+            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+                min-height: 34px;
+                font-size: 13px;
+            }
+            QLabel {
+                font-size: 13px;
+            }
+        """
+        golden_group.setStyleSheet(panel_css)
 
         parent_layout.addWidget(golden_group)
 
@@ -3271,7 +3348,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             return
 
         self.golden_save_button.setEnabled(True)
-        self.render_golden_keyword_results(self.golden_keyword_results)
+        self.apply_golden_filters()
         mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 추천 분석"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(self.golden_keyword_results)}개)")
 
@@ -3302,9 +3379,42 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.golden_result_table.setItem(idx - 1, col, item)
 
         self.golden_result_table.resizeRowsToContents()
+        self.result_count_label.setText(f"결과 {len(results)}개")
+
+    def _get_sorted_filtered_golden_results(self):
+        rows = list(self.golden_keyword_results or [])
+        max_search = int(self.filter_max_search_spin.value())
+        max_saturation = float(self.filter_max_saturation_spin.value())
+
+        filtered = []
+        for row in rows:
+            monthly = int(row.get("monthly_total_search", 0))
+            saturation = float(row.get("content_saturation_index", 0.0))
+            if max_search > 0 and monthly > max_search:
+                continue
+            if saturation > max_saturation:
+                continue
+            filtered.append(row)
+
+        sort_field_map = {
+            "콘텐츠 포화 지수": "content_saturation_index",
+            "월검색량": "monthly_total_search",
+            "콘텐츠양(블로그)": "blog_document_count",
+            "키워드": "keyword",
+        }
+        selected = self.sort_column_combo.currentText()
+        sort_key = sort_field_map.get(selected, "content_saturation_index")
+        reverse = self.sort_order_combo.currentText() == "내림차순"
+        filtered.sort(key=lambda x: x.get(sort_key, 0), reverse=reverse)
+        return filtered
+
+    def apply_golden_filters(self):
+        filtered = self._get_sorted_filtered_golden_results()
+        self.render_golden_keyword_results(filtered)
 
     def save_golden_keywords_to_file(self):
-        if not self.golden_keyword_results:
+        filtered_results = self._get_sorted_filtered_golden_results()
+        if not filtered_results:
             QMessageBox.warning(self, "데이터 없음", "저장할 황금 키워드 결과가 없습니다.")
             return
 
@@ -3312,7 +3422,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, "keywords.txt")
 
-        top_keywords = [row["keyword"] for row in self.golden_keyword_results]
+        top_keywords = [row["keyword"] for row in filtered_results]
         with open(save_path, "w", encoding="utf-8") as f:
             f.write("\n".join(top_keywords))
 
