@@ -1,6 +1,7 @@
 ﻿import os
 import sys
 import json
+import ast
 import random
 import socket
 import requests
@@ -17,6 +18,7 @@ import subprocess
 import io
 import builtins
 import uuid
+import winreg
 from pathlib import Path
 from datetime import datetime
 import time
@@ -106,7 +108,9 @@ PLACEHOLDER_COLOR = "#8a8a8a"        # ?먮━?쒖떆??
 # ?꾩뿭 蹂?? ?щ옒??蹂댄샇瑜??꾪븳 ?꾩옱 ?묒뾽 ?곹깭 異붿쟻
 _current_window = None
 _crash_save_enabled = True
-
+MACHINE_ID_GUARD_HASH = "9491ed89095c9822c512bd386b2a54102992e3466af1d351361903eacb79f585"
+MACHINE_ID_APPROVAL_FILE = "machine_id_change_approval.txt"
+MACHINE_ID_APPROVAL_TOKEN = "I_APPROVE_MACHINE_ID_CHANGE"
 # ?꾩씠肄?寃쎈줈 ?ㅼ젙 (exe ?뚯씪 吏??
 def get_icon_path():
     """?꾩씠肄??뚯씪 寃쎈줈瑜?諛섑솚 (exe? py 紐⑤몢 吏?? - ?낅┰ ?ㅽ뻾 媛쒖꽑"""
@@ -204,38 +208,73 @@ def load_api_credentials_from_file():
 
 
 def get_machine_id():
-    """怨좎쑀 癒몄떊 ID 異붿텧 (1PC 1?쇱씠?좎뒪 ?뺤콉??hardware lock)"""
-    machine_id = None
-    
-    # 1. Windows PowerShell濡?UUID 異붿텧 (媛???뺤떎???섎뱶?⑥뼱 怨좎쑀媛?
+    """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
+    cache_path = Path.home() / ".auto_naver_machine_id.txt"
+
+    # 0) 캐시 우선 사용: 기능 업데이트/빌드 변경으로 추출 경로가 달라도 ID가 유지됨
     try:
-        cmd = 'powershell "Get-CimInstance -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"'
-        # CREATE_NO_WINDOW ?뚮옒洹??ъ슜 (肄섏넄李?源쒕묀??諛⑹?)
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
-        output = subprocess.check_output(cmd, startupinfo=startupinfo, shell=True).decode().strip()
-        if output and len(output) > 10:
-            return output
-    except:
+        if cache_path.exists():
+            cached = cache_path.read_text(encoding="utf-8-sig").strip()
+            if cached:
+                return cached
+    except Exception:
         pass
 
-    # 2. wmic (?덇굅??吏??
-    if not machine_id:
-        try:
-            cmd = 'wmic csproduct get uuid'
-            output = subprocess.check_output(cmd, shell=True)
-            machine_id = output.decode('utf-8', errors='ignore').split('\n')[1].strip()
-            if machine_id:
-                return machine_id
-        except:
-            pass
-    
-    # 3. MAC 二쇱냼 湲곕컲 (留덉?留??섎떒 - ?쒖뭅?쒓? 諛붾뚮㈃ 諛붾?
+    parts = []
+
+    # 1) Windows MachineGuid (가장 안정적)
     try:
-        return str(uuid.getnode())
-    except:
-        return "UNKNOWN_ID_" + str(uuid.uuid4())
+        with winreg.OpenKey(
+            winreg.HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\Microsoft\Cryptography"
+        ) as key:
+            machine_guid, _ = winreg.QueryValueEx(key, "MachineGuid")
+            machine_guid = str(machine_guid).strip()
+            if machine_guid:
+                parts.append(f"GUID:{machine_guid}")
+    except Exception:
+        pass
+
+    # 2) 시스템 UUID
+    try:
+        cmd = 'powershell "Get-CimInstance -Class Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID"'
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        output = subprocess.check_output(cmd, startupinfo=startupinfo, shell=True).decode("utf-8", errors="ignore").strip()
+        if output and len(output) > 10:
+            parts.append(f"CSUUID:{output}")
+    except Exception:
+        pass
+
+    # 3) BIOS 시리얼
+    try:
+        output = subprocess.check_output("wmic bios get serialnumber", shell=True).decode("utf-8", errors="ignore")
+        bios = "".join(output.splitlines()[1:]).strip()
+        if bios:
+            parts.append(f"BIOS:{bios}")
+    except Exception:
+        pass
+
+    # 4) MAC (가능한 경우)
+    try:
+        mac = uuid.getnode()
+        if mac:
+            parts.append(f"MAC:{mac:012x}")
+    except Exception:
+        pass
+
+    if not parts:
+        parts.append(f"FALLBACK:{uuid.uuid4()}")
+
+    raw = "|".join(parts)
+    stable_id = "MID-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
+
+    try:
+        cache_path.write_text(stable_id, encoding="utf-8")
+    except Exception:
+        pass
+
+    return stable_id
 
 
 def check_license_from_sheet(machine_id):
@@ -264,6 +303,41 @@ def check_license_from_sheet(machine_id):
         return None
 
 
+
+def verify_machine_id_guard():
+    try:
+        # onefile/onedir EXE에서는 소스 파일 직접 읽기가 불안정하므로 런타임 검증을 건너뜀
+        if getattr(sys, "frozen", False):
+            return True
+        source_text = Path(__file__).read_text(encoding="utf-8-sig")
+        tree = ast.parse(source_text)
+        lines = source_text.splitlines()
+        targets = {}
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name in ("get_machine_id", "check_license_from_sheet"):
+                targets[node.name] = "\n".join(lines[node.lineno - 1: node.end_lineno])
+        if len(targets) != 2:
+            raise RuntimeError("머신 ID 보호 함수 파싱 실패")
+
+        payload = "\n\n".join(targets[k] for k in sorted(targets))
+        current_hash = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        if current_hash == MACHINE_ID_GUARD_HASH:
+            return True
+
+        approval_file = get_app_base_dir() / MACHINE_ID_APPROVAL_FILE
+        approved = False
+        if approval_file.exists():
+            approved = MACHINE_ID_APPROVAL_TOKEN in approval_file.read_text(encoding="utf-8-sig")
+        if approved:
+            return True
+
+        raise RuntimeError(
+            "머신ID/사용기간 제한 로직 변경이 감지되었습니다. "
+            "소유자 승인 파일이 없어 실행을 중단합니다."
+        )
+    except Exception as e:
+        safe_print(f"보호 검증 실패: {e}")
+        return False
 class UnregisteredDialog(QDialog):
     """미등록 기기 안내 다이얼로그"""
     def __init__(self, machine_id):
@@ -2334,228 +2408,6 @@ class Settings:
         self.save_settings()
 
 
-class KeywordHunter:
-    """Naver API based golden keyword analyzer."""
-    SEARCHAD_BASE_URL = "https://api.searchad.naver.com"
-    SEARCHAD_KEYWORD_URI = "/keywordstool"
-    NAVER_BLOG_SEARCH_URL = "https://openapi.naver.com/v1/search/blog.json"
-
-    def __init__(self, access_key, secret_key, customer_id, client_id, client_secret):
-        self.access_key = access_key.strip()
-        self.secret_key = secret_key.strip()
-        self.customer_id = customer_id.strip()
-        self.client_id = client_id.strip()
-        self.client_secret = client_secret.strip()
-
-    def get_signature(self, method, uri, timestamp):
-        message = f"{timestamp}.{method}.{uri}"
-        digest = hmac.new(
-            self.secret_key.encode("utf-8"),
-            message.encode("utf-8"),
-            hashlib.sha256
-        ).digest()
-        return base64.b64encode(digest).decode("utf-8")
-
-    def _parse_count(self, value):
-        if value is None:
-            return 0
-        if isinstance(value, int):
-            return value
-        value_text = str(value).replace(",", "").strip()
-        if value_text.startswith("<"):
-            digits = re.sub(r"[^0-9]", "", value_text)
-            return int(digits) if digits else 0
-        digits = re.sub(r"[^0-9]", "", value_text)
-        return int(digits) if digits else 0
-
-    def get_searchad_related_keywords(self, keyword):
-        timestamp = str(int(time.time() * 1000))
-        method = "GET"
-        uri = self.SEARCHAD_KEYWORD_URI
-        signature = self.get_signature(method, uri, timestamp)
-        headers = {
-            "X-Timestamp": timestamp,
-            "X-API-KEY": self.access_key,
-            "X-Customer": self.customer_id,
-            "X-Signature": signature
-        }
-        params = {
-            "hintKeywords": keyword,
-            "showDetail": 1
-        }
-
-        response = requests.get(
-            f"{self.SEARCHAD_BASE_URL}{uri}",
-            headers=headers,
-            params=params,
-            timeout=15
-        )
-        if response.status_code != 200:
-            raise ValueError(
-                f"검색광고 API 요청 실패 ({response.status_code}): {response.text[:200]}"
-            )
-
-        payload = response.json()
-        keyword_list = payload.get("keywordList", [])
-        results = []
-
-        for item in keyword_list:
-            rel_keyword = str(item.get("relKeyword", "")).strip()
-            if not rel_keyword:
-                continue
-            pc_count = self._parse_count(item.get("monthlyPcQcCnt"))
-            mobile_count = self._parse_count(item.get("monthlyMobileQcCnt"))
-            search_volume = pc_count + mobile_count
-            results.append({
-                "keyword": rel_keyword,
-                "monthly_pc_search": pc_count,
-                "monthly_mobile_search": mobile_count,
-                "monthly_total_search": search_volume
-            })
-
-        return results
-
-    def get_blog_document_count(self, keyword):
-        headers = {
-            "X-Naver-Client-Id": self.client_id,
-            "X-Naver-Client-Secret": self.client_secret
-        }
-        params = {
-            "query": keyword,
-            "display": 1,
-            "start": 1,
-            "sort": "sim"
-        }
-
-        response = requests.get(
-            self.NAVER_BLOG_SEARCH_URL,
-            headers=headers,
-            params=params,
-            timeout=10
-        )
-        if response.status_code != 200:
-            raise ValueError(
-                f"블로그 검색 API 요청 실패 ({response.status_code}): {response.text[:200]}"
-            )
-        payload = response.json()
-        return int(payload.get("total", 0))
-
-    def calculate_content_saturation_index(self, monthly_search, blog_docs):
-        return (blog_docs + 1) / (monthly_search + 1)
-
-    def _score_keyword_rows(self, keyword_rows, limit, progress_callback=None):
-        scored = []
-        limited_rows = keyword_rows[:max(1, limit)]
-        for idx, row in enumerate(limited_rows, start=1):
-            blog_docs = self.get_blog_document_count(row["keyword"])
-            saturation = self.calculate_content_saturation_index(
-                row["monthly_total_search"], blog_docs
-            )
-            result = {
-                "keyword": row["keyword"],
-                "monthly_pc_search": row["monthly_pc_search"],
-                "monthly_mobile_search": row["monthly_mobile_search"],
-                "monthly_total_search": row["monthly_total_search"],
-                "blog_document_count": blog_docs,
-                "content_saturation_index": saturation
-            }
-            scored.append(result)
-            if progress_callback:
-                progress_callback(f"[{idx}/{len(limited_rows)}] {row['keyword']} 계산 완료")
-        return scored
-
-    def analyze_related_keywords_with_content(self, seed_keyword, limit=30, progress_callback=None):
-        seed = seed_keyword.strip()
-        if not seed:
-            raise ValueError("키워드를 입력해 주세요.")
-
-        if progress_callback:
-            progress_callback(f"'{seed}' 연관 키워드를 조회합니다.")
-        keyword_rows = self.get_searchad_related_keywords(seed)
-        if not keyword_rows:
-            return []
-
-        # 입력 키워드가 포함된 연관 키워드만 분석
-        contains_seed = [
-            row for row in keyword_rows
-            if seed.replace(" ", "").lower() in row["keyword"].replace(" ", "").lower()
-        ]
-        source_rows = contains_seed if contains_seed else keyword_rows
-        source_rows = sorted(
-            source_rows,
-            key=lambda x: x["monthly_total_search"],
-            reverse=True
-        )
-        if progress_callback:
-            progress_callback(f"후보 {min(len(source_rows), limit)}개를 분석합니다.")
-
-        return self._score_keyword_rows(source_rows, limit, progress_callback)
-
-    def find_golden_keywords(self, category_keyword, max_candidates=30, progress_callback=None):
-        seed = category_keyword.strip()
-        if not seed:
-            raise ValueError("카테고리를 선택해 주세요.")
-
-        if progress_callback:
-            progress_callback(f"카테고리 '{seed}' 관련 키워드를 조회합니다.")
-        keyword_rows = self.get_searchad_related_keywords(seed)
-        if not keyword_rows:
-            return []
-
-        keyword_rows = sorted(
-            keyword_rows,
-            key=lambda x: x["monthly_total_search"],
-            reverse=True
-        )
-        if progress_callback:
-            progress_callback(f"후보 {min(len(keyword_rows), max_candidates)}개를 분석합니다.")
-
-        scored = self._score_keyword_rows(keyword_rows, max_candidates, progress_callback)
-        # 포화 지수는 낮을수록 유리, 동률이면 검색량 높은 순
-        scored.sort(
-            key=lambda x: (x["content_saturation_index"], -x["monthly_total_search"])
-        )
-        return scored
-
-
-class GoldenKeywordThread(QThread):
-    finished = pyqtSignal(list)
-    error = pyqtSignal(str)
-    log = pyqtSignal(str)
-
-    def __init__(self, analysis_type, keyword, limit, credentials):
-        super().__init__()
-        self.analysis_type = analysis_type
-        self.keyword = keyword
-        self.limit = limit
-        self.credentials = credentials
-
-    def run(self):
-        try:
-            hunter = KeywordHunter(
-                access_key=self.credentials["searchad_access_key"],
-                secret_key=self.credentials["searchad_secret_key"],
-                customer_id=self.credentials["searchad_customer_id"],
-                client_id=self.credentials["naver_client_id"],
-                client_secret=self.credentials["naver_client_secret"]
-            )
-            if self.analysis_type == "related":
-                results = hunter.analyze_related_keywords_with_content(
-                    self.keyword,
-                    limit=self.limit,
-                    progress_callback=lambda msg: self.log.emit(msg)
-                )
-            else:
-                results = hunter.find_golden_keywords(
-                    self.keyword,
-                    max_candidates=self.limit,
-                    progress_callback=lambda msg: self.log.emit(msg)
-                )
-            self.finished.emit(results)
-        except Exception as e:
-            self.error.emit(str(e))
-
-
 class ParallelKeywordThread(QThread):
     finished = pyqtSignal(str)              # ?꾨즺 ????λ맂 ?뚯씪 寃쎈줈 ?쒓렇??
     error = pyqtSignal(str)                 # ?먮윭 ?쒓렇??
@@ -2822,8 +2674,6 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.completed_threads = 0   # ??? ??? ?
         self.total_threads = 0       # ?? ??? ?
         self.stop_requested = False
-        self.golden_keyword_results = []
-        self.golden_keyword_thread = None
         
         # ?щ옒??蹂댄샇 ?ㅼ젙
         self.setup_crash_protection()
@@ -2866,16 +2716,12 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.show_license_dialog(machine_id)
             
     def show_license_dialog(self, machine_id, expired=False):
-        """?쇱씠?좎뒪 寃쎄퀬 ?ㅼ씠?쇰줈洹??쒖떆"""
-        dialog = LicenseDialog(machine_id)
+        """라이선스 상태에 맞는 안내창 표시"""
         if expired:
-            dialog.setWindowTitle("?쇱씠?좎뒪 留뚮즺")
-            # ?꾩슂 ??硫붿떆吏 蹂寃?(LicenseDialog ?대옒???섏젙 ?놁씠 ??댄?留?蹂寃?
-            
-        # ?ㅼ씠?쇰줈洹??ㅽ뻾 (紐⑤떖)
+            dialog = ExpiredDialog(datetime.now().strftime("%Y-%m-%d"))
+        else:
+            dialog = UnregisteredDialog(machine_id)
         dialog.exec()
-        
-        # ?ㅼ씠?쇰줈洹멸? ?ロ엳硫??꾨줈洹몃옩 醫낅즺 (?깅줉 ???ъ떎???좊룄)
         sys.exit(0)
 
     def setup_crash_protection(self):
@@ -2976,12 +2822,6 @@ class KeywordExtractorMainWindow(QMainWindow):
         # ????꾩튂 ?뱀뀡 (?섎떒)
         self.setup_save_section(main_layout)
         self.main_tabs.addTab(extractor_tab, "연관 키워드 추출")
-
-        analysis_tab = QWidget()
-        analysis_tab_layout = QVBoxLayout(analysis_tab)
-        analysis_tab_layout.setContentsMargins(10, 10, 10, 10)
-        self.setup_golden_keyword_section(analysis_tab_layout)
-        self.main_tabs.addTab(analysis_tab, "황금 키워드 분석")
             
         # ?곹깭諛?
         self.status_bar = QStatusBar()
@@ -3111,323 +2951,6 @@ class KeywordExtractorMainWindow(QMainWindow):
             if self.remember_checkbox.isChecked():
                 self.settings.set_save_dir(directory, True)
                 self.update_progress(f"저장 위치가 기억되었습니다: {directory}")
-
-    def setup_golden_keyword_section(self, parent_layout):
-        golden_group = QGroupBox("키워드 인사이트")
-        golden_layout = QVBoxLayout(golden_group)
-        golden_layout.setSpacing(10)
-        golden_layout.setContentsMargins(12, 12, 12, 12)
-
-        metric_label = QLabel("콘텐츠 포화 지수 = (콘텐츠양 + 1) / (월검색량 + 1)  |  낮을수록 유리")
-        metric_label.setStyleSheet("color: #3f4f46; font-size: 13px; font-weight: 600;")
-        golden_layout.addWidget(metric_label)
-
-        split_row = QHBoxLayout()
-        split_row.setSpacing(10)
-
-        related_group = QGroupBox("연관 키워드 분석")
-        related_layout = QVBoxLayout(related_group)
-        related_layout.setSpacing(8)
-        related_top = QHBoxLayout()
-        self.related_keyword_input = QLineEdit()
-        self.related_keyword_input.setMinimumHeight(38)
-        self.related_keyword_input.setPlaceholderText("예: 연말정산")
-        self.related_keyword_input.returnPressed.connect(self.start_related_keyword_analysis)
-        self.related_keyword_button = QPushButton("연관 키워드 분석")
-        self.related_keyword_button.setMinimumHeight(38)
-        self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
-        related_top.addWidget(self.related_keyword_input)
-        related_top.addWidget(self.related_keyword_button)
-        related_layout.addLayout(related_top)
-        split_row.addWidget(related_group, 1)
-
-        category_group = QGroupBox("카테고리 추천 분석")
-        category_layout = QVBoxLayout(category_group)
-        category_layout.setSpacing(8)
-        row = QHBoxLayout()
-        self.golden_category_combo = QComboBox()
-        self.golden_category_combo.setMinimumHeight(38)
-        self.golden_category_combo.setToolTip("네이버 광고 업종 분류 기준으로 사용")
-        self.golden_category_combo.addItems([
-            "생활/리빙", "건강/의료", "교육/학습", "금융/재테크", "부동산",
-            "자동차", "여행/숙박", "뷰티/미용", "패션", "식품/요리",
-            "IT/전자", "육아/아동", "취업/자격증", "법률/행정", "반려동물",
-            "스포츠/레저", "문화/공연", "인테리어", "청소/가사", "기타 서비스"
-        ])
-        self.golden_start_button = QPushButton("카테고리 추천 실행")
-        self.golden_start_button.setMinimumHeight(38)
-        self.golden_start_button.clicked.connect(self.start_category_golden_keyword_search)
-        row.addWidget(self.golden_category_combo)
-        row.addWidget(self.golden_start_button)
-        category_layout.addLayout(row)
-        split_row.addWidget(category_group, 1)
-        golden_layout.addLayout(split_row)
-
-        options_row = QHBoxLayout()
-        options_row.setSpacing(8)
-        options_row.addWidget(QLabel("분석 개수"))
-        self.golden_limit_spin = QSpinBox()
-        self.golden_limit_spin.setRange(5, 200)
-        self.golden_limit_spin.setValue(30)
-        self.golden_limit_spin.setSuffix(" 개")
-        self.golden_limit_spin.setFixedWidth(100)
-        options_row.addWidget(self.golden_limit_spin)
-
-        options_row.addWidget(QLabel("검색량 이하"))
-        self.filter_max_search_spin = QSpinBox()
-        self.filter_max_search_spin.setRange(0, 10000000)
-        self.filter_max_search_spin.setValue(0)
-        self.filter_max_search_spin.setSingleStep(1000)
-        self.filter_max_search_spin.setSpecialValueText("제한 없음")
-        self.filter_max_search_spin.setFixedWidth(120)
-        self.filter_max_search_spin.valueChanged.connect(self.apply_golden_filters)
-        options_row.addWidget(self.filter_max_search_spin)
-
-        options_row.addWidget(QLabel("포화 지수 이하"))
-        self.filter_max_saturation_spin = QDoubleSpinBox()
-        self.filter_max_saturation_spin.setDecimals(4)
-        self.filter_max_saturation_spin.setRange(0.0, 1000.0)
-        self.filter_max_saturation_spin.setValue(1000.0)
-        self.filter_max_saturation_spin.setSingleStep(0.1)
-        self.filter_max_saturation_spin.setFixedWidth(110)
-        self.filter_max_saturation_spin.valueChanged.connect(self.apply_golden_filters)
-        options_row.addWidget(self.filter_max_saturation_spin)
-
-        options_row.addWidget(QLabel("정렬"))
-        self.sort_column_combo = QComboBox()
-        self.sort_column_combo.addItems(["콘텐츠 포화 지수", "월검색량", "콘텐츠양(블로그)", "키워드"])
-        self.sort_column_combo.currentIndexChanged.connect(self.apply_golden_filters)
-        options_row.addWidget(self.sort_column_combo)
-
-        self.sort_order_combo = QComboBox()
-        self.sort_order_combo.addItems(["오름차순", "내림차순"])
-        self.sort_order_combo.currentIndexChanged.connect(self.apply_golden_filters)
-        options_row.addWidget(self.sort_order_combo)
-
-        options_row.addStretch()
-        self.result_count_label = QLabel("결과 0개")
-        self.result_count_label.setStyleSheet("font-size: 12px; color: #556;")
-        options_row.addWidget(self.result_count_label)
-
-        self.golden_save_button = QPushButton("키워드 저장")
-        self.golden_save_button.setMinimumHeight(34)
-        self.golden_save_button.clicked.connect(self.save_golden_keywords_to_file)
-        self.golden_save_button.setEnabled(False)
-        options_row.addWidget(self.golden_save_button)
-        golden_layout.addLayout(options_row)
-
-        self.golden_result_table = QTableWidget()
-        self.golden_result_table.setColumnCount(6)
-        self.golden_result_table.setHorizontalHeaderLabels(
-            ["순위", "키워드", "월검색량", "콘텐츠양(블로그)", "콘텐츠 포화 지수", "판정"]
-        )
-        header = self.golden_result_table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
-        self.golden_result_table.setMinimumHeight(260)
-        self.golden_result_table.setAlternatingRowColors(True)
-        self.golden_result_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.golden_result_table.setSortingEnabled(True)
-        self.golden_result_table.setStyleSheet("""
-            QTableWidget {
-                gridline-color: #d9e9e0;
-                border: 1px solid #d4edda;
-                border-radius: 8px;
-                background: #ffffff;
-                alternate-background-color: #f6fbf8;
-            }
-            QHeaderView::section {
-                background-color: #e8f5f0;
-                color: #1f5136;
-                font-weight: 700;
-                padding: 6px;
-                border: 0px;
-                border-bottom: 1px solid #cde9d8;
-            }
-        """)
-        golden_layout.addWidget(self.golden_result_table)
-
-        self.golden_log_text = QTextEdit()
-        self.golden_log_text.setReadOnly(True)
-        self.golden_log_text.setMinimumHeight(130)
-        self.golden_log_text.setPlaceholderText("분석 로그가 여기에 표시됩니다.")
-        golden_layout.addWidget(self.golden_log_text)
-
-        panel_css = """
-            QGroupBox {
-                font-size: 14px;
-                font-weight: 700;
-            }
-            QGroupBox::title {
-                padding: 4px 10px;
-            }
-            QPushButton {
-                font-size: 13px;
-                font-weight: 700;
-                padding: 8px 14px;
-                border-radius: 8px;
-            }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
-                min-height: 34px;
-                font-size: 13px;
-            }
-            QLabel {
-                font-size: 13px;
-            }
-        """
-        golden_group.setStyleSheet(panel_css)
-
-        parent_layout.addWidget(golden_group)
-
-    def _start_golden_analysis(self, analysis_type, keyword):
-        if self.golden_keyword_thread and self.golden_keyword_thread.isRunning():
-            QMessageBox.information(self, "진행 중", "다른 분석이 이미 실행 중입니다.")
-            return
-        if not keyword:
-            QMessageBox.warning(self, "입력 오류", "키워드 또는 카테고리를 선택해 주세요.")
-            return
-        try:
-            credentials, _ = load_api_credentials_from_file()
-        except FileNotFoundError as e:
-            QMessageBox.warning(self, "설정 필요", "분석에 필요한 API 설정을 확인해 주세요.")
-            return
-        except Exception as e:
-            QMessageBox.warning(self, "API 키 오류", str(e))
-            return
-
-        self.golden_keyword_results = []
-        self.golden_log_text.clear()
-        self.golden_result_table.setRowCount(0)
-        self.golden_save_button.setEnabled(False)
-        self.related_keyword_button.setEnabled(False)
-        self.golden_start_button.setEnabled(False)
-        self.status_bar.showMessage("키워드 분석 중...")
-
-        self.golden_keyword_thread = GoldenKeywordThread(
-            analysis_type=analysis_type,
-            keyword=keyword,
-            limit=int(self.golden_limit_spin.value()),
-            credentials=credentials
-        )
-        self.golden_keyword_thread.log.connect(self.on_golden_keyword_log)
-        self.golden_keyword_thread.finished.connect(
-            lambda rows, mode=analysis_type: self.on_golden_keyword_finished(rows, mode)
-        )
-        self.golden_keyword_thread.error.connect(self.on_golden_keyword_error)
-        self.golden_keyword_thread.start()
-
-    def start_related_keyword_analysis(self):
-        self._start_golden_analysis("related", self.related_keyword_input.text().strip())
-
-    def start_category_golden_keyword_search(self):
-        self._start_golden_analysis("category", self.golden_category_combo.currentText().strip())
-
-    def on_golden_keyword_log(self, message):
-        now = datetime.now().strftime("%H:%M:%S")
-        self.golden_log_text.append(f"[{now}] {sanitize_display_text(message)}")
-
-    def _judge_saturation(self, value):
-        if value <= 1.0:
-            return "낮음(유리)"
-        if value <= 3.0:
-            return "보통"
-        return "높음(경쟁)"
-
-    def on_golden_keyword_finished(self, results, analysis_type):
-        self.related_keyword_button.setEnabled(True)
-        self.golden_start_button.setEnabled(True)
-        self.golden_keyword_results = results or []
-
-        if not self.golden_keyword_results:
-            self.golden_log_text.append("분석 결과가 없습니다.")
-            self.status_bar.showMessage("분석 완료 (결과 없음)")
-            return
-
-        self.golden_save_button.setEnabled(True)
-        self.apply_golden_filters()
-        mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 추천 분석"
-        self.status_bar.showMessage(f"{mode_name} 완료 ({len(self.golden_keyword_results)}개)")
-
-    def on_golden_keyword_error(self, error_message):
-        self.related_keyword_button.setEnabled(True)
-        self.golden_start_button.setEnabled(True)
-        self.golden_save_button.setEnabled(False)
-        self.status_bar.showMessage("분석 실패")
-        QMessageBox.critical(self, "키워드 분석 오류", error_message)
-
-    def render_golden_keyword_results(self, results):
-        self.golden_result_table.setRowCount(len(results))
-        for idx, row in enumerate(results, start=1):
-            saturation = float(row.get("content_saturation_index", 0.0))
-            items = [
-                QTableWidgetItem(str(idx)),
-                QTableWidgetItem(str(row["keyword"])),
-                QTableWidgetItem(f"{int(row['monthly_total_search']):,}"),
-                QTableWidgetItem(f"{int(row['blog_document_count']):,}"),
-                QTableWidgetItem(f"{saturation:.4f}"),
-                QTableWidgetItem(self._judge_saturation(saturation)),
-            ]
-            for col, item in enumerate(items):
-                align = Qt.AlignmentFlag.AlignCenter
-                if col == 1:
-                    align = Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
-                item.setTextAlignment(int(align))
-                self.golden_result_table.setItem(idx - 1, col, item)
-
-        self.golden_result_table.resizeRowsToContents()
-        self.result_count_label.setText(f"결과 {len(results)}개")
-
-    def _get_sorted_filtered_golden_results(self):
-        rows = list(self.golden_keyword_results or [])
-        max_search = int(self.filter_max_search_spin.value())
-        max_saturation = float(self.filter_max_saturation_spin.value())
-
-        filtered = []
-        for row in rows:
-            monthly = int(row.get("monthly_total_search", 0))
-            saturation = float(row.get("content_saturation_index", 0.0))
-            if max_search > 0 and monthly > max_search:
-                continue
-            if saturation > max_saturation:
-                continue
-            filtered.append(row)
-
-        sort_field_map = {
-            "콘텐츠 포화 지수": "content_saturation_index",
-            "월검색량": "monthly_total_search",
-            "콘텐츠양(블로그)": "blog_document_count",
-            "키워드": "keyword",
-        }
-        selected = self.sort_column_combo.currentText()
-        sort_key = sort_field_map.get(selected, "content_saturation_index")
-        reverse = self.sort_order_combo.currentText() == "내림차순"
-        filtered.sort(key=lambda x: x.get(sort_key, 0), reverse=reverse)
-        return filtered
-
-    def apply_golden_filters(self):
-        filtered = self._get_sorted_filtered_golden_results()
-        self.render_golden_keyword_results(filtered)
-
-    def save_golden_keywords_to_file(self):
-        filtered_results = self._get_sorted_filtered_golden_results()
-        if not filtered_results:
-            QMessageBox.warning(self, "데이터 없음", "저장할 황금 키워드 결과가 없습니다.")
-            return
-
-        save_dir = self.save_path_input.text().strip() or os.getcwd()
-        os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, "keywords.txt")
-
-        top_keywords = [row["keyword"] for row in filtered_results]
-        with open(save_path, "w", encoding="utf-8") as f:
-            f.write("\n".join(top_keywords))
-
-        self.update_progress("전체", f"키워드 {len(top_keywords)}개 저장: {save_path}")
-        QMessageBox.information(self, "저장 완료", f"저장 위치:\n{save_path}")
 
     def start_search(self):
         """검색 시작"""
@@ -3646,11 +3169,6 @@ class KeywordExtractorMainWindow(QMainWindow):
                     event.ignore()
                     return
 
-        if hasattr(self, "golden_keyword_thread") and self.golden_keyword_thread:
-            if self.golden_keyword_thread.isRunning():
-                self.golden_keyword_thread.quit()
-                self.golden_keyword_thread.wait(1000)
-        
         _crash_save_enabled = False
         
         if self.driver:
@@ -3664,6 +3182,9 @@ def main():
         import ctypes
         ctypes.windll.kernel32.SetConsoleOutputCP(65001)
         ctypes.windll.kernel32.SetConsoleCP(65001)
+
+    if not verify_machine_id_guard():
+        sys.exit(1)
     
     app = QApplication(sys.argv)
     
@@ -3731,6 +3252,10 @@ def main():
 
 if __name__ == "__main__":
     main() 
+
+
+
+
 
 
 

@@ -1,17 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
-numpy_hidden = collect_submodules('numpy')
-pandas_hidden = collect_submodules('pandas')
-numpy_data = collect_data_files('numpy')
-pandas_data = collect_data_files('pandas')
 
 a = Analysis(
-    ['auto_keyword.py'],
+    ['Auto_Naver_Gold_Keyword.py'],
     pathex=[],
     binaries=[],
-    datas=[('your_icon.ico', '.')] + numpy_data + pandas_data,
-    hiddenimports=numpy_hidden + pandas_hidden,
+    datas=[],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -27,11 +22,11 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Auto_Naver_Keyword',
+    name='Auto_Naver_Gold_Keyword',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,
+    upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,

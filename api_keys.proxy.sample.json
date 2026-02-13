@@ -1,0 +1,6 @@
+{
+  "proxy_url": "https://your-domain.com",
+  "proxy_token": "replace-with-strong-token",
+  "usage_webhook_url": "",
+  "usage_webhook_token": ""
+}
