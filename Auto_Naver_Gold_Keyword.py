@@ -19,6 +19,8 @@ import io
 import builtins
 import uuid
 import winreg
+import ctypes
+from collections import deque
 from pathlib import Path
 from datetime import datetime, timedelta
 import time
@@ -28,12 +30,13 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 
-# BeautifulSoup for HTML parsing (釉뚮씪?곗? ?놁씠 HTML ?뚯떛)
+# comment removed (encoding issue)
 try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
@@ -41,9 +44,9 @@ except ImportError:
     print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
-# 釉뚮씪?곗? ?놁씠 ?묒뾽?섍린 ?꾪빐 selenium ?쒓굅
+# comment removed (encoding issue)
 
-# Qt ?뚮윭洹몄씤 寃쎈줈 ?ㅼ젙 (PyQt6 ?ㅻ쪟 ?닿껐)
+# comment removed (encoding issue)
 try:
     import PyQt6
     qt_plugin_path = os.path.join(
@@ -54,7 +57,7 @@ try:
         os.environ['QT_PLUGIN_PATH'] = qt_plugin_path
         print(f"Qt 플러그인 경로 설정: {qt_plugin_path}")
     else:
-        # ???寃쎈줈 ?쒕룄
+        # comment removed (encoding issue)
         alt_path = os.path.join(
             os.path.dirname(PyQt6.__file__),
             'Qt',
@@ -71,7 +74,7 @@ from PyQt6.QtWidgets import (
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
     QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QScroller
+    QAbstractItemView, QScroller, QStackedLayout
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -81,7 +84,7 @@ from PyQt6.QtGui import (
 
 import pandas as pd
 
-# BeautifulSoup for HTML parsing (釉뚮씪?곗? ?놁씠 HTML ?뚯떛)
+# comment removed (encoding issue)
 try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
@@ -89,27 +92,28 @@ except ImportError:
     print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
-# ?ㅼ썙??異붿텧 ?꾩슜 - OpenAI API 遺덊븘??
+# comment removed (encoding issue)
 OPENAI_AVAILABLE = False
 
-# ?ㅼ씠踰?釉뚮옖??湲곕컲 議고솕濡쒖슫 ?됱긽 ?붾젅??
-NAVER_GREEN = "#03c75a"              # 硫붿씤 ?ㅼ씠踰?洹몃┛
-NAVER_GREEN_DARK = "#028a4a"         # 吏꾪븳 洹몃┛ (hover)
-NAVER_GREEN_LIGHT = "#e8f5f0"        # ?고븳 洹몃┛ (諛곌꼍)
-NAVER_GREEN_ULTRA_LIGHT = "#f0faf7"  # 留ㅼ슦 ?고븳 洹몃┛ (?꾩껜 諛곌꼍)
-WHITE_COLOR = "#ffffff"               # ?쒕갚??
-TEXT_PRIMARY = "#212529"             # 吏꾪븳 ?띿뒪??
-TEXT_SECONDARY = "#6c757d"           # 蹂댁“ ?띿뒪??
-BACKGROUND_MAIN = "#f0faf7"          # 硫붿씤 諛곌꼍 (?고븳 洹몃┛)
-BACKGROUND_CARD = "#ffffff"          # 移대뱶 諛곌꼍
-BORDER_COLOR = "#d4edda"             # ?고븳 洹몃┛ ?뚮몢由?
-BORDER_FOCUS = "#03c75a"             # ?ъ빱???뚮몢由?
-PLACEHOLDER_COLOR = "#8a8a8a"        # ?먮━?쒖떆??
+# comment removed (encoding issue)
+NAVER_GREEN = "#03c75a"
+NAVER_GREEN_DARK = "#028a4a"
+NAVER_GREEN_LIGHT = "#e8f5f0"
+NAVER_GREEN_ULTRA_LIGHT = "#f0faf7"
+WHITE_COLOR = "#ffffff"
+TEXT_PRIMARY = "#212529"
+TEXT_SECONDARY = "#6c757d"
+BACKGROUND_MAIN = "#f0faf7"
+BACKGROUND_CARD = "#ffffff"
+BORDER_COLOR = "#d4edda"
+BORDER_FOCUS = "#03c75a"
+PLACEHOLDER_COLOR = "#8a8a8a"
+SELENIUM_HEADLESS = False
 
-# ?꾩뿭 蹂?? ?щ옒??蹂댄샇瑜??꾪븳 ?꾩옱 ?묒뾽 ?곹깭 異붿쟻
+# comment removed (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "9e9164c0d1cfc79daa00787164ffa1ed2bf5b7f146d70f1af9b1dc87ab17a77d"
+MACHINE_ID_GUARD_HASH = "9808ecd261f917072ef4aa92222de467ff3950794597460c6b0503ad1417806c"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
 
@@ -170,38 +174,119 @@ class ApiUsageReporter:
 
 API_USAGE_REPORTER = ApiUsageReporter()
 
-# ?꾩씠肄?寃쎈줈 ?ㅼ젙 (exe ?뚯씪 吏??
-def get_icon_path():
-    """?꾩씠肄??뚯씪 寃쎈줈瑜?諛섑솚 (exe? py 紐⑤몢 吏?? - ?낅┰ ?ㅽ뻾 媛쒖꽑"""
+def activate_korean_input_method():
+    """Best-effort: switch current input language to Korean on Windows."""
+    if os.name != "nt":
+        return
     try:
-        # PyInstaller濡?鍮뚮뱶??exe ?뚯씪??寃쎌슦 (理쒖슦??
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstaller媛 ?앹꽦???꾩떆 ?대뜑?먯꽌 李얘린
-            icon_path = os.path.join(sys._MEIPASS, 'your_icon.ico')
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+        hkl = user32.LoadKeyboardLayoutW("00000412", 0x00000001)  # KLF_ACTIVATE
+        if not hkl:
+            return
+        user32.ActivateKeyboardLayout(hkl, 0)
+        hwnd = user32.GetForegroundWindow()
+        if hwnd:
+            user32.PostMessageW(hwnd, 0x0050, 0, hkl)  # WM_INPUTLANGCHANGEREQUEST
+    except Exception:
+        pass
+
+
+class KoreanDefaultLineEdit(QLineEdit):
+    """LineEdit that tries to default to Korean input when focused."""
+
+    def focusInEvent(self, event):
+        super().focusInEvent(event)
+        activate_korean_input_method()
+
+
+class SpiralSpinner(QWidget):
+    """Fixed-size painted spinner to avoid glyph width jitter."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._angle = 0
+        self._mode = "light"
+        self.setObjectName("loadingSpinner")
+        self.setFixedSize(16, 16)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+    def set_mode(self, mode):
+        self._mode = "dark" if str(mode).strip().lower() == "dark" else "light"
+        self.update()
+
+    def step(self):
+        self._angle = (self._angle + 24) % 360
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+
+        size = min(self.width(), self.height())
+        pad = 2
+        rect = QRect(pad, pad, size - (pad * 2), size - (pad * 2))
+
+        if self._mode == "dark":
+            base_color = QColor("#355444")
+            spin_color = QColor("#88e0b4")
+            tail_color = QColor("#4fc892")
+        else:
+            base_color = QColor("#cde9d8")
+            spin_color = QColor("#1f6a49")
+            tail_color = QColor("#03c75a")
+
+        base_pen = QPen(base_color, 1.8)
+        base_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(base_pen)
+        painter.drawEllipse(rect)
+
+        head_pen = QPen(spin_color, 2.2)
+        head_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(head_pen)
+        start = int((90 - self._angle) * 16)
+        painter.drawArc(rect, start, int(-210 * 16))
+
+        inner = QRect(rect.x() + 3, rect.y() + 3, rect.width() - 6, rect.height() - 6)
+        tail_pen = QPen(tail_color, 1.6)
+        tail_pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(tail_pen)
+        tail_start = int((140 - self._angle) * 16)
+        painter.drawArc(inner, tail_start, int(-150 * 16))
+
+
+# comment removed (encoding issue)
+def get_icon_path():
+    """Description"""
+    try:
+        # comment removed (encoding issue)
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            # comment removed (encoding issue)
+            icon_path = os.path.join(str(meipass), 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
-        # exe ?뚯씪怨?媛숈? ?꾩튂?먯꽌 李얘린 (諛고룷 ??
+        # comment removed (encoding issue)
         if getattr(sys, 'frozen', False):
-            # exe ?뚯씪???덈뒗 ?붾젆?좊━
+            # comment removed (encoding issue)
             exe_dir = os.path.dirname(sys.executable)
-            icon_path = os.path.join(exe_dir, 'your_icon.ico')
+            icon_path = os.path.join(exe_dir, 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
-        # ?쇰컲 Python ?ㅽ겕由쏀듃 ?ㅽ뻾??寃쎌슦
+        # comment removed (encoding issue)
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(script_dir, 'your_icon.ico')
+        icon_path = os.path.join(script_dir, 'auto_naver.ico')
         if os.path.exists(icon_path):
             return icon_path
         
-        # assets ?대뜑?먯꽌 李얘린
-        assets_icon = os.path.join(script_dir, 'assets', 'your_icon.ico')
+        # comment removed (encoding issue)
+        assets_icon = os.path.join(script_dir, 'assets', 'auto_naver.ico')
         if os.path.exists(assets_icon):
             return assets_icon
         
-        # ?꾩옱 ?묒뾽 ?붾젆?좊━?먯꽌 李얘린
-        cwd_icon = os.path.join(os.getcwd(), 'your_icon.ico')
+        # comment removed (encoding issue)
+        cwd_icon = os.path.join(os.getcwd(), 'auto_naver.ico')
         if os.path.exists(cwd_icon):
             return cwd_icon
             
@@ -231,6 +316,18 @@ def safe_print(*args, **kwargs):
     builtins.print(*normalized, **kwargs)
 
 
+def get_embedded_api_credentials():
+    return {
+        "searchad_access_key": "01000000000e64e897c68f6e79f36bca6a49962aa41145858136b2e00f482bc1677f3a1446",
+        "searchad_secret_key": "AQAAAABfmxB5yE7SY0Bij8RNJKkZ4af7UA++fTEhxfgv/FKteQ==",
+        "searchad_customer_id": "3010221",
+        "naver_client_id": "GSiFqhyeZrtRo1PAR0RF",
+        "naver_client_secret": "1TV2afJdhU",
+        "usage_webhook_url": "https://script.google.com/macros/s/AKfycbz3WZH9J1uRwXzzsFLlyH3gZkwI7eFrO_fSxDdOa7bLk0TU0_WXZaa3XC1marNnRBebVw/exec?token=david_usage_2026_01",
+        "usage_webhook_token": "david_usage_2026_01",
+    }
+
+
 def load_api_credentials_from_file():
     required_keys = [
         "searchad_access_key",
@@ -240,42 +337,36 @@ def load_api_credentials_from_file():
         "naver_client_secret",
     ]
     api_file = get_app_base_dir() / "api_keys.json"
+    embedded = get_embedded_api_credentials()
+    credentials = {key: str(embedded.get(key, "")).strip() for key in required_keys}
+    credentials["usage_webhook_url"] = str(embedded.get("usage_webhook_url", "")).strip()
+    credentials["usage_webhook_token"] = str(embedded.get("usage_webhook_token", "")).strip()
 
-    if not api_file.exists():
-        template = {k: "" for k in required_keys}
-        template.update({
-            "proxy_url": "",
-            "proxy_token": "",
-            "usage_webhook_url": "",
-            "usage_webhook_token": ""
-        })
-        with open(api_file, "w", encoding="utf-8") as f:
-            json.dump(template, f, ensure_ascii=False, indent=2)
-        raise FileNotFoundError(str(api_file))
+    if api_file.exists():
+        try:
+            with open(api_file, "r", encoding="utf-8-sig") as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
 
-    with open(api_file, "r", encoding="utf-8-sig") as f:
-        data = json.load(f)
+            for key in required_keys:
+                value = str(data.get(key, "")).strip()
+                if value:
+                    credentials[key] = value
+            for key in ["usage_webhook_url", "usage_webhook_token"]:
+                value = str(data.get(key, "")).strip()
+                if value:
+                    credentials[key] = value
+        except Exception as e:
+            safe_print(f"api_keys.json 읽기 실패(내장 키 사용): {e}")
 
-    if not isinstance(data, dict):
-        raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
-
-    credentials = {}
+    missing = []
     for key in required_keys:
-        credentials[key] = str(data.get(key, "")).strip()
+        if not credentials.get(key):
+            missing.append(key)
 
-    proxy_url = str(data.get("proxy_url", "")).strip()
-    credentials["proxy_url"] = proxy_url
-    credentials["proxy_token"] = str(data.get("proxy_token", "")).strip()
-    credentials["proxy_mode"] = bool(proxy_url)
-
-    if not credentials["proxy_mode"]:
-        missing = [k for k in required_keys if not credentials.get(k, "")]
-        if missing:
-            raise ValueError("api_keys.json 필수 항목 누락: " + ", ".join(missing))
-
-    # 선택 항목: API 사용량 집계 웹훅
-    credentials["usage_webhook_url"] = str(data.get("usage_webhook_url", "")).strip()
-    credentials["usage_webhook_token"] = str(data.get("usage_webhook_token", "")).strip()
+    if missing:
+        raise ValueError("필수 API 키 누락: " + ", ".join(missing))
     return credentials, api_file
 
 
@@ -350,18 +441,18 @@ def get_machine_id():
 
 
 def check_license_from_sheet(machine_id):
-    """援ш? ?쒗듃?먯꽌 ?쇱씠?좎뒪 ?뺣낫 ?뺤씤"""
+    """Description"""
     sheet_url = "https://docs.google.com/spreadsheets/d/1YxiLMs7NEbKj0ZuEhx8zdKH-Hz0co2dd3OFxbZSEQS0/export?format=csv&gid=0"
     try:
         safe_print(f"라이선스 확인 중... ID: {machine_id}")
         response = requests.get(sheet_url, timeout=5)
         if response.status_code == 200:
-            # CSV ?뚯떛
+            # comment removed (encoding issue)
             df = pd.read_csv(io.StringIO(response.text))
             
-            # 癒몄떊 ID 而щ읆 李얘린 (3踰덉㎏ 而щ읆 媛??
+            # comment removed (encoding issue)
             if len(df.columns) >= 4:
-                # 怨듬갚 ?쒓굅 諛?臾몄옄??蹂????鍮꾧탳
+                # comment removed (encoding issue)
                 df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.strip()
                 target_row = df[df.iloc[:, 2] == str(machine_id)]
                 
@@ -424,7 +515,7 @@ class UnregisteredDialog(QDialog):
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
+        # comment removed (encoding issue)
         warning_layout = QHBoxLayout()
         warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
@@ -437,7 +528,7 @@ class UnregisteredDialog(QDialog):
         warning_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addLayout(warning_layout)
         
-        # 2. 釉붾（ 諛뺤뒪 ?곸뿭
+        # comment removed (encoding issue)
         blue_box = QFrame()
         blue_box.setStyleSheet("""
             QFrame {
@@ -454,7 +545,7 @@ class UnregisteredDialog(QDialog):
         info_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #0066CC; border: none;")
         box_layout.addWidget(info_label)
         
-        # 癒몄떊 ID ?낅젰李?+ 蹂듭궗 踰꾪듉
+        # comment removed (encoding issue)
         id_layout = QHBoxLayout()
         self.id_input = QLineEdit(machine_id)
         self.id_input.setReadOnly(True)
@@ -494,7 +585,7 @@ class UnregisteredDialog(QDialog):
         
         layout.addWidget(blue_box)
         
-        # 3. ?섎떒 李멸퀬 臾멸뎄
+        # comment removed (encoding issue)
         note_layout = QHBoxLayout()
         bulb_icon = QLabel("💡")
         bulb_icon.setStyleSheet("font-size: 16px; background-color: transparent;")
@@ -505,7 +596,7 @@ class UnregisteredDialog(QDialog):
         note_layout.addStretch()
         layout.addLayout(note_layout)
         
-        # 4. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
+        # comment removed (encoding issue)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         ok_btn = QPushButton("확인")
@@ -530,9 +621,10 @@ class UnregisteredDialog(QDialog):
 
     def copy_to_clipboard(self):
         clipboard = QApplication.clipboard()
-        clipboard.setText(self.id_input.text())
+        if clipboard is not None:
+            clipboard.setText(self.id_input.text())
         sender = self.sender()
-        if sender:
+        if isinstance(sender, QPushButton):
             sender.setText("완료")
             sender.setEnabled(False)
             QTimer.singleShot(2000, lambda: self._reset_btn(sender))
@@ -555,7 +647,7 @@ class ExpiredDialog(QDialog):
         layout.setSpacing(25)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
+        # comment removed (encoding issue)
         warning_layout = QHBoxLayout()
         warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
@@ -568,7 +660,7 @@ class ExpiredDialog(QDialog):
         warning_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addLayout(warning_layout)
         
-        # 2. 踰좎씠吏 諛뺤뒪 ?곸뿭
+        # comment removed (encoding issue)
         yellow_box = QFrame()
         yellow_box.setStyleSheet("""
             QFrame {
@@ -587,7 +679,7 @@ class ExpiredDialog(QDialog):
         
         kakao_btn = QPushButton("카카오톡 바로가기")
         kakao_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        kakao_btn.setMinimumHeight(60)  # 紐낆떆???믪씠 ?ㅼ젙?쇰줈 ?ш린 ?뺣낫
+        kakao_btn.setMinimumHeight(60)
         kakao_btn.setStyleSheet("""
             QPushButton {
                 background-color: #1E6ECA;
@@ -607,7 +699,7 @@ class ExpiredDialog(QDialog):
         
         layout.addWidget(yellow_box)
         
-        # 3. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
+        # comment removed (encoding issue)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         ok_btn = QPushButton("확인")
@@ -642,33 +734,33 @@ class ResizableTextEdit(QTextEdit):
         super().__init__(parent)
         self.min_height = min_height
         self.max_height = max_height
-        self.resize_step = 30  # ?ㅽ겕濡ㅻ떦 ?ш린 蹂?붾웾
+        self.resize_step = 30
         
     def wheelEvent(self, event):
-        # Ctrl ?ㅺ? ?뚮┛ ?곹깭?먯꽌 留덉슦?????대깽??泥섎━
+        # comment removed (encoding issue)
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # ??諛⑺뼢 ?뺤씤
+            # comment removed (encoding issue)
             delta = event.angleDelta().y()
             current_height = self.height()
             
-            if delta > 0:  # ?꾨줈 ?ㅽ겕濡?(李??ш린 利앷?)
+            if delta > 0:
                 new_height = min(current_height + self.resize_step, self.max_height)
-            else:  # ?꾨옒濡??ㅽ겕濡?(李??ш린 媛먯냼)
+            else:
                 new_height = max(current_height - self.resize_step, self.min_height)
             
-            # 理쒕? ?믪씠 ?ㅼ젙 ?낅뜲?댄듃
+            # comment removed (encoding issue)
             self.setMaximumHeight(new_height)
             self.setMinimumHeight(new_height)
             
-            # ?대깽??泥섎━ ?꾨즺
+            # comment removed (encoding issue)
             event.accept()
         else:
-            # ?쇰컲 ?ㅽ겕濡?泥섎━
+            # comment removed (encoding issue)
             super().wheelEvent(event)
 
 
 class SmartProgressTextEdit(ResizableTextEdit):
-    """?ㅻ쭏???먮룞 ?ㅽ겕濡??쒖뼱媛 ?덈뒗 吏꾪뻾?곹솴 ?띿뒪???먮뵒??- 寃??湲곕뒫 ?ы븿"""
+    """Description"""
     
     def __init__(self, parent=None, min_height=200, max_height=800):
         super().__init__(parent, min_height, max_height)
@@ -678,23 +770,23 @@ class SmartProgressTextEdit(ResizableTextEdit):
         self.search_widget = None
         self.last_search_text = ""
         
-        # ?ㅽ겕濡ㅻ컮 蹂寃??대깽???곌껐
+        # comment removed (encoding issue)
         scrollbar = self.verticalScrollBar()
         if scrollbar:
             scrollbar.valueChanged.connect(self._on_scroll_changed)
             scrollbar.sliderPressed.connect(self._on_user_scroll_start)
             scrollbar.sliderReleased.connect(self._on_user_scroll_end)
         
-        # Ctrl+F ?⑥텞???ㅼ젙
+        # comment removed (encoding issue)
         self.search_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
         self.search_shortcut.activated.connect(self.show_search_dialog)
         
     def _on_scroll_changed(self, value):
-        """?ㅽ겕濡??꾩튂 蹂寃????몄텧"""
+        """Description"""
         import time
         current_time = time.time()
         
-        # ?ъ슜?먭? ?ㅽ겕濡?以묒씠 ?꾨땲怨? 留덉?留??ㅽ겕濡ㅻ줈遺??1珥덇? 吏?ъ쑝硫??먮룞 ?ㅽ겕濡??ы솢?깊솕
+        # comment removed (encoding issue)
         if not self.user_is_scrolling and current_time - self.last_scroll_time > 1.0:
             self.auto_scroll_enabled = True
             
@@ -709,41 +801,41 @@ class SmartProgressTextEdit(ResizableTextEdit):
         self.user_is_scrolling = False
         self.last_scroll_time = time.time()
         
-        # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+        # comment removed (encoding issue)
         QTimer.singleShot(3000, self._enable_auto_scroll)
         
     def _enable_auto_scroll(self):
-        """?먮룞 ?ㅽ겕濡??ы솢?깊솕"""
+        """Description"""
         if not self.user_is_scrolling:
             self.auto_scroll_enabled = True
             
-            # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+            # comment removed (encoding issue)
             QTimer.singleShot(3000, self._enable_auto_scroll)
             
     def wheelEvent(self, event):
         """Handle wheel event."""
-        # ?ъ슜?먭? ?좊줈 ?ㅽ겕濡ㅽ븯??寃쎌슦 (Ctrl???뚮━吏 ?딆븯????
+        # comment removed (encoding issue)
         if not (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
             import time
             self.auto_scroll_enabled = False
             self.last_scroll_time = time.time()
-            # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+            # comment removed (encoding issue)
             QTimer.singleShot(3000, self._enable_auto_scroll)
             
         super().wheelEvent(event)
         
     def append_with_smart_scroll(self, text):
-        """?ㅻ쭏???ㅽ겕濡ㅼ씠 ?덈뒗 ?띿뒪??異붽?"""
-        # ?ㅽ겕濡ㅻ컮媛 留??꾨옒???덈뒗吏 ?뺤씤
+        """Description"""
+        # comment removed (encoding issue)
         scrollbar = self.verticalScrollBar()
         was_at_bottom = False
         if scrollbar:
             was_at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
         
-        # ?띿뒪??異붽?
+        # comment removed (encoding issue)
         self.append(text)
         
-        # ?먮룞 ?ㅽ겕濡ㅼ씠 ?쒖꽦?붾릺???덇퀬, ?댁쟾??留??꾨옒???덉뿀?ㅻ㈃ ?ㅽ겕濡?
+        # comment removed (encoding issue)
         if scrollbar and self.auto_scroll_enabled and (was_at_bottom or scrollbar.maximum() == 0):
             scrollbar.setValue(scrollbar.maximum())
     
@@ -767,22 +859,22 @@ class SmartProgressTextEdit(ResizableTextEdit):
         if not search_text:
             return
         
-        # ?꾩껜 ?띿뒪?몄뿉??寃??
+        # comment removed (encoding issue)
         text_content = self.toPlainText()
         
-        # ?꾩옱 而ㅼ꽌 ?꾩튂 媛?몄삤湲?
+        # comment removed (encoding issue)
         cursor = self.textCursor()
         current_position = cursor.position()
         
-        # ?꾩옱 ?꾩튂遺??寃??
+        # comment removed (encoding issue)
         found_index = text_content.find(search_text, current_position)
         
         if found_index == -1:
-            # 泥섏쓬遺???ㅼ떆 寃??
+            # comment removed (encoding issue)
             found_index = text_content.find(search_text)
             
         if found_index != -1:
-            # 寃??寃곌낵 ?섏씠?쇱씠??
+            # comment removed (encoding issue)
             cursor.setPosition(found_index)
             cursor.setPosition(found_index + len(search_text), cursor.MoveMode.KeepAnchor)
             self.setTextCursor(cursor)
@@ -810,7 +902,7 @@ class InsightChartWidget(QWidget):
         self.chart_type = chart_type  # "line" or "bar"
         self.labels = []
         self.values = []
-        self.setMinimumHeight(250)
+        self.setMinimumHeight(220)
 
     def set_data(self, labels, values):
         self.labels = [str(x) for x in labels]
@@ -823,23 +915,35 @@ class InsightChartWidget(QWidget):
         rect = self.rect()
 
         painter.fillRect(rect, QColor("#ffffff"))
+        panel_rect = rect.adjusted(0, 14, -1, -1)
         painter.setPen(QPen(QColor("#d4edda"), 1))
-        painter.drawRoundedRect(rect.adjusted(0, 0, -1, -1), 8, 8)
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawRoundedRect(panel_rect, 8, 8)
 
-        painter.setPen(QPen(QColor("#1f5136"), 1))
+        # Title badge (matches "인사이트" group title style)
         painter.setFont(QFont("Malgun Gothic", 10, QFont.Weight.Bold))
-        painter.drawText(rect.adjusted(12, 8, -12, -8), Qt.AlignmentFlag.AlignLeft, self.title)
+        metrics = painter.fontMetrics()
+        title_w = metrics.horizontalAdvance(self.title) + 26
+        title_h = 28
+        title_x = rect.left() + 12
+        title_y = rect.top()
+        title_rect = QRect(title_x, title_y, title_w, title_h)
+        painter.setPen(QPen(QColor("#03c75a"), 2))
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawRoundedRect(title_rect, 8, 8)
+        painter.setPen(QPen(QColor("#185a3a"), 1))
+        painter.drawText(title_rect, Qt.AlignmentFlag.AlignCenter, self.title)
 
         if not self.values:
             painter.setPen(QPen(QColor("#6c757d"), 1))
             painter.setFont(QFont("Malgun Gothic", 9))
-            painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, "데이터 없음")
+            painter.drawText(panel_rect, Qt.AlignmentFlag.AlignCenter, "데이터 없음")
             return
 
-        left = rect.left() + 78
-        right = rect.right() - 14
-        top = rect.top() + 34
-        bottom = rect.bottom() - 42
+        left = panel_rect.left() + 68
+        right = panel_rect.right() - 16
+        top = panel_rect.top() + 34
+        bottom = panel_rect.bottom() - 38
         plot_w = max(1, right - left)
         plot_h = max(1, bottom - top)
 
@@ -854,18 +958,16 @@ class InsightChartWidget(QWidget):
 
         painter.setPen(QPen(QColor("#6c757d"), 1))
         painter.setFont(QFont("Malgun Gothic", 8))
-        axis_label_width = 52
-        axis_label_gap = 10
         for i in range(5):
-            value = max_val - (max_val * i / 4)
             y = top + int(plot_h * i / 4)
+            v = max_val * (4 - i) / 4
             painter.drawText(
-                left - axis_label_gap - axis_label_width,
-                y - 8,
-                axis_label_width,
-                16,
+                panel_rect.left() + 2,
+                y - 6,
+                54,
+                12,
                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                f"{value:.1f}"
+                f"{v:.1f}"
             )
 
         painter.setPen(QPen(QColor("#adb5bd"), 1))
@@ -915,9 +1017,7 @@ class InsightChartWidget(QWidget):
                 x = left + bar_w // 2
                 for i in range(0, len(self.labels), step):
                     xpos = x + i * (bar_w + gap)
-                    text_w = 70
-                    tx = max(left - 4, min(xpos - text_w // 2, right - text_w + 4))
-                    painter.drawText(tx, bottom + 14, text_w, 24, Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop, self.labels[i])
+                    painter.drawText(xpos - 32, bottom + 18, 64, 14, Qt.AlignmentFlag.AlignCenter, self.labels[i])
 
 
 def emergency_save_data():
@@ -928,21 +1028,21 @@ def emergency_save_data():
         return
     
     try:
-        safe_print("?슚 ?묎툒 ????쒖옉...")
+        safe_print("log update")
         
         saved_count = 0
         
-        # ?쒖꽦 ?ㅻ젅???뺤씤 (蹂묐젹 泥섎━ 吏??
+        # comment removed (encoding issue)
         if hasattr(_current_window, 'active_threads') and _current_window.active_threads:
             save_dir = _current_window.save_path_input.text().strip()
             if not save_dir:
-                # ?ъ슜?먮퀎 諛뷀깢?붾㈃ 寃쎈줈 ?숈쟻 ?앹꽦
+                # comment removed (encoding issue)
                 desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
                 save_dir = os.path.join(desktop_path, "keyword_results")
                 try:
                     os.makedirs(save_dir, exist_ok=True)
                 except Exception:
-                    # 諛뷀깢?붾㈃ ?묎렐 ?ㅽ뙣 ????臾몄꽌濡??泥?
+                    # comment removed (encoding issue)
                     save_dir = os.path.join(os.path.expanduser("~"), "Documents", "keyword_results")
                     os.makedirs(save_dir, exist_ok=True)
             
@@ -959,36 +1059,34 @@ def emergency_save_data():
                         searcher = thread.searcher
                         base_keyword = thread.keyword
                         
-                        # ?덉쟾???뚯씪紐??앹꽦
+                        # comment removed (encoding issue)
                         safe_keyword = re.sub(r'[^\w가-힣\s]', '', base_keyword).strip()[:20]
                         if not safe_keyword:
                             safe_keyword = "응급저장"
                         
                         emergency_file = os.path.join(save_dir, f"{safe_keyword}_응급저장_{current_time}.xlsx")
                         
-                        # ?곗씠?????
+                        # comment removed (encoding issue)
                         if searcher.save_recursive_results_to_excel(emergency_file):
-                            safe_print(f"???묎툒 ????꾨즺 ({base_keyword}): {emergency_file}")
+                            safe_print("log update")
                             saved_count += 1
                 except Exception as inner_e:
-                    safe_print(f"?좑툘 媛쒕퀎 ?ㅻ젅??????ㅽ뙣: {str(inner_e)}")
+                    safe_print("log update")
                     continue
             
             if saved_count > 0:
-                safe_print(f"?뱤 珥?{saved_count}媛쒖쓽 ?묒뾽???묎툒 ??λ릺?덉뒿?덈떎.")
+                safe_print("log update")
             else:
-                safe_print("?좑툘 ??ν븷 ?곗씠?곌? ?녾굅???ㅽ뙣?덉뒿?덈떎.")
+                safe_print("log update")
             
     except Exception as e:
-        safe_print(f"???묎툒 ???珥덇린???ㅽ뙣: {str(e)}")
-        
-    except Exception as e:
-        safe_print(f"???묎툒 ????ㅽ뙣: {str(e)}")
-        # ?묎툒 ??λ룄 ?ㅽ뙣??寃쎌슦 理쒖냼??JSON?쇰줈?쇰룄 ????쒕룄
+        safe_print("log update")
+        # comment removed (encoding issue)
         try:
-            if (_current_window and _current_window.search_thread and 
-                hasattr(_current_window.search_thread, 'searcher') and
-                hasattr(_current_window.search_thread.searcher, 'all_related_keywords')):
+            search_thread = getattr(_current_window, "search_thread", None) if _current_window else None
+            searcher = getattr(search_thread, "searcher", None) if search_thread else None
+            all_keywords = getattr(searcher, "all_related_keywords", None) if searcher else None
+            if all_keywords:
                 
                 backup_dir = os.path.join(os.getcwd(), "emergency_backup")
                 os.makedirs(backup_dir, exist_ok=True)
@@ -996,12 +1094,12 @@ def emergency_save_data():
                 backup_file = os.path.join(backup_dir, f"emergency_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
                 
                 with open(backup_file, 'w', encoding='utf-8') as f:
-                    json.dump(_current_window.search_thread.searcher.all_related_keywords, f, 
+                    json.dump(all_keywords, f, 
                              ensure_ascii=False, indent=2)
                 
-                safe_print(f"?뱞 JSON 諛깆뾽 ????꾨즺: {backup_file}")
+                safe_print("log update")
         except:
-            safe_print("??JSON 諛깆뾽 ??λ룄 ?ㅽ뙣")
+            safe_print("log update")
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -1009,14 +1107,14 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     global _crash_save_enabled
     
     if _crash_save_enabled:
-        safe_print("?슚 泥섎━?섏? ?딆? ?덉쇅 諛쒖깮!")
-        safe_print(f"?덉쇅 ??? {exc_type.__name__}")
-        safe_print(f"?덉쇅 ?댁슜: {str(exc_value)}")
+        safe_print("log update")
+        safe_print("log update")
+        safe_print("log update")
         
-        # ?묎툒 ????섑뻾
+        # comment removed (encoding issue)
         emergency_save_data()
         
-        # ?덉쇅 ?뺣낫瑜??뚯씪濡????
+        # comment removed (encoding issue)
         try:
             crash_dir = os.path.join(os.getcwd(), "crash_logs")
             os.makedirs(crash_dir, exist_ok=True)
@@ -1026,34 +1124,34 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     crash_dir, f"crash_log_{current_time}.txt")
             
             with open(crash_file, 'w', encoding='utf-8') as f:
-                f.write(f"?щ옒??諛쒖깮 ?쒓컙: {datetime.now()}\n")
-                f.write(f"?덉쇅 ??? {exc_type.__name__}\n")
-                f.write(f"?덉쇅 ?댁슜: {str(exc_value)}\n\n")
-                f.write("?ㅽ깮 ?몃젅?댁뒪:\n")
+                f.write(f"Crash time: {datetime.now()}\n")
+                f.write(f"Exception type: {exc_type.__name__}\n")
+                f.write(f"Exception message: {str(exc_value)}\n\n")
+                f.write("Stack trace:\n")
                 traceback.print_exception(
     exc_type, exc_value, exc_traceback, file=f)
             
-            safe_print(f"?뱷 ?щ옒??濡쒓렇 ??? {crash_file}")
+            safe_print("log update")
         except:
             pass
     
-    # 湲곕낯 ?덉쇅 泥섎━湲??몄텧
+    # comment removed (encoding issue)
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
 
 def handle_signal(signum, frame):
-    """?쒓렇???몃뱾??(Ctrl+C, 媛뺤젣 醫낅즺 ??"""
+    """Description"""
     signal_names = {
         signal.SIGINT: "SIGINT (Ctrl+C)",
-        signal.SIGTERM: "SIGTERM (醫낅즺 ?붿껌)"
+        signal.SIGTERM: "SIGTERM (terminate request)"
     }
     
     signal_name = signal_names.get(signum, f"Signal {signum}")
-    safe_print(f"?슚 {signal_name} ?좏샇 ?섏떊! ?묎툒 ???以?..")
+    safe_print("log update")
     
     emergency_save_data()
     
-    # ?뺤긽 醫낅즺
+    # comment removed (encoding issue)
     if _current_window:
         _current_window.close()
     
@@ -1061,26 +1159,29 @@ def handle_signal(signum, frame):
 
 
 class MultiKeywordTextEdit(QTextEdit):
-    """?щ윭 ?ㅼ썙???낅젰???꾪븳 而ㅼ뒪? ?띿뒪???먮뵒??- paintEvent 湲곕컲 placeholder 諛?媛?낆꽦 媛쒖꽑"""
+    """Description"""
     search_requested = pyqtSignal()
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.min_height = 200
+        self.max_height = 800
+        self.resize_step = 30
         self._placeholder_text = ""
         
-        # ?대?吏 諛?留곹겕 ?ㅼ젙
+        # comment removed (encoding issue)
         self._cta_text = "키워드 공부하러 가기"
         self._cta_url = "https://cafe.naver.com/f-e/cafes/31118881/articles/2036?menuid=12&referrerAllArticles=false"
         self._link_rect = None
         
-        # 二쇱냼 ?쒖떆以?而ㅼ꽌 蹂寃쎌쓣 ?꾪븳 ?몃옒???쒖꽦??
+        # comment removed (encoding issue)
         self.setMouseTracking(True)
         
-        # ?ㅽ겕濡??뺤콉 ?ㅼ젙
+        # comment removed (encoding issue)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         
-        # ?ㅼ씠踰?洹몃┛ ?뚮쭏 湲곕낯 ?ㅽ????곸슜 (?됯컙 180% 異붽?)
+        # comment removed (encoding issue)
         self.setStyleSheet(f"""
             QTextEdit {{
                 background-color: {BACKGROUND_CARD} !important;
@@ -1113,7 +1214,7 @@ class MultiKeywordTextEdit(QTextEdit):
         """)
         
     def setPlaceholderText(self, text):
-        """Placeholder ?띿뒪???ㅼ젙"""
+        """Description"""
         self._placeholder_text = text
         self.update()
         
@@ -1121,12 +1222,15 @@ class MultiKeywordTextEdit(QTextEdit):
         """Custom paint event for placeholder and CTA."""
         super().paintEvent(event)
         
-        # ?ъ빱?ㅺ? ?녾퀬 ?띿뒪?멸? 鍮꾩뼱?덉쓣 ?뚮쭔 placeholder ?쒖떆
+        # comment removed (encoding issue)
         if not self.toPlainText().strip() and not self.hasFocus():
-            painter = QPainter(self.viewport())
+            viewport = self.viewport()
+            if viewport is None:
+                return
+            painter = QPainter(viewport)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             
-            # --- 1. ?띿뒪??洹몃━湲?---
+            # comment removed (encoding issue)
             painter.setPen(QColor("#777777"))
             font = self.font()
             font.setPointSize(11)
@@ -1138,35 +1242,35 @@ class MultiKeywordTextEdit(QTextEdit):
             line_spacing = 2.2
             text_block_height = (len(lines) * line_height * line_spacing)
             
-            viewport_rect = self.viewport().rect()
+            viewport_rect = viewport.rect()
             padding_left = 60
             
-            # ?띿뒪?? ?대?吏, 留곹겕 ?꾩껜 ?믪씠 怨꾩궛 (???
+            # comment removed (encoding issue)
             link_h = 40
             spacing_between = 20
             
-            # ?꾩껜 而⑦뀗痢좎쓽 ?쒖옉 Y (?붾㈃ 以묒븰 ?뺣젹)
+            # comment removed (encoding issue)
             total_content_height = text_block_height + spacing_between + link_h
             start_y = (viewport_rect.height() - total_content_height) / 2 + metrics.ascent()
             
             current_y = start_y
             
-            # ?띿뒪??洹몃━湲?
+            # comment removed (encoding issue)
             for i, line in enumerate(lines):
                 painter.drawText(int(viewport_rect.left() + padding_left), int(current_y), line)
                 current_y += (line_height * line_spacing)
             
             current_y += spacing_between
             
-            # --- 2. ?대?吏 洹몃━湲?(?쒓굅?? ---
+            # comment removed (encoding issue)
             
-            # --- 3. 留곹겕 洹몃━湲?---
+            # comment removed (encoding issue)
             link_font = self.font()
             link_font.setPointSize(11)
             link_font.setUnderline(True)
             link_font.setBold(True)
             painter.setFont(link_font)
-            painter.setPen(QColor("#0066CC")) # ?뚮???留곹겕
+            painter.setPen(QColor("#0066CC"))
             
             link_metrics = painter.fontMetrics()
             link_width = link_metrics.horizontalAdvance(self._cta_text)
@@ -1174,64 +1278,67 @@ class MultiKeywordTextEdit(QTextEdit):
             
             painter.drawText(int(link_x), int(current_y + link_metrics.ascent()), self._cta_text)
             
-            # 留곹겕 ?곸뿭 ???(?대┃ 媛먯???
+            # comment removed (encoding issue)
             self._link_rect = QRect(int(link_x), int(current_y), int(link_width), int(link_metrics.height() + 10))
 
     def mouseMoveEvent(self, event):
         """Handle mouse move for link hover."""
-        if self._link_rect and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
-            self.viewport().setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        viewport = self.viewport()
+        if viewport is None:
+            return
+        if isinstance(self._link_rect, QRect) and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
+            viewport.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         else:
-            self.viewport().setCursor(QCursor(Qt.CursorShape.IBeamCursor))
+            viewport.setCursor(QCursor(Qt.CursorShape.IBeamCursor))
         super().mouseMoveEvent(event)
 
     def mousePressEvent(self, event):
-        """留덉슦???대┃ ??留곹겕 ?닿린"""
-        if self._link_rect and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
+        """Description"""
+        if isinstance(self._link_rect, QRect) and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
             QDesktopServices.openUrl(QUrl(self._cta_url))
-            return # 留곹겕 ?대┃ ???ъ빱???≪? ?딆쓬
+            return
 
         super().mousePressEvent(event)
     
     def keyPressEvent(self, event):
-        """???낅젰 ?대깽??泥섎━"""
+        """Description"""
         if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
-                # Shift+Enter: 以꾨컮轅?
+                # comment removed (encoding issue)
                 super().keyPressEvent(event)
             else:
-                # Enter: 寃???쒖옉 ?좏샇 諛쒖깮
+                # comment removed (encoding issue)
                 self.search_requested.emit()
                 event.accept()
         else:
             super().keyPressEvent(event)
 
     def wheelEvent(self, event):
-        """留덉슦?????대깽??泥섎━ - Ctrl+?좊줈 ?ш린 議곗젅 湲곕뒫 異붽?"""
-        # Ctrl ?ㅺ? ?뚮┛ ?곹깭?먯꽌 留덉슦?????대깽??泥섎━ (?ш린 議곗젅)
+        """Description"""
+        # comment removed (encoding issue)
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # ??諛⑺뼢 ?뺤씤
+            # comment removed (encoding issue)
             delta = event.angleDelta().y()
             current_height = self.height()
             
-            if delta > 0:  # ?꾨줈 ?ㅽ겕濡?(李??ш린 利앷?)
+            if delta > 0:
                 new_height = min(current_height + self.resize_step, self.max_height)
-            else:  # ?꾨옒濡??ㅽ겕濡?(李??ш린 媛먯냼)
+            else:
                 new_height = max(current_height - self.resize_step, self.min_height)
             
-            # 理쒕?/理쒖냼 ?믪씠 ?ㅼ젙 ?낅뜲?댄듃
+            # comment removed (encoding issue)
             self.setMaximumHeight(new_height)
             self.setMinimumHeight(new_height)
             
-            # ?대깽??泥섎━ ?꾨즺
+            # comment removed (encoding issue)
             event.accept()
         else:
-            # ?쇰컲 ?ㅽ겕濡?泥섎━
+            # comment removed (encoding issue)
             super().wheelEvent(event)
 
 
 class NaverMobileSearchScraper:
-    """釉뚮씪?곗? 湲곕컲 ?ㅼ씠踰??ㅼ썙??異붿텧 (媛쒖꽑??"""
+    """Description"""
     
     def __init__(self, driver=None):
         self.session = requests.Session()
@@ -1244,9 +1351,9 @@ class NaverMobileSearchScraper:
         self.all_related_keywords = []
         self.base_keyword = ""
         self.processed_keywords = set()
-        self.search_thread = None
+        self.search_thread: QThread | None = None
         
-        # User-Agent ?ㅼ젙 (?ㅼ젣 釉뚮씪?곗?泥섎읆 蹂댁씠寃?
+        # comment removed (encoding issue)
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -1257,65 +1364,11 @@ class NaverMobileSearchScraper:
             'Upgrade-Insecure-Requests': '1',
         })
 
-    def check_internet_connection(self):
-        """?명꽣???곌껐 ?곹깭 ?뺤씤"""
-        try:
-            response = requests.get("https://www.naver.com", timeout=5)
-            return response.status_code == 200
-        except:
-            try:
-                socket.create_connection(("8.8.8.8", 53), timeout=3)
-                return True
-            except:
-                return False
-
-    def check_pause_status(self, progress_callback=None):
-        """?쇱떆?뺤? ?곹깭 泥댄겕 諛??명꽣???곌껐 ?뺤씤"""
-        if not self.is_running:
-            return False
-        
-        # ?쇱떆?뺤? ?곹깭 ?뺤씤
-        if self.search_thread and hasattr(self.search_thread, 'is_paused'):
-            if self.search_thread.is_paused:
-                if progress_callback:
-                    progress_callback("?몌툘 ?묒뾽???쇱떆?뺤??섏뿀?듬땲?? '?ш컻' 踰꾪듉???뚮윭二쇱꽭??")
-                
-                while self.search_thread.is_paused and self.is_running:
-                    time.sleep(0.5)
-                
-                if not self.is_running:
-                    return False
-                
-                if progress_callback:
-                    progress_callback("?띰툘 ?묒뾽???ш컻?⑸땲??")
-        
-        # ?명꽣???곌껐 ?곹깭 ?뺤씤
-        if not self.check_internet_connection():
-            if progress_callback:
-                progress_callback("?뙋 ?명꽣???곌껐???딆뼱議뚯뒿?덈떎. ?곌껐??湲곕떎由щ뒗 以?..")
-            
-            connection_wait_count = 0
-            while not self.check_internet_connection() and self.is_running:
-                time.sleep(2)
-                connection_wait_count += 1
-                
-                if connection_wait_count % 5 == 0 and progress_callback:
-                    progress_callback(f"?봽 ?명꽣???곌껐 ?쒕룄 以?.. ({connection_wait_count * 2}珥?寃쎄낵)")
-            
-            if not self.is_running:
-                return False
-            
-            if self.check_internet_connection():
-                if progress_callback:
-                    progress_callback("???명꽣???곌껐??蹂듦뎄?섏뿀?듬땲?? ?묒뾽??怨꾩냽 吏꾪뻾?⑸땲??")
-        
-        return True
-
     def search_keyword(self, keyword, progress_callback=None):
-        """?ㅼ씠踰꾩뿉???ㅼ썙??寃??(HTTP ?붿껌?쇰줈)"""
+        """Description"""
         try:
             if progress_callback:
-                progress_callback(f"'{keyword}' 寃???쒖옉... (釉뚮씪?곗? ?놁씠)")
+                progress_callback("progress update")
             
             encoded_keyword = urllib.parse.quote(keyword)
             search_url = f"https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query={encoded_keyword}"
@@ -1324,26 +1377,26 @@ class NaverMobileSearchScraper:
             response.raise_for_status()
             
             if progress_callback:
-                progress_callback("寃???꾨즺")
+                progress_callback("progress update")
             
             return response.text
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"寃???ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return None
 
     # extract_autocomplete_keywords (requests version) removed to avoid duplication
     pass
 
     def extract_related_keywords(self, keyword, progress_callback=None):
-        """?곌?寃?됱뼱 異붿텧 (HTML ?뚯떛)"""
+        """Description"""
         keywords = []
         
         try:
             if not BEAUTIFULSOUP_AVAILABLE:
                 if progress_callback:
-                    progress_callback("??BeautifulSoup???ㅼ튂?섏? ?딆븯?듬땲??")
+                    progress_callback("progress update")
                 return keywords
             
             html_content = self.search_keyword(keyword, progress_callback)
@@ -1353,9 +1406,9 @@ class NaverMobileSearchScraper:
             soup = BeautifulSoup(html_content, 'html.parser')
             
             if progress_callback:
-                progress_callback(f"'{keyword}' ?섏씠吏?먯꽌 ?곌?寃?됱뼱 異붿텧 以?..")
+                progress_callback("progress update")
             
-            # ?곌?寃?됱뼱 ?좏깮?먮뱾
+            # comment removed (encoding issue)
             related_selectors = [
                 '.related_srch a',
                 '.lst_related a', 
@@ -1368,7 +1421,7 @@ class NaverMobileSearchScraper:
             for selector in related_selectors:
                 elements = soup.select(selector)
                 if elements and progress_callback:
-                    progress_callback(f"?좏깮??'{selector}'?먯꽌 {len(elements)}媛??붿냼 諛쒓껄")
+                    progress_callback("progress update")
                 
                 for element in elements:
                     try:
@@ -1377,134 +1430,126 @@ class NaverMobileSearchScraper:
                             keywords.append(keyword_text)
                             found_count += 1
                             if progress_callback:
-                                progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                progress_callback("progress update")
                     except:
                         continue
             
             if progress_callback:
-                progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?곌??ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                progress_callback("progress update")
             
             return keywords
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?곌??ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return []
 
     def check_internet_connection(self):
-        """?명꽣???곌껐 ?곹깭 ?뺤씤"""
+        """Description"""
         try:
-            # ?ㅼ씠踰꾩뿉 媛꾨떒???붿껌?쇰줈 ?곌껐 ?뺤씤
             response = requests.get("https://www.naver.com", timeout=5)
             return response.status_code == 200
         except:
             try:
-                # ??덉쑝濡?援ш? DNS ?뺤씤
-                import socket
                 socket.create_connection(("8.8.8.8", 53), timeout=3)
                 return True
             except:
                 return False
 
     def check_pause_status(self, progress_callback=None):
-        """?쇱떆?뺤? ?곹깭 泥댄겕 諛??명꽣???곌껐 ?뺤씤 - 媛쒖꽑??踰꾩쟾"""
-        # 1. ?꾨줈洹몃옩 以묐떒 ?곹깭 ?뺤씤
+        """Description"""
         if not self.is_running:
             return False
         
-        # 2. ?쇱떆?뺤? ?곹깭 ?뺤씤
-        if self.search_thread and hasattr(self.search_thread, 'is_paused'):
-            if self.search_thread.is_paused:
+        if self.search_thread:
+            if bool(getattr(self.search_thread, "is_paused", False)):
                 if progress_callback:
-                    progress_callback("?몌툘 ?묒뾽???쇱떆?뺤??섏뿀?듬땲?? '?ш컻' 踰꾪듉???뚮윭二쇱꽭??")
+                    progress_callback("progress update")
                 
-                # ?쇱떆?뺤? ?곹깭?먯꽌 ?湲?
-                while self.search_thread.is_paused and self.is_running:
+                while bool(getattr(self.search_thread, "is_paused", False)) and self.is_running:
                     time.sleep(0.5)
                 
                 if not self.is_running:
                     return False
                 
                 if progress_callback:
-                    progress_callback("?띰툘 ?묒뾽???ш컻?⑸땲??")
+                    progress_callback("progress update")
         
-        # 3. ?명꽣???곌껐 ?곹깭 ?뺤씤
         if not self.check_internet_connection():
             if progress_callback:
-                progress_callback("?뙋 ?명꽣???곌껐???딆뼱議뚯뒿?덈떎. ?곌껐??湲곕떎由щ뒗 以?..")
+                progress_callback("progress update")
             
-            # ?명꽣???곌껐??蹂듦뎄???뚭퉴吏 ?湲?
             connection_wait_count = 0
             while not self.check_internet_connection() and self.is_running:
                 time.sleep(2)
                 connection_wait_count += 1
                 
-                # ?쇱떆?뺤? ?곹깭???④퍡 ?뺤씤
-                if self.search_thread and hasattr(self.search_thread, 'is_paused') and self.search_thread.is_paused:
+                if self.search_thread and bool(getattr(self.search_thread, "is_paused", False)):
                     if progress_callback:
                         progress_callback("인터넷 연결 대기 중 일시정지됨")
                     break
                 
-                # 10珥덈쭏???곌껐 ?쒕룄 硫붿떆吏
                 if connection_wait_count % 5 == 0 and progress_callback:
-                    progress_callback(f"?봽 ?명꽣???곌껐 ?쒕룄 以?.. ({connection_wait_count * 2}珥?寃쎄낵)")
+                    progress_callback("progress update")
             
             if not self.is_running:
                 return False
             
-            # ?명꽣?룹씠 ?ㅼ떆 ?곌껐??寃쎌슦
-            if self.check_internet_connection():
-                if progress_callback:
-                    progress_callback("???명꽣???곌껐??蹂듦뎄?섏뿀?듬땲?? ?묒뾽??怨꾩냽 吏꾪뻾?⑸땲??")
+            if self.check_internet_connection() and progress_callback:
+                progress_callback("progress update")
         
-        # 紐⑤뱺 ?뺤씤???꾨즺?섎㈃ ?뺤긽 吏꾪뻾
         return True
 
     def initialize_browser(self):
-        """釉뚮씪?곗? 珥덇린??- 諛깃렇?쇱슫??紐⑤뱶 ?꾩슜 (媛쒖꽑??踰꾩쟾)"""
+        """Description"""
         try:
-            safe_print("?봽 釉뚮씪?곗? 珥덇린?붾? ?쒖옉?⑸땲??.. (諛깃렇?쇱슫??紐⑤뱶)")
+            safe_print("log update")
             
             driver_path = None
             
-            # 1. 濡쒖뺄 ?쒕씪?대쾭 ?뺤씤 (媛???곗꽑 - 諛고룷 ?섍꼍 ???
+            # comment removed (encoding issue)
             import shutil
             
-            # EXE ?ㅽ뻾 ?꾩튂 ?먮뒗 ?꾩옱 ?묒뾽 ?붾젆?좊━ ?뺤씤
+            # comment removed (encoding issue)
             base_paths = []
             if getattr(sys, 'frozen', False):
                 base_paths.append(os.path.dirname(sys.executable))
-                if hasattr(sys, '_MEIPASS'):
-                    base_paths.append(sys._MEIPASS)
+                meipass = getattr(sys, "_MEIPASS", None)
+                if meipass:
+                    base_paths.append(str(meipass))
             base_paths.append(os.getcwd())
             
             for base_path in base_paths:
                 local_driver = os.path.join(base_path, "chromedriver.exe")
                 if os.path.exists(local_driver):
-                    safe_print(f"?뱛 濡쒖뺄 ?쒕씪?대쾭 諛쒓껄: {local_driver}")
+                    safe_print("log update")
                     driver_path = local_driver
                     break
             
-            # 2. ChromeDriverManager ?ъ슜 (濡쒖뺄???놁쓣 寃쎌슦)
+            # comment removed (encoding issue)
             if not driver_path:
                 try:
                     from webdriver_manager.chrome import ChromeDriverManager
-                    safe_print("燧뉛툘 ChromeDriverManager濡??쒕씪?대쾭 ?ㅼ튂/?뺤씤 以?..")
-                    # cache_valid_range=1濡??ㅼ젙?섏뿬 留ㅻ쾲 泥댄겕?섏? ?딅룄濡?理쒖쟻??
+                    safe_print("log update")
+                    # comment removed (encoding issue)
                     driver_path = ChromeDriverManager().install()
-                    safe_print(f"???쒕씪?대쾭 寃쎈줈 ?뺣낫: {driver_path}")
+                    safe_print("log update")
                 except Exception as e:
-                    safe_print(f"?좑툘 ChromeDriverManager ?ㅽ뙣: {str(e)}")
+                    safe_print("log update")
             
-            # 3. ?쒖뒪??PATH ?뺤씤 (理쒗썑???섎떒)
+            # comment removed (encoding issue)
             if not driver_path and shutil.which("chromedriver"):
                 driver_path = "chromedriver"
-                safe_print("???쒖뒪??PATH?먯꽌 chromedriver 諛쒓껄")
+                safe_print("log update")
             
             if not driver_path:
-                raise Exception("ChromeDriver瑜?李얠쓣 ???놁뒿?덈떎.\n?꾨줈洹몃옩 ?대뜑??'chromedriver.exe'瑜??ｌ뼱二쇨굅??\n?명꽣???곌껐???뺤씤?댁＜?몄슂.")
+                raise Exception(
+                    "ChromeDriver를 찾을 수 없습니다.\n"
+                    "프로그램 폴더에 'chromedriver.exe'를 넣거나\n"
+                    "인터넷 연결 상태를 확인해 주세요."
+                )
 
-            # Service ?ㅼ젙
+            # comment removed (encoding issue)
             try:
                 service = Service(driver_path)
             except:
@@ -1513,7 +1558,7 @@ class NaverMobileSearchScraper:
                 else:
                     service = Service(executable_path=driver_path)
 
-            # 肄섏넄 李??④린湲?(Windows ?꾩슜)
+            # comment removed (encoding issue)
             if os.name == 'nt':
                 try:
                     startupopt = subprocess.STARTUPINFO()
@@ -1524,24 +1569,27 @@ class NaverMobileSearchScraper:
 
             options = webdriver.ChromeOptions()
             
-            # ?ㅻ뱶由ъ뒪 紐⑤뱶 媛뺤젣 ?쒖꽦??(??긽 諛깃렇?쇱슫??紐⑤뱶)
-            options.add_argument("--headless")  # ?ㅻ뱶由ъ뒪 紐⑤뱶 ?쒖꽦??
-            safe_print("?뵁 諛깃렇?쇱슫??紐⑤뱶: 釉뚮씪?곗? 李쎌씠 ?④꺼吏묐땲??")
+            # comment removed (encoding issue)
+            if SELENIUM_HEADLESS:
+                options.add_argument("--headless")
+                safe_print("Selenium headless mode enabled")
+            else:
+                safe_print("Selenium visible mode enabled")
             
-            options.add_argument("--window-size=1920,1080")  # ?쒖? FHD ?댁긽?꾨줈 ?ㅼ젙
-            options.add_argument("--start-maximized")  # 釉뚮씪?곗? 理쒕???(?ㅻ뱶由ъ뒪?먯꽌???좏슚)
+            options.add_argument("--window-size=1920,1080")
+            options.add_argument("--start-maximized")
             
-            # ?곗뒪?ы넲 User-Agent ?ㅼ젙?쇰줈 釉뚮씪?곗? 李??ш린??留욌뒗 諛섏쓳????吏??
+            # comment removed (encoding issue)
             options.add_argument(
                 "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-            # 諛섏쓳????吏?먯쓣 ?꾪븳 理쒖쟻???ㅼ젙
-            options.add_argument("--disable-web-security")  # CORS ?댁젣
-            options.add_argument("--allow-running-insecure-content")  # ?쇳빀 肄섑뀗痢??덉슜
-            options.add_argument("--force-device-scale-factor=1")  # ?ㅼ????⑺꽣 怨좎젙
-            options.add_argument("--disable-features=VizDisplayCompositor")  # ?뚮뜑留?理쒖쟻??
+            # comment removed (encoding issue)
+            options.add_argument("--disable-web-security")
+            options.add_argument("--allow-running-insecure-content")
+            options.add_argument("--force-device-scale-factor=1")
+            options.add_argument("--disable-features=VizDisplayCompositor")
             
-            # ?덉젙???μ긽 ?듭뀡??
+            # comment removed (encoding issue)
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage") 
             options.add_argument("--disable-gpu")
@@ -1549,7 +1597,7 @@ class NaverMobileSearchScraper:
             options.add_argument("--disable-plugins")
             options.add_argument("--disable-images")
             
-            # ?깅뒫 理쒖쟻???듭뀡??(?띾룄 ?μ긽 + 以묐났 ?쒓굅)
+            # comment removed (encoding issue)
             options.add_argument("--disable-background-networking")
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-renderer-backgrounding")
@@ -1563,52 +1611,52 @@ class NaverMobileSearchScraper:
             options.add_argument("--memory-pressure-off")
             options.add_argument("--max_old_space_size=4096")
             
-            # ?쒓? 源⑥쭚 諛⑹? - 紐⑤뱺 濡쒓렇? ?먮윭 硫붿떆吏 ?꾩쟾 李⑤떒
-            options.add_argument("--lang=en-US")  # ?곸뼱濡??ㅼ젙
-            options.add_argument("--disable-logging")  # 紐⑤뱺 濡쒓렇 鍮꾪솢?깊솕
+            # comment removed (encoding issue)
+            options.add_argument("--lang=en-US")
+            options.add_argument("--disable-logging")
             options.add_argument("--disable-gpu-sandbox")
-            options.add_argument("--log-level=3")  # ?ш컖???ㅻ쪟留?
-            options.add_argument("--silent")  # 議곗슜??紐⑤뱶
-            # 踰덉뿭 UI 諛??뚮뜑留?鍮꾪솢?깊솕
+            options.add_argument("--log-level=3")
+            options.add_argument("--silent")
+            # comment removed (encoding issue)
             options.add_argument("--disable-features=TranslateUI,VizDisplayCompositor")
-            options.add_argument("--disable-ipc-flooding-protection")  # IPC ?뚮윭??蹂댄샇 鍮꾪솢?깊솕
+            options.add_argument("--disable-ipc-flooding-protection")
             
-            # ?깅뒫 理쒖쟻??諛?濡쒓렇 ?꾩쟾 李⑤떒
+            # comment removed (encoding issue)
             options.add_experimental_option('useAutomationExtension', False)
             options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
             options.add_experimental_option("detach", True)
             options.add_argument("--disable-blink-features=AutomationControlled")
             
-            # ?ㅽ듃?뚰겕 諛???꾩븘???ㅼ젙 (???곴레??
-            options.add_argument("--network-timeout=15")  # 30珥???15珥?
+            # comment removed (encoding issue)
+            options.add_argument("--network-timeout=15")
             options.add_argument("--page-load-strategy=eager")
-            options.add_argument("--timeout=15000")  # 15珥???꾩븘??
-            options.add_argument("--dns-prefetch-disable")  # DNS ?꾨━?섏튂 鍮꾪솢?깊솕
+            options.add_argument("--timeout=15000")
+            options.add_argument("--dns-prefetch-disable")
             
-            # ?쒕씪?대쾭 ?앹꽦
+            # comment removed (encoding issue)
             self.driver = webdriver.Chrome(service=service, options=options)
-            safe_print("??Chrome ?쒕씪?대쾭 ?앹꽦 ?깃났!")
+            safe_print("log update")
             
-            # WebDriver ??꾩븘???ㅼ젙 (理쒖쟻??
-            self.driver.set_page_load_timeout(15)  # ?섏씠吏 濡쒕뵫 ??꾩븘??15珥덈줈 ?⑥텞
-            self.driver.implicitly_wait(3)  # ?붿떆???湲?3珥덈줈 ?⑥텞
+            # comment removed (encoding issue)
+            self.driver.set_page_load_timeout(15)
+            self.driver.implicitly_wait(3)
             
-            safe_print("釉뚮씪?곗?媛 ?ㅽ뻾?섏뿀?듬땲??")
+            safe_print("log update")
             
-            # ?ㅼ씠踰??묒냽 ?쒕룄
+            # comment removed (encoding issue)
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    # ?ㅼ씠踰?紐⑤컮??踰꾩쟾?쇰줈 ?묒냽?섎릺 ?곗뒪?ы넲 User-Agent濡?諛섏쓳???쒖떆
+                    # comment removed (encoding issue)
                     self.driver.get("https://m.naver.com")
                     
-                    # viewport 諛??섏씠吏 ?ㅽ??쇱쓣 釉뚮씪?곗? 李??ш린???꾩쟾??留욊쾶 理쒖쟻??
+                    # comment removed (encoding issue)
                     self.driver.execute_script("""
-                        // 釉뚮씪?곗? 李??ш린 媛?몄삤湲?
+                        // Read browser viewport size
                         var windowWidth = window.innerWidth;
                         var windowHeight = window.innerHeight;
                         
-                        // viewport 硫뷀? ?쒓렇瑜?釉뚮씪?곗? 李??ш린??留욊쾶 ?ㅼ젙
+                        // Set viewport meta to current browser size
                         var existingMeta = document.querySelector('meta[name="viewport"]');
                         if (existingMeta) {
                             existingMeta.remove();
@@ -1618,7 +1666,7 @@ class NaverMobileSearchScraper:
                         meta.content = 'width=' + windowWidth + ', initial-scale=1.0, maximum-scale=3.0, user-scalable=yes';
                         document.getElementsByTagName('head')[0].appendChild(meta);
                         
-                        // ?섏씠吏 ?꾩껜瑜?釉뚮씪?곗? 李??ш린??留욊쾶 議곗젙
+                        // Fit page layout to browser viewport
                         document.documentElement.style.width = '100%';
                         document.documentElement.style.height = '100%';
                         document.body.style.minWidth = windowWidth + 'px';
@@ -1628,9 +1676,9 @@ class NaverMobileSearchScraper:
                         document.body.style.transformOrigin = 'top left';
                         document.body.style.margin = '0';
                         document.body.style.padding = '0';
-                        document.body.style.fontSize = Math.max(14, windowWidth / 100) + 'px';  // 李??ш린???곕Ⅸ ?고듃 議곗젙
+                        document.body.style.fontSize = Math.max(14, windowWidth / 100) + 'px';  // dynamic font size
                         
-                        // 硫붿씤 而⑦뀒?대꼫?ㅼ쓣 釉뚮씪?곗? ?꾩껜 ?ш린濡??뺤옣
+                        // Expand main containers to full width
                         var containers = document.querySelectorAll('.container, .wrap, .content_area, #wrap, .nx_wrap');
                         containers.forEach(function(container) {
                             container.style.maxWidth = '100%';
@@ -1638,7 +1686,7 @@ class NaverMobileSearchScraper:
                             container.style.minWidth = windowWidth + 'px';
                         });
                         
-                        // 寃???곸뿭??釉뚮씪?곗? 李쎌뿉 留욊쾶 ?뺣?
+                        // Adjust search result area layout
                         var searchArea = document.querySelector('.TF7QLJYoGthrUnoIpxEj, .api_subject_bx, .search_result');
                         if (searchArea) {
                             searchArea.style.minHeight = (windowHeight - 200) + 'px';
@@ -1647,43 +1695,46 @@ class NaverMobileSearchScraper:
                             searchArea.style.maxWidth = 'none';
                         }
                         
-                        console.log('?섏씠吏媛 釉뚮씪?곗? 李??ш린(' + windowWidth + 'x' + windowHeight + ')??留욊쾶 議곗젙?섏뿀?듬땲??');
+                        console.log('Page layout adjusted for viewport: ' + windowWidth + 'x' + windowHeight);
                     """)
                     
-                    # ?섏씠吏 濡쒕뵫 ?湲?
+                    # comment removed (encoding issue)
                     time.sleep(2)
                     
                     WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "body"))
                     )
-                    safe_print("?ㅼ씠踰?紐⑤컮?쇱뿉 ?묒냽?덉뒿?덈떎. (釉뚮씪?곗? 李??ш린??留욊쾶 理쒖쟻?붾맖)")
+                    safe_print("log update")
                     time.sleep(2)
                     return True
                 except Exception as e:
                     if attempt < max_retries - 1:
-                        safe_print(f"?ㅼ씠踰??묒냽 ?쒕룄 {attempt + 1} ?ㅽ뙣, ?ъ떆??以?..")
+                        safe_print("log update")
                         time.sleep(3)
                     else:
-                        safe_print(f"?ㅼ씠踰??묒냽 理쒖쥌 ?ㅽ뙣: {str(e)}")
+                        safe_print("log update")
                         return False
             
             return True
 
         except Exception as e:
-            error_msg = f"釉뚮씪?곗? 珥덇린???ㅻ쪟:\n{str(e)}\n\nChrome 釉뚮씪?곗?媛 ?ㅼ튂?섏뼱 ?덈뒗吏 ?뺤씤?댁＜?몄슂."
-            safe_print(f"??{error_msg}")
+            error_msg = (
+                f"브라우저 초기화 오류:\n{str(e)}\n\n"
+                "Chrome 브라우저 설치 여부를 확인해 주세요."
+            )
+            safe_print("log update")
             
-            # GUI ?ㅻ젅?쒖뿉??硫붿떆吏 諛뺤뒪 ?쒖떆 ?쒕룄
+            # comment removed (encoding issue)
             try:
                 global _current_window
                 if _current_window:
-                    # 諛⑸쾿 1: 吏곸젒 ?쒖떆 (??대㉧ ?ъ슜?쇰줈 硫붿씤 猷⑦봽?먯꽌 ?ㅽ뻾?섎룄濡??좊룄)
-                    # 硫붿씤 ?ㅻ젅?쒖뿉???ㅽ뻾?섏? ?딆쓣 ?꾪뿕???덉?留? 蹂댄넻 Qt??寃쎄퀬留??섍퀬 ?숈옉?섍굅???щ옒?쒕맖
-                    # ?덉쟾???꾪빐 QMetaObject.invokeMethod媛 ?뺤꽍?댁?留?Python?먯꽌??蹂듭옟??
-                    # QTimer.singleShot(0, ...) ?⑦꽩 ?ъ슜
+                    # comment removed (encoding issue)
+                    # comment removed (encoding issue)
+                    # comment removed (encoding issue)
+                    # comment removed (encoding issue)
                     from PyQt6.QtCore import QTimer
                     QTimer.singleShot(0, lambda: QMessageBox.critical(
-                        _current_window, "釉뚮씪?곗? ?ㅻ쪟", error_msg))
+                        _current_window, "브라우저 오류", error_msg))
             except:
                 pass
                 
@@ -1697,9 +1748,9 @@ class NaverMobileSearchScraper:
             try:
                 if progress_callback:
                     if attempt > 0:
-                        progress_callback(f"'{keyword}' 寃???ъ떆??({attempt + 1}/{max_retries})...")
+                        progress_callback("progress update")
                     else:
-                        progress_callback(f"'{keyword}' 寃???쒖옉...")
+                        progress_callback("progress update")
                 
                 encoded_keyword = urllib.parse.quote(keyword)
                 search_url = f"https://m.search.naver.com/search.naver?where=m&sm=mtp_hty.top&query={encoded_keyword}"
@@ -1708,97 +1759,97 @@ class NaverMobileSearchScraper:
                     self.driver.get(search_url)
                 
                 if progress_callback:
-                    progress_callback("?섏씠吏 濡쒕뵫 以?..")
+                    progress_callback("progress update")
                 
-                # ?섏씠吏 濡쒕뵫 ?湲?(?덉쟾??理쒖쟻??
-                time.sleep(random.uniform(1.5, 2.5))  # 遊??먯? 諛⑹? + ?곷떦??理쒖쟻??
+                # comment removed (encoding issue)
+                time.sleep(random.uniform(1.5, 2.5))
                 
                 try:
                     if self.driver:
-                        WebDriverWait(self.driver, 5).until(  # 8珥???5珥덈줈 ?⑥텞
+                        WebDriverWait(self.driver, 5).until(
                             EC.presence_of_element_located((By.TAG_NAME, "body"))
                         )
                 except TimeoutException:
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"???섏씠吏 濡쒕뵫 ?쒓컙 珥덇낵 - ?ъ떆??以?..")
+                            progress_callback("progress update")
                         continue
                     else:
                         if progress_callback:
-                            progress_callback("???섏씠吏 濡쒕뵫 ?쒓컙 珥덇낵 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback("progress update")
                         return False
                 
                 time.sleep(1)
                 
                 if progress_callback:
-                    progress_callback("寃???꾨즺")
+                    progress_callback("progress update")
                 
                 return True
                 
             except Exception as e:
                 error_msg = str(e)
                 
-                # 1. invalid session id ?먮뒗 no such window ?ㅻ쪟 媛먯?
+                # comment removed (encoding issue)
                 if "invalid session id" in error_msg.lower() or "no such session" in error_msg.lower() or "no such window" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"?봽 ?щ＼ ?쒕씪?대쾭 ?몄뀡/李?臾몄젣 媛먯?. ?ъ떆??以?..")
+                        progress_callback("progress update")
                     
-                    # ?쒕씪?대쾭 ?ъ떆???쒕룄
+                    # comment removed (encoding issue)
                     if self.initialize_browser():
                         if progress_callback:
-                            progress_callback(f"???щ＼ ?쒕씪?대쾭 ?ъ떆???깃났. 寃???ъ떆??..")
+                            progress_callback("progress update")
                         continue
                     else:
                         if progress_callback:
-                            progress_callback(f"???щ＼ ?쒕씪?대쾭 ?ъ떆???ㅽ뙣")
+                            progress_callback("progress update")
                         return False
                 
-                # 2. ?뚮뜑????꾩븘???ㅻ쪟 媛먯? 諛?泥섎━
+                # comment removed (encoding issue)
                 elif "timeout" in error_msg.lower() and "renderer" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"???뚮뜑????꾩븘??媛먯? (釉뚮씪?곗? ?묐떟 ?놁쓬)")
+                        progress_callback("progress update")
                     
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"?봽 ?쒕씪?대쾭 ?ъ떆?????ъ떆??..")
+                            progress_callback("progress update")
                         
-                        # ?뚮뜑????꾩븘?껋쓽 寃쎌슦 ?쒕씪?대쾭 ?ъ떆?묒씠 ?④낵??
+                        # comment removed (encoding issue)
                         if self.initialize_browser():
                             if progress_callback:
-                                progress_callback(f"???쒕씪?대쾭 ?ъ떆???꾨즺. 寃???ъ떆??..")
+                                progress_callback("progress update")
                             continue
                         else:
                             if progress_callback:
-                                progress_callback(f"???쒕씪?대쾭 ?ъ떆???ㅽ뙣")
+                                progress_callback("progress update")
                     else:
                         if progress_callback:
-                            progress_callback(f"???뚮뜑????꾩븘??理쒖쥌 ?ㅽ뙣 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback("progress update")
                         return False
                 
-                # 3. ?쇰컲?곸씤 ??꾩븘???ㅻ쪟
+                # comment removed (encoding issue)
                 elif "timeout" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"????꾩븘???ㅻ쪟 媛먯?")
+                        progress_callback("progress update")
                     
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"?깍툘 ?좎떆 ?湲????ъ떆??..")
-                        time.sleep(5)  # ??꾩븘?껋쓽 寃쎌슦 議곌툑 ???湲?
+                            progress_callback("progress update")
+                        time.sleep(5)
                         continue
                     else:
                         if progress_callback:
-                            progress_callback(f"????꾩븘??理쒖쥌 ?ㅽ뙣 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback("progress update")
                         return False
                 
-                # 4. 湲고? ?ㅻ쪟
+                # comment removed (encoding issue)
                 if attempt < max_retries - 1:
                     if progress_callback:
-                        progress_callback(f"寃???ㅻ쪟 - ?ъ떆??以? {str(e)}")
+                        progress_callback("progress update")
                     time.sleep(3)
                     continue
                 else:
                     if progress_callback:
-                        progress_callback(f"寃??理쒖쥌 ?ㅽ뙣: {str(e)}")
+                        progress_callback("progress update")
                     return False
         
         return False
@@ -1811,53 +1862,60 @@ class NaverMobileSearchScraper:
         for attempt in range(max_retries):
             try:
                 if not self.driver:
-                    # ?쒕씪?대쾭媛 ?놁쑝硫?珥덇린???쒕룄
+                    # comment removed (encoding issue)
                     if not self.initialize_browser():
                         return keywords
                 
                 if progress_callback:
                     if attempt > 0:
-                        progress_callback(f"'{keyword}' ?먮룞?꾩꽦寃?됱뼱 異붿텧 ?ъ떆??({attempt + 1}/{max_retries})...")
+                        progress_callback("progress update")
                     else:
-                        progress_callback(f"'{keyword}' ?먮룞?꾩꽦寃?됱뼱 異붿텧 ?쒖옉...")
+                        progress_callback("progress update")
                 
-                # ?ㅼ씠踰?硫붿씤 ?섏씠吏濡??대룞
+                # comment removed (encoding issue)
                 try:
-                    self.driver.set_page_load_timeout(15)  # 15珥??쒗븳
-                    self.driver.get("https://m.naver.com")
+                    driver = self.driver
+                    if not driver:
+                        return keywords
+                    driver.set_page_load_timeout(15)
+                    driver.get("https://m.naver.com")
                 except TimeoutException:
                     if progress_callback:
-                        progress_callback("?좑툘 ?섏씠吏 濡쒕뵫 吏?? 怨꾩냽 吏꾪뻾?⑸땲??..")
+                        progress_callback("progress update")
                     try:
-                        self.driver.execute_script("window.stop();")
+                        if self.driver:
+                            self.driver.execute_script("window.stop();")
                     except:
                         pass
                 except Exception as e:
-                    # ?대룞 以??먮윭 諛쒖깮 ??(no such window ?? ?덉쇅瑜??곸쐞濡??꾪뙆?섏뿬 泥섎━
+                    # comment removed (encoding issue)
                     raise e
                 
                 time.sleep(2)
             
-                # ?섏씠吏 濡쒕뵫 ?湲?
+                # comment removed (encoding issue)
                 try:
                     from selenium.webdriver.support.ui import WebDriverWait
                     from selenium.webdriver.support import expected_conditions as EC
                     
-                    # ??꾩븘???덉쇅 泥섎━ 異붽?
+                    # comment removed (encoding issue)
                     try:
-                        wait = WebDriverWait(self.driver, 10)
+                        driver = self.driver
+                        if not driver:
+                            return keywords
+                        wait = WebDriverWait(driver, 10)
                         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
                         if progress_callback:
-                            progress_callback("?ㅼ씠踰?硫붿씤 ?섏씠吏 濡쒕뵫 ?꾨즺")
+                            progress_callback("progress update")
                     except TimeoutException:
                         if progress_callback:
-                            progress_callback("?좑툘 ?섏씠吏 ?붿냼 濡쒕뵫 ?쒓컙 珥덇낵 (臾댁떆?섍퀬 吏꾪뻾)")
+                            progress_callback("progress update")
                             
                 except Exception as e:
                     if progress_callback:
-                        progress_callback(f"?섏씠吏 濡쒕뵫 ?湲?以??ㅻ쪟: {str(e)}")
+                        progress_callback("progress update")
             
-                # 寃?됱갹 李얘린
+                # comment removed (encoding issue)
                 search_input = None
                 search_selectors = [
                     '#nx_query',
@@ -1868,23 +1926,29 @@ class NaverMobileSearchScraper:
                 
                 for selector in search_selectors:
                     try:
-                        search_input = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        driver = self.driver
+                        if not driver:
+                            return keywords
+                        search_input = driver.find_element(By.CSS_SELECTOR, selector)
                         if search_input and search_input.is_enabled():
                             if progress_callback:
-                                progress_callback(f"寃?됱갹 諛쒓껄: {selector}")
+                                progress_callback("progress update")
                             break
                     except:
                         continue
                 
                 if not search_input:
                     if progress_callback:
-                        progress_callback("??寃?됱갹??李얠쓣 ???놁뒿?덈떎.")
+                        progress_callback("progress update")
                     return keywords
             
-                # 寃?됱갹???ㅼ썙???낅젰
+                # comment removed (encoding issue)
                 try:
-                    # JavaScript濡??덉쟾?섍쾶 ?낅젰
-                    self.driver.execute_script("""
+                    # comment removed (encoding issue)
+                    driver = self.driver
+                    if not driver:
+                        return keywords
+                    driver.execute_script("""
                         var input = arguments[0];
                         var keyword = arguments[1];
                         input.focus();
@@ -1893,18 +1957,18 @@ class NaverMobileSearchScraper:
                         input.dispatchEvent(new Event('keyup', { bubbles: true }));
                     """, search_input, keyword)
                     
-                    # ?먮룞?꾩꽦 濡쒕뵫 ?湲?
+                    # comment removed (encoding issue)
                     time.sleep(2)
                     
                     if progress_callback:
-                        progress_callback(f"'{keyword}' ?낅젰 ?꾨즺, ?먮룞?꾩꽦 ?湲?以?..")
+                        progress_callback("progress update")
                         
                 except Exception as input_error:
                     if progress_callback:
-                        progress_callback(f"?ㅼ썙???낅젰 ?ㅽ뙣: {str(input_error)}")
+                        progress_callback("progress update")
                         return keywords
             
-                # ?먮룞?꾩꽦 ?ㅼ썙??異붿텧
+                # comment removed (encoding issue)
                 autocomplete_selectors = [
                     '#_nx_ac_layer_wrap ._nx_ac_text',
                     '._nx_ac_text',
@@ -1916,29 +1980,32 @@ class NaverMobileSearchScraper:
                 found_count = 0
                 for selector in autocomplete_selectors:
                     try:
-                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        driver = self.driver
+                        if not driver:
+                            return keywords
+                        elements = driver.find_elements(By.CSS_SELECTOR, selector)
                         
                         for element in elements:
                             try:
                                 if not element.is_displayed():
                                     continue
                                     
-                                # ?띿뒪??異붿텧
+                                # comment removed (encoding issue)
                                 keyword_text = element.get_attribute("textContent") or element.text
                                 
                                 if keyword_text:
                                     keyword_text = keyword_text.strip()
                                     
-                                    # HTML ?쒓렇 ?쒓굅
+                                    # comment removed (encoding issue)
                                     if '<' in keyword_text:
                                         import re
                                         keyword_text = re.sub(r'<[^>]+>', '', keyword_text)
                                         keyword_text = keyword_text.strip()
                                     
-                                    # ?띿뒪???뺤젣
+                                    # comment removed (encoding issue)
                                         keyword_text = self.clean_duplicate_text(keyword_text)
                                         
-                                    # ?좏슚??寃利?
+                                    # comment removed (encoding issue)
                                     if (keyword.lower() in keyword_text.lower() and 
                                         keyword_text not in keywords and
                                         len(keyword_text) <= 50 and
@@ -1946,18 +2013,18 @@ class NaverMobileSearchScraper:
                                             keywords.append(keyword_text)
                                             found_count += 1
                                             if progress_callback:
-                                                progress_callback(f"???먮룞?꾩꽦?ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                                progress_callback("progress update")
                             except Exception:
                                 continue
                     except Exception:
                         continue
                 
-                # 以묐났 ?쒓굅 諛??뺣젹
+                # comment removed (encoding issue)
                 keywords = list(set(keywords))
                 keywords.sort()
                 
                 if progress_callback:
-                    progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?먮룞?꾩꽦?ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                    progress_callback("progress update")
                 
                 return keywords
             
@@ -1965,16 +2032,16 @@ class NaverMobileSearchScraper:
                 error_msg = str(e)
                 if "no such window" in error_msg.lower() or "invalid session id" in error_msg.lower():
                     if progress_callback:
-                        progress_callback("?좑툘 釉뚮씪?곗? 李쎌씠 ?ロ삍嫄곕굹 ?몄뀡??留뚮즺?섏뿀?듬땲?? 蹂듦뎄 ?쒕룄 以?..")
+                        progress_callback("progress update")
                     
                     if attempt < max_retries - 1:
                         if self.initialize_browser():
                             if progress_callback:
-                                progress_callback("??釉뚮씪?곗? 蹂듦뎄 ?깃났. ?ъ떆?꾪빀?덈떎.")
+                                progress_callback("progress update")
                             continue
                 
                 if progress_callback:
-                    progress_callback(f"?먮룞?꾩꽦?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                    progress_callback("progress update")
                 
                 if attempt == max_retries - 1:
                     return []
@@ -1989,9 +2056,9 @@ class NaverMobileSearchScraper:
             if not self.driver:
                 return keywords
             
-            # ?곌?寃?됱뼱 ?좏깮?먮뱾 - 2024??理쒖떊 ?ㅼ씠踰?紐⑤컮??
+            # comment removed (encoding issue)
             related_selectors = [
-                '#_related_keywords .keyword a',  # 硫붿씤 ?좏깮??
+                '#_related_keywords .keyword a',
                 '.related_srch .lst a',
                 '.related_keyword a',
                 '.lst_related a',
@@ -2001,7 +2068,7 @@ class NaverMobileSearchScraper:
             ]
             
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?섏씠吏?먯꽌 ?곌?寃?됱뼱 異붿텧 ?쒖옉...")
+                progress_callback("progress update")
             
             found_count = 0
             
@@ -2009,14 +2076,14 @@ class NaverMobileSearchScraper:
                 try:
                     elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
                     if len(elements) > 0 and progress_callback:
-                        progress_callback(f"?좏깮??'{selector}'?먯꽌 {len(elements)}媛??붿냼 諛쒓껄")
+                        progress_callback("progress update")
                     
                     for element in elements:
                         try:
-                            # ???뺥솗???띿뒪??異붿텧???꾪븳 ?μ긽??濡쒖쭅
+                            # comment removed (encoding issue)
                             keyword_text = ""
                             
-                            # 1李? 媛???덉쟾???띿뒪??異붿텧 - element.text 癒쇱? ?쒕룄
+                            # comment removed (encoding issue)
                             try:
                                 keyword_text = element.text
                                 if keyword_text:
@@ -2024,7 +2091,7 @@ class NaverMobileSearchScraper:
                             except:
                                 keyword_text = ""
 
-                            # 2李? textContent ?띿꽦?쇰줈 諛깆뾽 異붿텧
+                            # comment removed (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = element.get_attribute("textContent")
@@ -2033,7 +2100,7 @@ class NaverMobileSearchScraper:
                                 except:
                                     keyword_text = ""
 
-                            # 3李? innerText ?띿꽦?쇰줈 諛깆뾽 異붿텧
+                            # comment removed (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = element.get_attribute("innerText")
@@ -2042,88 +2109,88 @@ class NaverMobileSearchScraper:
                                 except:
                                     keyword_text = ""
 
-                            # 4李? JavaScript濡??뺥솗???띿뒪??異붿텧 (留덉?留??섎떒)
+                            # comment removed (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = self.driver.execute_script("""
                                         var element = arguments[0];
                                         if (!element) return '';
                                         
-                                            // 留곹겕 ?붿냼??吏곸젒?곸씤 ?띿뒪?몃쭔 異붿텧
+                                            // Extract direct text from anchor element
                                             var textContent = element.textContent || element.innerText || '';
                                             
-                                            // ?욌뮘 怨듬갚 ?쒓굅 諛??곗냽 怨듬갚 ?뺣━
+                                            // Trim and normalize whitespace
                                             return textContent.replace(/\\s+/g, ' ').trim();
                                     """, element)
                                 except:
                                     keyword_text = ""
                             
-                            # HTML ?쒓렇 ?쒓굅 諛??뱀닔臾몄옄 ?뺣━
+                            # comment removed (encoding issue)
                             if keyword_text:
                                 import re
-                                # HTML ?쒓렇 ?쒓굅
+                                # comment removed (encoding issue)
                                 keyword_text = re.sub(r'<[^>]+>', '', keyword_text)
-                                # ?곗냽??怨듬갚 ?쒓굅
+                                # comment removed (encoding issue)
                                 keyword_text = re.sub(r'\s+', ' ', keyword_text)
-                                # ?뱀닔臾몄옄 ?뺣━
-                                keyword_text = re.sub(r'[\u200b-\u200d\ufeff]', '', keyword_text)  # ?쒕줈??臾몄옄 ?쒓굅
-                                # 遺덉셿?꾪븳 ?띿뒪???뺣━ (?앹뿉 ?ㅻ뒗 遺덉셿?꾪븳 ?⑥뼱 ?쒓굅)
+                                # comment removed (encoding issue)
+                                keyword_text = re.sub(r'[\u200b-\u200d\ufeff]', '', keyword_text)
+                                # comment removed (encoding issue)
                                 keyword_text = re.sub(r'\s+[가-힣]{1}$', '', keyword_text)
-                                keyword_text = re.sub(r'\s+[a-zA-Z]{1}$', '', keyword_text)  # ?앹뿉 ?곷Ц 1湲?먮쭔 ?덈뒗 寃쎌슦 ?쒓굅
+                                keyword_text = re.sub(r'\s+[a-zA-Z]{1}$', '', keyword_text)
                                 keyword_text = keyword_text.strip()
                                 
                             if keyword_text:
-                                # ?띿뒪???뺤젣
+                                # comment removed (encoding issue)
                                 keyword_text = self.clean_duplicate_text(keyword_text)
                                     
-                                # 異붽? 寃利? 遺덉셿?꾪븳 ?ㅼ썙???꾪꽣留?
-                                # ?섎??덈뒗 ?⑥뼱濡??앸굹?붿? ?뺤씤
+                                # comment removed (encoding issue)
+                                # comment removed (encoding issue)
                                 if keyword_text and not re.search(r'[가-힣]{1}$|[a-zA-Z]{1}$', keyword_text):
-                                    # ?좏슚???ㅼ썙?쒖씤吏 ?뺤씤 (以묐났 ?쒓굅 諛?湲몄씠 泥댄겕)
+                                    # comment removed (encoding issue)
                                     if (keyword_text not in keywords and
                                         len(keyword_text) <= 50 and
                                         len(keyword_text) > 1):
                                         keywords.append(keyword_text)
                                         found_count += 1
                                         if progress_callback:
-                                            progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
-                                elif keyword_text and len(keyword_text) > 3:  # 3湲???댁긽?대㈃ ?덉슜
+                                            progress_callback("progress update")
+                                elif keyword_text and len(keyword_text) > 3:
                                     if (keyword_text not in keywords and 
                                         len(keyword_text) <= 50 and 
                                         len(keyword_text) > 1):
                                         keywords.append(keyword_text)
                                         found_count += 1
                                         if progress_callback:
-                                            progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                            progress_callback("progress update")
                         except Exception as e:
                             continue
                 except Exception as e:
                     continue
             
-            # 以묐났 ?쒓굅 諛??뺣젹
+            # comment removed (encoding issue)
             keywords = list(set(keywords))
             keywords.sort()
             
             if progress_callback:
-                progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?곌??ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                progress_callback("progress update")
             
             return keywords
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?곌??ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return []
 
     def clean_duplicate_text(self, text):
-        """?띿뒪???뺣━ 諛?以묐났 ?쒓굅 - 媛쒖꽑??踰꾩쟾"""
+        """Description"""
         if not text:
             return text
 
         text = text.strip()
-        # ?곗냽??怨듬갚???섎굹濡??듯빀
+        # comment removed (encoding issue)
         text = re.sub(r'\s+', ' ', text)
         
-        # ?⑥뼱 ?⑥쐞濡?遺꾨━?섏뿬 以묐났 ?쒓굅
+        # comment removed (encoding issue)
         words = text.split()
         unique_words = []
         seen_words = set()
@@ -2134,18 +2201,18 @@ class NaverMobileSearchScraper:
                 unique_words.append(word)
                 seen_words.add(word_lower)
         
-        # 寃곌낵 ?띿뒪???ъ“??
+        # comment removed (encoding issue)
         result = ' '.join(unique_words)
         return result
 
     def extract_together_keywords(self, current_keyword, progress_callback=None):
-        """?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧"""
+        """Description"""
         keywords = []
         try:
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧 以?..")
+                progress_callback("progress update")
             
-            # 媛꾨떒??CSS ?좏깮?먮줈 ?붿냼 李얘린
+            # comment removed (encoding issue)
             selectors = [
                 'a[data-template-type="alsoSearch"]',
                 '.related_keyword a',
@@ -2170,22 +2237,22 @@ class NaverMobileSearchScraper:
                     continue
             
             if progress_callback:
-                progress_callback(f"?④퍡 留롮씠 李얜뒗 ?ㅼ썙??{len(keywords)}媛?異붿텧")
+                progress_callback("progress update")
         
             return list(set(keywords))
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return []
             
     def extract_popular_topics(self, current_keyword, progress_callback=None):
-        """?멸린二쇱젣 ?ㅼ썙??異붿텧"""
+        """Description"""
         keywords = []
         try:
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?멸린二쇱젣 ?ㅼ썙??異붿텧 以?..")
+                progress_callback("progress update")
             
-            # 媛꾨떒??CSS ?좏깮?먮줈 ?붿냼 李얘린
+            # comment removed (encoding issue)
             selectors = [
                 '.fds-comps-keyword-chip-text',
                 '.keyword-chip .text',
@@ -2210,29 +2277,29 @@ class NaverMobileSearchScraper:
                     continue
             
             if progress_callback:
-                progress_callback(f"?멸린二쇱젣 ?ㅼ썙??{len(keywords)}媛?異붿텧")
+                progress_callback("progress update")
             
             return list(set(keywords))
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?멸린二쇱젣 ?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return []
 
     def recursive_keyword_extraction(self, initial_keyword, progress_callback=None, extract_autocomplete=True):
-        """?ш????ㅼ썙??異붿텧 ?꾨줈?몄뒪 - ?꾩쟾 ?ш? 踰꾩쟾"""
+        """Description"""
         if not self.driver:
             if progress_callback:
-                progress_callback("釉뚮씪?곗?媛 珥덇린?붾릺吏 ?딆븯?듬땲??")
+                progress_callback("progress update")
             return False
         
         self.base_keyword = initial_keyword
         self.all_related_keywords = []
-        self.processed_autocomplete_keywords = set()  # 泥섎━???먮룞?꾩꽦寃?됱뼱 異붿쟻
+        self.processed_autocomplete_keywords = set()
         
         if progress_callback:
-            progress_callback(f"?? '{initial_keyword}' ?꾩쟾 ?ш????ㅼ썙??異붿텧???쒖옉?⑸땲??")
+            progress_callback("progress update")
 
-        # 1?④퀎: 湲곕낯 ?ㅼ썙?쒕줈 寃??諛?紐⑤뱺 ?ㅼ썙??異붿텧
+        # comment removed (encoding issue)
         success = self._extract_all_keyword_types(
             initial_keyword, 
             parent_keyword=initial_keyword, 
@@ -2243,35 +2310,35 @@ class NaverMobileSearchScraper:
         if not success:
             return False
             
-        # 2?④퀎: ?먮룞?꾩꽦寃?됱뼱 ?꾩쟾 ?ш???異붿텧
+        # comment removed (encoding issue)
         if extract_autocomplete:
             autocomplete_keywords = self.extract_autocomplete_keywords(initial_keyword, progress_callback)
             
-            # ?먮룞?꾩꽦寃?됱뼱 寃곌낵 ???
+            # comment removed (encoding issue)
             for keyword in autocomplete_keywords:
                 self.all_related_keywords.append({
                     'depth': 0,
                     'parent_keyword': initial_keyword,
                     'current_keyword': initial_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?먮룞?꾩꽦',
-                    'source_type': '?먮룞?꾩꽦寃?됱뼱',
+                    'keyword_type': '자동완성',
+                    'source_type': '자동완성검색어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
                 
-            # ?먮낯 ?ㅼ썙???쒖쇅?섍퀬 ?ш? 泥섎━???ㅼ썙?쒕뱾 以鍮?
+            # comment removed (encoding issue)
             keywords_for_recursion = []
             for keyword in autocomplete_keywords:
-                # ?먮낯 ?ㅼ썙?쒖? ?뺥솗???쇱튂?섎뒗 寃쎌슦???쒖쇅
+                # comment removed (encoding issue)
                 if keyword.lower().strip() != initial_keyword.lower().strip():
                     keywords_for_recursion.append(keyword)
             
             if progress_callback:
-                progress_callback(f"?뱥 ?먮낯 ?ㅼ썙??'{initial_keyword}' ?쒖쇅, {len(keywords_for_recursion)}媛??ㅼ썙?쒕? ?쒖꽌?濡??ш? 泥섎━?⑸땲??")
+                progress_callback("progress update")
                 if keywords_for_recursion:
-                    progress_callback(f"?봽 ?ш? 泥섎━ ?쒖꽌: {', '.join(keywords_for_recursion[:5])}{'...' if len(keywords_for_recursion) > 5 else ''}")
+                    progress_callback("progress update")
             
-            # ?꾩쟾 ?ш????먮룞?꾩꽦寃?됱뼱 異붿텧 ?쒖옉 (?먮낯 ?ㅼ썙???쒖쇅)
+            # comment removed (encoding issue)
             if keywords_for_recursion:
                 self._recursive_autocomplete_extraction(
                     keywords_for_recursion, 
@@ -2281,7 +2348,7 @@ class NaverMobileSearchScraper:
                 )
             else:
                 if progress_callback:
-                    progress_callback("?좑툘 ?먮낯 ?ㅼ썙???몄뿉 ?ш? 泥섎━???먮룞?꾩꽦寃?됱뼱媛 ?놁뒿?덈떎.")
+                    progress_callback("progress update")
             
         if progress_callback:
             progress_callback(f"'{initial_keyword}' 키워드 추출 완료: 총 {len(self.all_related_keywords)}개")
@@ -2289,39 +2356,39 @@ class NaverMobileSearchScraper:
         return True
 
     def _extract_all_keyword_types(self, current_keyword, parent_keyword, depth, progress_callback=None):
-        """?꾩옱 ?ㅼ썙?쒖뿉 ???紐⑤뱺 ?좏삎???ㅼ썙??異붿텧 (?곌?寃?됱뼱, ?④퍡留롮씠李얜뒗, ?멸린二쇱젣)"""
+        """Description"""
         try:
             if not self.is_running:
                 return False
             
-            # ?쇱떆?뺤? 諛??명꽣???곌껐 ?곹깭 ?뺤씤
+            # comment removed (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
                 
-            # ?ㅼ썙??寃??
+            # comment removed (encoding issue)
             if not self.search_keyword_mobile(current_keyword, progress_callback):
                 return False
             
-            # ?쇱떆?뺤? ?곹깭 ?ы솗??
+            # comment removed (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
             
-            # 紐⑤뱺 ?좏삎???ㅼ썙??異붿텧
+            # comment removed (encoding issue)
             related_keywords = self.extract_related_keywords_new(current_keyword, progress_callback)
             
-            # ?쇱떆?뺤? ?곹깭 ?뺤씤
+            # comment removed (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
                 
             together_keywords = self.extract_together_keywords(current_keyword, progress_callback)
             
-            # ?쇱떆?뺤? ?곹깭 ?뺤씤
+            # comment removed (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
             
             popular_keywords = self.extract_popular_topics(current_keyword, progress_callback)
 
-            # 寃곌낵 ???
+            # comment removed (encoding issue)
             all_extracted = []
             
             for keyword in related_keywords:
@@ -2330,8 +2397,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?곌?寃?됱뼱',
-                    'source_type': '?곌?寃?됱뼱',
+                    'keyword_type': '연관검색어',
+                    'source_type': '연관검색어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2343,8 +2410,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?④퍡留롮씠李얜뒗',
-                    'source_type': '?④퍡留롮씠李얜뒗',
+                    'keyword_type': '함께많이찾는',
+                    'source_type': '함께많이찾는',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2356,8 +2423,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?멸린二쇱젣',
-                    'source_type': '?멸린二쇱젣',
+                    'keyword_type': '인기주제',
+                    'source_type': '인기주제',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2374,15 +2441,15 @@ class NaverMobileSearchScraper:
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"??'{current_keyword}' ?ㅼ썙??異붿텧 以??ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return False
 
     def _recursive_autocomplete_extraction(self, keywords_to_process, original_keyword, depth, progress_callback=None, max_depth=5):
-        """?먮룞?꾩꽦寃?됱뼱 ?꾩쟾 ?ш???異붿텧"""
+        """Description"""
         
         if depth > max_depth:
             if progress_callback:
-                progress_callback(f"?좑툘 理쒕? depth({max_depth}) ?꾨떖濡??ш? 以묐떒")
+                progress_callback("progress update")
             return
                 
         if not self.is_running:
@@ -2393,19 +2460,19 @@ class NaverMobileSearchScraper:
             if not self.is_running:
                 break
                     
-            # ?대? 泥섎━???ㅼ썙?쒕뒗 ?ㅽ궢
+            # comment removed (encoding issue)
             if current_keyword.lower() in self.processed_autocomplete_keywords:
                 if progress_callback:
-                    progress_callback(f"??툘 '{current_keyword}' ?대? 泥섎━??- ?ㅽ궢")
+                    progress_callback("progress update")
                 continue
                     
-            # 泥섎━???ㅼ썙?쒕줈 異붽?
+            # comment removed (encoding issue)
             self.processed_autocomplete_keywords.add(current_keyword.lower())
             
             if progress_callback:
-                progress_callback(f"\n?뵇 [{depth}?④퀎] [{i+1}/{len(keywords_to_process)}] '{current_keyword}' ?ш? 泥섎━ 以?..")
+                progress_callback("progress update")
             
-            # 1. ?꾩옱 ?ㅼ썙?쒕줈 紐⑤뱺 ?좏삎 ?ㅼ썙??異붿텧 (?곌?寃?됱뼱, ?④퍡留롮씠李얜뒗, ?멸린二쇱젣)
+            # comment removed (encoding issue)
             self._extract_all_keyword_types(
                 current_keyword, 
                 parent_keyword=current_keyword, 
@@ -2413,45 +2480,45 @@ class NaverMobileSearchScraper:
                 progress_callback=progress_callback
             )
             
-            # 2. ?꾩옱 ?ㅼ썙?쒖쓽 ?먮룞?꾩꽦寃?됱뼱 異붿텧
+            # comment removed (encoding issue)
             new_autocomplete_keywords = self.extract_autocomplete_keywords(current_keyword, progress_callback)
             
-            # ?먮룞?꾩꽦寃?됱뼱 寃곌낵 ???
+            # comment removed (encoding issue)
             for keyword in new_autocomplete_keywords:
                 self.all_related_keywords.append({
                     'depth': depth,
                     'parent_keyword': current_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?먮룞?꾩꽦',
-                    'source_type': '?먮룞?꾩꽦寃?됱뼱',
+                    'keyword_type': '자동완성',
+                    'source_type': '자동완성검색어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
             
-            # 3. ?덈줈???먮룞?꾩꽦寃?됱뼱媛 ?덉쑝硫??ш? ?몄텧
+            # comment removed (encoding issue)
             if new_autocomplete_keywords:
-                # 以묐났 ?쒓굅 諛??꾪꽣留?
+                # comment removed (encoding issue)
                 filtered_keywords = []
                 for keyword in new_autocomplete_keywords:
-                    # ?꾩옱 泥섎━ 以묒씤 ?ㅼ썙?쒖? ?숈씪??寃쎌슦 ?쒖쇅
+                    # comment removed (encoding issue)
                     if keyword.lower().strip() == current_keyword.lower().strip():
                         continue
                     
-                    # ?대? 泥섎━?섏? ?딆? ?ㅼ썙?쒕쭔 異붽?
+                    # comment removed (encoding issue)
                     if keyword.lower() not in self.processed_autocomplete_keywords:
-                        # ?먮낯 ?ㅼ썙?쒖? 愿?⑥꽦???덈뒗 ?ㅼ썙?쒕쭔 異붽? (?좏깮?ы빆)
-                        if self.base_keyword.lower() in keyword.lower() or len(filtered_keywords) < 20:  # ?덈Т 留롮? ?ㅼ썙??諛⑹?
+                        # comment removed (encoding issue)
+                        if self.base_keyword.lower() in keyword.lower() or len(filtered_keywords) < 20:
                             filtered_keywords.append(keyword)
                 
                 if filtered_keywords:
                     if progress_callback:
-                        progress_callback(f"?봽 '{current_keyword}'?먯꽌 {len(filtered_keywords)}媛????먮룞?꾩꽦寃?됱뼱 諛쒓껄 ??{depth+1}?④퀎 ?ш? 吏꾪뻾")
-                        if len(filtered_keywords) <= 10:  # 10媛??댄븯硫?紐⑤몢 ?쒖떆
-                            progress_callback(f"?뱷 ?ㅼ쓬 ?쒖꽌濡?泥섎━: {', '.join(filtered_keywords)}")
-                        else:  # 10媛?珥덇낵硫?泥섏쓬 10媛쒕쭔 ?쒖떆
-                            progress_callback(f"?뱷 ?ㅼ쓬 ?쒖꽌濡?泥섎━: {', '.join(filtered_keywords[:10])} ... (珥?{len(filtered_keywords)}媛?")
+                        progress_callback("progress update")
+                        if len(filtered_keywords) <= 10:
+                            progress_callback("progress update")
+                        else:
+                            progress_callback("progress update")
                     
-                    # ?ш? ?몄텧
+                    # comment removed (encoding issue)
                     self._recursive_autocomplete_extraction(
                         filtered_keywords, 
                         original_keyword, 
@@ -2461,20 +2528,20 @@ class NaverMobileSearchScraper:
                     )
                 else:
                     if progress_callback:
-                        progress_callback(f"??'{current_keyword}' - ?덈줈???먮룞?꾩꽦寃?됱뼱 ?놁쓬")
+                        progress_callback("progress update")
             else:
                 if progress_callback:
-                    progress_callback(f"??'{current_keyword}' - ?먮룞?꾩꽦寃?됱뼱 ?놁쓬")
+                    progress_callback("progress update")
             
         if progress_callback:
-            progress_callback(f"?뢾 {depth}?④퀎 ?ш? 泥섎━ ?꾨즺!")
+            progress_callback("progress update")
 
     def save_recursive_results_to_excel(self, save_path=None, progress_callback=None):
         """Save extraction results to file."""
         try:
             if not hasattr(self, 'all_related_keywords') or not self.all_related_keywords:
                 if progress_callback:
-                    progress_callback("????ν븷 ?ㅼ썙?쒓? ?놁뒿?덈떎.")
+                    progress_callback("progress update")
                 return False
             
             if not save_path:
@@ -2486,42 +2553,42 @@ class NaverMobileSearchScraper:
                 base_keyword = getattr(self, 'base_keyword', 'keyword_extraction')
                 save_path = os.path.join(self.save_dir, f"{base_keyword}_{current_time}.xlsx")
             
-            # ?곗씠?고봽?덉엫 ?앹꽦
+            # comment removed (encoding issue)
             df = pd.DataFrame({
                 '추출된_키워드': [item['related_keyword'] for item in self.all_related_keywords]
             })
 
-            # 以묐났 ?쒓굅
+            # comment removed (encoding issue)
             df = df.drop_duplicates(subset=['추출된_키워드'], keep='first').reset_index(drop=True)
 
-            # ?묒? ???
+            # comment removed (encoding issue)
             try:
                 df.to_excel(save_path, index=False, engine='openpyxl')
                 
                 if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
                     if progress_callback:
-                        progress_callback(f"???묒? ?뚯씪 ????꾨즺: {save_path}")
+                        progress_callback("progress update")
                         progress_callback(f"저장된 키워드 수: {len(df)}")
                     return True
                 else:
-                    raise Exception("?묒? ?뚯씪 ?앹꽦 ?ㅽ뙣")
+                    raise Exception("저장 파일 생성 실패")
                 
             except Exception as excel_error:
-                # CSV濡?諛깆뾽 ???
+                # comment removed (encoding issue)
                 csv_path = save_path.rsplit('.', 1)[0] + '.csv'
                 df.to_csv(csv_path, index=False, encoding='utf-8-sig')
                     
                 if progress_callback:
-                    progress_callback(f"?좑툘 ?묒? ????ㅽ뙣, CSV濡???? {csv_path}")
+                    progress_callback("progress update")
                 return True
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"???뚯씪 ????ㅻ쪟: {str(e)}")
+                progress_callback("progress update")
             return False
 
     def close(self):
-        """釉뚮씪?곗? 醫낅즺"""
+        """Description"""
         if self.driver:
             try:
                 self.driver.quit()
@@ -2540,6 +2607,8 @@ class Settings:
             "save_dir": "",
             "remember_dir": False,
             "remember_api_keys": False,
+            "theme_mode": "light",
+            "blog_count_mode": "monthly",
             "searchad_access_key": "",
             "searchad_secret_key": "",
             "searchad_customer_id": "",
@@ -2608,6 +2677,22 @@ class Settings:
         self.settings["api_keys_file"] = file_path
         self.save_settings()
 
+    def get_theme_mode(self):
+        mode = str(self.settings.get("theme_mode", "light")).strip().lower()
+        return "dark" if mode == "dark" else "light"
+
+    def set_theme_mode(self, mode):
+        self.settings["theme_mode"] = "dark" if str(mode).strip().lower() == "dark" else "light"
+        self.save_settings()
+
+    def get_blog_count_mode(self):
+        mode = str(self.settings.get("blog_count_mode", "monthly")).strip().lower()
+        return "total" if mode == "total" else "monthly"
+
+    def set_blog_count_mode(self, mode):
+        self.settings["blog_count_mode"] = "total" if str(mode).strip().lower() == "total" else "monthly"
+        self.save_settings()
+
 
 class KeywordHunter:
     """Naver API based golden keyword analyzer."""
@@ -2616,69 +2701,251 @@ class KeywordHunter:
     NAVER_BLOG_SEARCH_URL = "https://openapi.naver.com/v1/search/blog.json"
     NAVER_DATALAB_SEARCH_URL = "https://openapi.naver.com/v1/datalab/search"
 
-    def __init__(
-        self,
-        access_key="",
-        secret_key="",
-        customer_id="",
-        client_id="",
-        client_secret="",
-        usage_callback=None,
-        proxy_url="",
-        proxy_token="",
-        machine_id=""
-    ):
-        self.access_key = str(access_key).strip()
-        self.secret_key = str(secret_key).strip()
-        self.customer_id = str(customer_id).strip()
-        self.client_id = str(client_id).strip()
-        self.client_secret = str(client_secret).strip()
-        self.proxy_url = str(proxy_url).strip().rstrip("/")
-        self.proxy_token = str(proxy_token).strip()
-        self.machine_id = str(machine_id).strip()
-        self.proxy_mode = bool(self.proxy_url)
+    def __init__(self, access_key, secret_key, customer_id, client_id, client_secret, usage_callback=None):
+        self.access_key = access_key.strip()
+        self.secret_key = secret_key.strip()
+        self.customer_id = customer_id.strip()
+        self.client_id = client_id.strip()
+        self.client_secret = client_secret.strip()
         self.searchad_cache = {}
         self.blog_count_cache = {}
         self.keyword_insight_cache = {}
+        self.blog_count_driver = None
         self.usage_callback = usage_callback
         self._last_request_at = {"검색광고 API": 0.0, "네이버 검색 API": 0.0}
 
-    def _proxy_headers(self):
-        headers = {"Content-Type": "application/json"}
-        if self.proxy_token:
-            headers["X-Proxy-Token"] = self.proxy_token
-        return headers
-
-    def _proxy_post(self, endpoint, payload, timeout=20):
-        if not self.proxy_mode:
-            raise ValueError("프록시 모드가 활성화되지 않았습니다.")
-        self._throttle("프록시 API")
-        if self.usage_callback:
+    def close(self):
+        if self.blog_count_driver:
             try:
-                self.usage_callback(1)
+                self.blog_count_driver.quit()
             except Exception:
                 pass
-        body = dict(payload or {})
-        if self.machine_id:
-            body["machine_id"] = self.machine_id
-        response = requests.post(
-            f"{self.proxy_url}{endpoint}",
-            headers=self._proxy_headers(),
-            json=body,
-            timeout=timeout
-        )
-        if response.status_code != 200:
-            raise ValueError(f"프록시 API 요청 실패 ({response.status_code}): {response.text[:220]}")
-        data = response.json()
-        if not isinstance(data, dict) or not data.get("ok", False):
-            raise ValueError(str(data.get("error", "프록시 API 응답 오류")))
-        return data
+            self.blog_count_driver = None
+
+    def _get_blog_count_driver(self):
+        if self.blog_count_driver:
+            return self.blog_count_driver
+        # 월간 발행량 수집용 크롬은 항상 백그라운드(headless)로 실행
+        self.blog_count_driver = create_chrome_driver(force_headless=True)
+        return self.blog_count_driver
+
+    def _extract_blog_post_key(self, href):
+        href = str(href or "").strip()
+        if not href:
+            return None
+        try:
+            parsed = urllib.parse.urlparse(href)
+            host = (parsed.netloc or "").lower()
+            if "blog.naver.com" not in host:
+                return None
+
+            # 최신 검색결과에서 주로 쓰는 형태: /{blog_id}/{log_no}
+            path = (parsed.path or "").strip("/")
+            m = re.match(r"^([^/]+)/(\d+)$", path)
+            if m:
+                return f"{m.group(1).lower()}:{m.group(2)}"
+
+            # 구형 링크 형태: /PostView.naver?blogId=...&logNo=...
+            if path.lower() == "postview.naver":
+                q = urllib.parse.parse_qs(parsed.query or "")
+                blog_id = str((q.get("blogId") or [""])[0]).strip().lower()
+                log_no = str((q.get("logNo") or [""])[0]).strip()
+                if blog_id and log_no.isdigit():
+                    return f"{blog_id}:{log_no}"
+        except Exception:
+            return None
+        return None
+
+    def _collect_visible_blog_post_keys(self, driver):
+        post_keys = set()
+        try:
+            hrefs = driver.execute_script(
+                """
+                const selectors = [
+                  "div[data-template-id='ugcItem'] a[href]",
+                  ".lst_view a[href]",
+                  "a.title_link[href]"
+                ];
+                const out = new Set();
+                for (const sel of selectors) {
+                  const nodes = document.querySelectorAll(sel);
+                  for (const el of nodes) {
+                    const href = (el && el.href) ? String(el.href).trim() : "";
+                    if (href) out.add(href);
+                  }
+                }
+                return Array.from(out);
+                """
+            ) or []
+        except Exception:
+            hrefs = []
+
+        for href in hrefs:
+            key = self._extract_blog_post_key(href)
+            if key:
+                post_keys.add(key)
+        return post_keys
+
+    def _count_visible_blog_cards(self, driver):
+        return len(self._collect_visible_blog_post_keys(driver))
+
+    def _count_monthly_blog_posts_by_scrolling(self, keyword):
+        try:
+            driver = self._get_blog_count_driver()
+            if not driver:
+                return None
+
+            url = "https://search.naver.com/search.naver?ssc=tab.blog.all&query=&sm=tab_opt&nso=so%3Ar%2Cp%3A1m"
+            driver.get(url)
+
+            search_input = WebDriverWait(driver, 8).until(
+                EC.element_to_be_clickable((By.ID, "nx_query"))
+            )
+            search_input.click()
+            search_input.clear()
+            search_input.send_keys(keyword)
+            search_input.send_keys(Keys.ENTER)
+
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+            time.sleep(0.8)
+
+            prev_height = 0
+            prev_y = -1
+            no_progress_rounds = 0
+            max_rounds = 2500
+            safety_max_duration_sec = 300.0
+            started_at = time.time()
+            body = driver.find_element(By.TAG_NAME, "body")
+            seen_post_keys = set()
+
+            for i in range(max_rounds):
+                # 하이브리드: JS 대점프 + PageDown 보조로 속도/안정성 균형
+                step_info = driver.execute_script(
+                    """
+                    const se = document.scrollingElement || document.documentElement || document.body;
+                    const h = Math.max(se.scrollHeight || 0, document.documentElement.scrollHeight || 0, document.body.scrollHeight || 0);
+                    const y = Math.max(se.scrollTop || 0, window.pageYOffset || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
+                    const vh = (window.innerHeight || document.documentElement.clientHeight || 0);
+                    const nearBottom = (y + vh) >= (h - Math.max(600, vh * 1.5));
+                    const step = nearBottom ? Math.max(320, Math.floor(vh * 0.9)) : Math.max(1500, Math.floor(vh * 2.6));
+                    window.scrollBy(0, step);
+                    return [h, y, vh, Math.max(0, h - vh), nearBottom ? 1 : 0];
+                    """
+                ) or [0, 0, 0, 0, 0]
+
+                # 키 이벤트 기반 lazy-load 트리거 보조
+                for _ in range(36):
+                    body.send_keys(Keys.PAGE_DOWN)
+                if i % 6 == 0:
+                    body.send_keys(Keys.END)
+                time.sleep(0.008)
+
+                metrics = driver.execute_script(
+                    """
+                    const se = document.scrollingElement || document.documentElement || document.body;
+                    const h = Math.max(se.scrollHeight || 0, document.documentElement.scrollHeight || 0, document.body.scrollHeight || 0);
+                    const y = Math.max(se.scrollTop || 0, window.pageYOffset || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
+                    const vh = (window.innerHeight || document.documentElement.clientHeight || 0);
+                    return [h, y, vh, Math.max(0, h - vh)];
+                    """
+                ) or [0, 0, 0, 0]
+                current_height = int(metrics[0] or 0)
+                current_y = int(metrics[1] or 0)
+                max_scroll_top = int(metrics[3] or 0)
+                at_bottom = current_y >= max(0, max_scroll_top - 2)
+
+                if i % 2 == 0 or at_bottom:
+                    seen_post_keys.update(self._collect_visible_blog_post_keys(driver))
+
+                if current_height == prev_height and current_y == prev_y and not at_bottom:
+                    no_progress_rounds += 1
+                else:
+                    no_progress_rounds = 0
+
+                prev_height = current_height
+                prev_y = current_y
+
+                # 하단으로 보이면 강제 바닥 점프 + PageDown 재확인 후 종료 판단
+                if at_bottom:
+                    probe_changed = False
+                    probe_height = current_height
+                    probe_y = current_y
+                    for _ in range(4):
+                        driver.execute_script(
+                            """
+                            const se = document.scrollingElement || document.documentElement || document.body;
+                            se.scrollTop = se.scrollHeight;
+                            window.scrollTo(0, se.scrollHeight);
+                            """
+                        )
+                        for _ in range(80):
+                            body.send_keys(Keys.PAGE_DOWN)
+                        time.sleep(0.012)
+                        probe_metrics = driver.execute_script(
+                            """
+                            const se = document.scrollingElement || document.documentElement || document.body;
+                            const h = Math.max(se.scrollHeight || 0, document.documentElement.scrollHeight || 0, document.body.scrollHeight || 0);
+                            const y = Math.max(se.scrollTop || 0, window.pageYOffset || 0, document.documentElement.scrollTop || 0, document.body.scrollTop || 0);
+                            const vh = (window.innerHeight || document.documentElement.clientHeight || 0);
+                            return [h, y, Math.max(0, h - vh)];
+                            """
+                        ) or [0, 0, 0]
+                        probe_h = int(probe_metrics[0] or 0)
+                        probe_y_new = int(probe_metrics[1] or 0)
+                        probe_max = int(probe_metrics[2] or 0)
+                        seen_post_keys.update(self._collect_visible_blog_post_keys(driver))
+                        if probe_h != probe_height or probe_y_new != probe_y:
+                            probe_changed = True
+                            break
+                        if probe_y_new < max(0, probe_max - 2):
+                            probe_changed = True
+                            break
+                    if not probe_changed:
+                        break
+
+                # 스크롤이 남았는데 정체되면 포커스 재정렬 후 크게 밀어준다
+                if no_progress_rounds >= 4:
+                    try:
+                        body = driver.find_element(By.TAG_NAME, "body")
+                        driver.execute_script(
+                            """
+                            const se = document.scrollingElement || document.documentElement || document.body;
+                            if (document && document.body) { document.body.focus(); }
+                            window.focus();
+                            se.focus && se.focus();
+                            window.scrollBy(0, (window.innerHeight || 800) * 3);
+                            """
+                        )
+                        body.click()
+                        for _ in range(140):
+                            body.send_keys(Keys.PAGE_DOWN)
+                    except Exception:
+                        pass
+                    no_progress_rounds = 0
+
+                # 비정상 무한루프 방지용 안전장치
+                if (time.time() - started_at) >= safety_max_duration_sec:
+                    break
+
+            final_count = len(seen_post_keys) if seen_post_keys else self._count_visible_blog_cards(driver)
+            return int(final_count)
+        except Exception:
+            return None
+
+    def _normalize_keyword(self, text):
+        value = str(text or "")
+        value = unquote(value).replace("+", " ")
+        value = re.sub(r"\s+", " ", value).strip()
+        return value
+
+    def _keyword_key(self, text):
+        return self._normalize_keyword(text).replace(" ", "").lower()
 
     def _throttle(self, api_name):
         min_interval_map = {
-            "검색광고 API": 0.45,
-            "네이버 검색 API": 0.55,
-            "프록시 API": 0.35,
+            # API는 너무 빠른 연속 호출을 피해서 429/탐지 리스크를 줄인다.
+            "검색광고 API": 0.60,
+            "네이버 검색 API": 0.75,
         }
         min_interval = min_interval_map.get(api_name, 0.5)
         now = time.time()
@@ -2718,6 +2985,8 @@ class KeywordHunter:
                     wait_seconds = backoff * attempt
             time.sleep(min(wait_seconds, 18.0))
 
+        if last_response is None:
+            raise ValueError(f"{api_name} 요청 실패: 응답 없음")
         raise ValueError(
             f"{api_name} 요청 실패 ({last_response.status_code}): {last_response.text[:220]}"
         )
@@ -2744,29 +3013,13 @@ class KeywordHunter:
         return int(digits) if digits else 0
 
     def get_searchad_related_keywords(self, keyword):
-        cache_key = keyword.strip().lower()
+        keyword = self._normalize_keyword(keyword)
+        hint_keyword = self._keyword_key(keyword)
+        if not hint_keyword:
+            return []
+        cache_key = hint_keyword
         if cache_key in self.searchad_cache:
             return [dict(row) for row in self.searchad_cache[cache_key]]
-
-        if self.proxy_mode:
-            data = self._proxy_post("/related-keywords", {"keyword": keyword}, timeout=25)
-            rows = data.get("rows", [])
-            results = []
-            for item in rows:
-                rel_keyword = str(item.get("keyword", "")).strip()
-                if not rel_keyword:
-                    continue
-                pc_count = int(item.get("monthly_pc_search", 0) or 0)
-                mobile_count = int(item.get("monthly_mobile_search", 0) or 0)
-                total = int(item.get("monthly_total_search", pc_count + mobile_count) or 0)
-                results.append({
-                    "keyword": rel_keyword,
-                    "monthly_pc_search": pc_count,
-                    "monthly_mobile_search": mobile_count,
-                    "monthly_total_search": total
-                })
-            self.searchad_cache[cache_key] = [dict(row) for row in results]
-            return results
 
         timestamp = str(int(time.time() * 1000))
         method = "GET"
@@ -2779,7 +3032,7 @@ class KeywordHunter:
             "X-Signature": signature
         }
         params = {
-            "hintKeywords": keyword,
+            "hintKeywords": hint_keyword,
             "showDetail": 1
         }
 
@@ -2796,7 +3049,7 @@ class KeywordHunter:
         results = []
 
         for item in keyword_list:
-            rel_keyword = str(item.get("relKeyword", "")).strip()
+            rel_keyword = self._normalize_keyword(item.get("relKeyword", ""))
             if not rel_keyword:
                 continue
             pc_count = self._parse_count(item.get("monthlyPcQcCnt"))
@@ -2812,39 +3065,166 @@ class KeywordHunter:
         self.searchad_cache[cache_key] = [dict(row) for row in results]
         return results
 
-    def get_blog_document_count(self, keyword):
-        cache_key = keyword.strip().lower()
+    def _get_total_blog_document_count(self, keyword, headers):
+        keyword = self._normalize_keyword(keyword)
+        cache_key = f"total:{keyword.strip().lower()}"
         if cache_key in self.blog_count_cache:
             return int(self.blog_count_cache[cache_key])
 
-        if self.proxy_mode:
-            data = self._proxy_post("/blog-count", {"keyword": keyword}, timeout=20)
-            total = int(data.get("blog_document_count", 0) or 0)
+        # 1순위: 네이버 OpenAPI total (기간 제한 없음)
+        try:
+            params = {
+                "query": keyword,
+                "display": 1,
+                "start": 1,
+                "sort": "sim"
+            }
+            response = self._request_with_retry(
+                self.NAVER_BLOG_SEARCH_URL,
+                headers=headers,
+                params=params,
+                timeout=10,
+                api_name="네이버 검색 API"
+            )
+            total = int(response.json().get("total", 0))
             self.blog_count_cache[cache_key] = total
             return total
+        except Exception:
+            pass
+
+        # 2순위 fallback: 네이버 웹검색 블로그 total 파싱 (기간 제한 없음)
+        try:
+            web_url = "https://search.naver.com/search.naver"
+            web_headers = {"User-Agent": "Mozilla/5.0"}
+            web_params = {
+                "where": "blog",
+                "query": keyword,
+                "sm": "tab_opt",
+                "dup_remove": "1",
+            }
+            self._throttle("네이버 검색 API")
+            web_resp = requests.get(web_url, params=web_params, headers=web_headers, timeout=10)
+            total = self._extract_naver_total_count(web_resp.text)
+            if total > 0:
+                self.blog_count_cache[cache_key] = total
+                return total
+        except Exception:
+            pass
+
+        self.blog_count_cache[cache_key] = 0
+        return 0
+
+    def get_blog_document_count(self, keyword, count_mode="monthly"):
+        keyword = self._normalize_keyword(keyword)
+        mode = "total" if str(count_mode).strip().lower() == "total" else "monthly"
+        cache_key = f"{mode}:{keyword.strip().lower()}"
+        if cache_key in self.blog_count_cache:
+            return int(self.blog_count_cache[cache_key])
 
         headers = {
             "X-Naver-Client-Id": self.client_id,
             "X-Naver-Client-Secret": self.client_secret
         }
-        params = {
-            "query": keyword,
-            "display": 1,
-            "start": 1,
-            "sort": "sim"
-        }
+        if mode == "total":
+            return self._get_total_blog_document_count(keyword, headers)
 
-        response = self._request_with_retry(
-            self.NAVER_BLOG_SEARCH_URL,
-            headers=headers,
-            params=params,
-            timeout=10,
-            api_name="네이버 검색 API"
-        )
-        payload = response.json()
-        total = int(payload.get("total", 0))
-        self.blog_count_cache[cache_key] = total
-        return total
+        # 1순위: 블로그 탭(최근 1개월) 접속 후 실제 스크롤 로딩된 카드 수를 카운트
+        scrolled_count = self._count_monthly_blog_posts_by_scrolling(keyword)
+        if scrolled_count is not None:
+            self.blog_count_cache[cache_key] = int(scrolled_count)
+            return int(scrolled_count)
+
+        # 2순위: 최근 1개월 + 완전일치("키워드") 기준 블로그 문서 수
+        # 완전일치 결과가 없으면 같은 1개월 범위의 일반 쿼리 결과를 사용한다.
+        web_url = "https://search.naver.com/search.naver"
+        web_headers = {"User-Agent": "Mozilla/5.0"}
+        month_params_common = {
+            "where": "blog",
+            "sm": "tab_opt",
+            "dup_remove": "1",
+            "nso": "so:dd,p:1m,a:all",
+        }
+        try:
+            exact_query = f"\"{keyword}\""
+            exact_params = dict(month_params_common, query=exact_query)
+            self._throttle("네이버 검색 API")
+            exact_resp = requests.get(web_url, params=exact_params, headers=web_headers, timeout=10)
+            exact_total = self._extract_naver_total_count(exact_resp.text)
+            if exact_total > 0:
+                self.blog_count_cache[cache_key] = exact_total
+                return exact_total
+        except Exception:
+            pass
+
+        try:
+            broad_params = dict(month_params_common, query=keyword)
+            self._throttle("네이버 검색 API")
+            broad_resp = requests.get(web_url, params=broad_params, headers=web_headers, timeout=10)
+            broad_total = self._extract_naver_total_count(broad_resp.text)
+            if broad_total > 0:
+                self.blog_count_cache[cache_key] = broad_total
+                return broad_total
+        except Exception:
+            pass
+
+        # 3순위: 네이버 OpenAPI total (기간 제한 없음)
+        try:
+            params = {
+                "query": keyword,
+                "display": 1,
+                "start": 1,
+                "sort": "sim"
+            }
+            response = self._request_with_retry(
+                self.NAVER_BLOG_SEARCH_URL,
+                headers=headers,
+                params=params,
+                timeout=10,
+                api_name="네이버 검색 API"
+            )
+            total = int(response.json().get("total", 0))
+            self.blog_count_cache[cache_key] = total
+            return total
+        except Exception:
+            pass
+
+        # 4순위 fallback: 네이버 웹검색 블로그 total 파싱 (기간 제한 없음)
+        try:
+            web_params = {
+                "where": "blog",
+                "query": keyword,
+                "sm": "tab_opt",
+                "dup_remove": "1",
+            }
+            self._throttle("네이버 검색 API")
+            web_resp = requests.get(web_url, params=web_params, headers=web_headers, timeout=10)
+            total = self._extract_naver_total_count(web_resp.text)
+            if total > 0:
+                self.blog_count_cache[cache_key] = total
+                return total
+        except Exception:
+            pass
+
+        self.blog_count_cache[cache_key] = 0
+        return 0
+
+    def _extract_naver_total_count(self, html):
+        patterns = [
+            r"/\s*([\d,]+)\s*건",
+            r"약\s*([\d,]+)\s*건",
+            r"([\d,]+)\s*건의\s*검색결과",
+            r'"total"\s*:\s*"?([\d,]+)"?',
+            r'"totalCount"\s*:\s*"?([\d,]+)"?',
+        ]
+        for pattern in patterns:
+            m = re.search(pattern, html)
+            if not m:
+                continue
+            try:
+                return int(str(m.group(1)).replace(",", ""))
+            except Exception:
+                continue
+        return 0
 
     def _request_post_with_retry(self, url, headers, payload, timeout, api_name):
         max_retries = 5
@@ -2864,6 +3244,8 @@ class KeywordHunter:
             if not retriable or attempt == max_retries:
                 break
             time.sleep(min(2.0 * attempt, 12.0))
+        if last_response is None:
+            raise ValueError(f"{api_name} 요청 실패: 응답 없음")
         raise ValueError(f"{api_name} 요청 실패 ({last_response.status_code}): {last_response.text[:200]}")
 
     def get_keyword_insight(self, keyword):
@@ -2871,17 +3253,6 @@ class KeywordHunter:
         cache_key = key.lower()
         if cache_key in self.keyword_insight_cache:
             return self.keyword_insight_cache[cache_key]
-
-        if self.proxy_mode:
-            data = self._proxy_post("/keyword-insight", {"keyword": key}, timeout=30)
-            insight = {
-                "keyword": key,
-                "month_ratio": list(data.get("month_ratio", [])),
-                "weekday_ratio": list(data.get("weekday_ratio", [])),
-                "age_ratio": list(data.get("age_ratio", [])),
-            }
-            self.keyword_insight_cache[cache_key] = insight
-            return insight
 
         headers = {
             "X-Naver-Client-Id": self.client_id,
@@ -2900,17 +3271,14 @@ class KeywordHunter:
         )
         monthly_data = monthly_resp.json().get("results", [{}])[0].get("data", [])
 
+        trend = []
         month_ratio = []
         month_sum = sum(float(x.get("ratio", 0.0)) for x in monthly_data) or 1.0
         for row in monthly_data:
-            period_raw = str(row.get("period", ""))[:7]
+            period = str(row.get("period", ""))[:7]
             value = float(row.get("ratio", 0.0))
-            month_label = period_raw
-            try:
-                month_label = f"{int(period_raw.split('-')[1])}월"
-            except Exception:
-                pass
-            month_ratio.append({"label": month_label, "value": (value / month_sum) * 100.0})
+            trend.append({"label": period, "value": value})
+            month_ratio.append({"label": period, "value": (value / month_sum) * 100.0})
 
         daily_payload = {
             "startDate": (today - timedelta(days=89)).strftime("%Y-%m-%d"),
@@ -2934,31 +3302,40 @@ class KeywordHunter:
         wd_total = sum(wd_sum_map.values()) or 1.0
         weekday_ratio = [{"label": k, "value": (v / wd_total) * 100.0} for k, v in wd_sum_map.items()]
 
-        age_groups = [("10대", "1"), ("20대", "2"), ("30대", "3"), ("40대", "4"), ("50대 이상", "5")]
-        age_values = []
-        age_start = (today - timedelta(days=89)).strftime("%Y-%m-%d")
-        age_end = today.strftime("%Y-%m-%d")
-        for _, age_code in age_groups:
+        age_groups = [
+            ("10대", ["2", "3"]),
+            ("20대", ["4", "5"]),
+            ("30대", ["6", "7"]),
+            ("40대", ["8", "9"]),
+            ("50대 이상", ["10", "11"]),
+        ]
+        age_raw = {}
+        for label, ages in age_groups:
             age_payload = {
-                "startDate": age_start,
-                "endDate": age_end,
+                "startDate": (today - timedelta(days=89)).strftime("%Y-%m-%d"),
+                "endDate": today.strftime("%Y-%m-%d"),
                 "timeUnit": "date",
-                "ages": [age_code],
+                "ages": ages,
                 "keywordGroups": [{"groupName": key, "keywords": [key]}]
             }
-            age_resp = self._request_post_with_retry(
-                self.NAVER_DATALAB_SEARCH_URL, headers, age_payload, 12, "네이버 검색 API"
-            )
-            age_data = age_resp.json().get("results", [{}])[0].get("data", [])
-            age_total = sum(float(item.get("ratio", 0.0)) for item in age_data)
-            age_values.append(age_total)
+            try:
+                age_resp = self._request_post_with_retry(
+                    self.NAVER_DATALAB_SEARCH_URL, headers, age_payload, 12, "네이버 검색 API"
+                )
+                age_data = age_resp.json().get("results", [{}])[0].get("data", [])
+                age_raw[label] = sum(float(x.get("ratio", 0.0)) for x in age_data)
+            except Exception:
+                age_raw[label] = 0.0
+        age_total = sum(age_raw.values()) or 1.0
+        age_ratio = [{"label": k, "value": (v / age_total) * 100.0} for k, v in age_raw.items()]
 
-        age_sum = sum(age_values) or 1.0
-        age_ratio = []
-        for idx, (label, _) in enumerate(age_groups):
-            age_ratio.append({"label": label, "value": (age_values[idx] / age_sum) * 100.0})
-
-        insight = {"keyword": key, "month_ratio": month_ratio, "weekday_ratio": weekday_ratio, "age_ratio": age_ratio}
+        insight = {
+            "keyword": key,
+            "trend": trend,
+            "month_ratio": month_ratio,
+            "weekday_ratio": weekday_ratio,
+            "age_ratio": age_ratio
+        }
         self.keyword_insight_cache[cache_key] = insight
         return insight
 
@@ -2968,7 +3345,7 @@ class KeywordHunter:
             return 9999.0 if blog_docs > 0 else 0.0
         return (blog_docs / monthly_search) * 100.0
 
-    def _score_keyword_rows(self, keyword_rows, limit, offset=0, progress_callback=None):
+    def _score_keyword_rows(self, keyword_rows, limit, offset=0, progress_callback=None, blog_count_mode="monthly"):
         scored = []
         start = max(0, int(offset))
         end = start + max(1, int(limit))
@@ -2976,7 +3353,9 @@ class KeywordHunter:
         if progress_callback and start > 0:
             progress_callback(f"배치 오프셋 {start}부터 {len(batch_rows)}개를 분석합니다.")
         for idx, row in enumerate(batch_rows, start=1):
-            blog_docs = self.get_blog_document_count(row["keyword"])
+            if progress_callback:
+                progress_callback(f"[EVAL {idx}/{len(batch_rows)}] {row['keyword']} 지표 계산 시작")
+            blog_docs = self.get_blog_document_count(row["keyword"], count_mode=blog_count_mode)
             saturation = self.calculate_content_saturation_index(
                 row["monthly_total_search"], blog_docs
             )
@@ -2987,15 +3366,380 @@ class KeywordHunter:
                 "monthly_total_search": row["monthly_total_search"],
                 "blog_document_count": blog_docs,
                 "content_saturation_index": saturation,
-                "section_position": "확인 필요"
+                "section_position": "확인 필요",
             }
             scored.append(result)
             if progress_callback:
-                progress_callback(f"[{idx}/{len(batch_rows)}] {row['keyword']} 계산 완료")
+                progress_callback(f"[EVAL {idx}/{len(batch_rows)}] {row['keyword']} 계산 완료")
         return scored
 
     def _tokenize_text(self, text):
         return [t for t in re.split(r"[\s/,_\-]+", str(text).lower()) if t]
+
+    def _seed_ngrams(self, seed_text, n=3):
+        seed = self._normalize_keyword(seed_text).replace(" ", "").lower()
+        if len(seed) < n:
+            return {seed} if seed else set()
+        return {seed[i:i+n] for i in range(0, len(seed) - n + 1)}
+
+    def _build_seed_variants(self, seed_text):
+        seed = self._normalize_keyword(seed_text)
+        compact = seed.replace(" ", "")
+        variants = []
+        for item in [seed, compact]:
+            if item and item not in variants:
+                variants.append(item)
+        if len(compact) >= 5:
+            for cut in [1, 2, 3]:
+                if len(compact) - cut >= 4:
+                    v = compact[:-cut]
+                    if v not in variants:
+                        variants.append(v)
+        return variants[:5]
+
+    def _is_related_match(self, seed_text, keyword_text):
+        seed = self._normalize_keyword(seed_text).replace(" ", "").lower()
+        key = self._normalize_keyword(keyword_text).replace(" ", "").lower()
+        if not seed or not key:
+            return False
+        return seed in key
+
+    def _fetch_autocomplete_candidates(self, seed_text):
+        seed = self._normalize_keyword(seed_text)
+        if not seed:
+            return []
+        url = "https://ac.search.naver.com/nx/ac"
+        query_variants = [seed]
+        compact = seed.replace(" ", "")
+        if compact and compact != seed:
+            query_variants.append(compact)
+        if not seed.endswith(" "):
+            query_variants.append(seed + " ")
+        headers = {"User-Agent": "Mozilla/5.0"}
+        terms = []
+        for q in query_variants:
+            params = {
+                "q": q,
+                "con": 0,
+                "frm": "nv",
+                "ans": 2,
+                "r_format": "json",
+                "r_enc": "UTF-8",
+                "r_unicode": 0,
+                "t_koreng": 1,
+                "run": 2,
+                "rev": 4,
+            }
+            try:
+                self._throttle("네이버 검색 API")
+                resp = requests.get(url, params=params, headers=headers, timeout=8)
+                payload = resp.json()
+                items = payload.get("items", [])
+                if items and isinstance(items[0], list):
+                    for row in items[0]:
+                        if isinstance(row, (list, tuple)) and row:
+                            t = self._normalize_keyword(row[0])
+                            if t:
+                                terms.append(t)
+            except Exception:
+                continue
+
+        dedup = []
+        seen = set()
+        for t in terms:
+            k = t.lower()
+            if k in seen:
+                continue
+            seen.add(k)
+            dedup.append(t)
+        return dedup
+
+    def _fetch_serp_candidates(self, seed_text):
+        seed = self._normalize_keyword(seed_text)
+        if not seed:
+            return []
+        if not BEAUTIFULSOUP_AVAILABLE:
+            return []
+
+        generic_stop = {
+            "뉴스", "블로그", "카페", "이미지", "동영상", "쇼핑", "지도",
+            "지식in", "지식인", "어학사전", "웹사이트", "인플루언서",
+        }
+        urls = [
+            f"https://search.naver.com/search.naver?where=nexearch&query={quote(seed)}",
+            f"https://m.search.naver.com/search.naver?query={quote(seed)}",
+        ]
+        headers = {"User-Agent": "Mozilla/5.0"}
+        candidates = []
+
+        for url in urls:
+            try:
+                self._throttle("네이버 검색 API")
+                resp = requests.get(url, headers=headers, timeout=10)
+                html = resp.text
+                soup = BeautifulSoup(html, "html.parser")
+
+                # data-query 기반
+                for node in soup.select("[data-query]"):
+                    q = self._normalize_keyword(node.get("data-query", ""))
+                    if q:
+                        candidates.append(q)
+
+                # href query 파라미터 기반
+                for a in soup.select("a[href*='query=']"):
+                    href = str(a.get("href", ""))
+                    try:
+                        parsed = urllib.parse.urlparse(href)
+                        qv = urllib.parse.parse_qs(parsed.query).get("query", [])
+                        if qv:
+                            q = self._normalize_keyword(qv[0])
+                            if q:
+                                candidates.append(q)
+                    except Exception:
+                        continue
+            except Exception:
+                continue
+
+        dedup = []
+        seen = set()
+        for c in candidates:
+            key = c.replace(" ", "").lower()
+            if not key or key in seen:
+                continue
+            if c in generic_stop:
+                continue
+            seen.add(key)
+            dedup.append(c)
+        return dedup
+
+    def _sanitize_candidate_keyword(self, text):
+        t = self._normalize_keyword(text)
+        if not t:
+            return ""
+        t = re.sub(r"https?://\S+", " ", t, flags=re.IGNORECASE)
+        t = re.sub(r"\bwww\.\S+", " ", t, flags=re.IGNORECASE)
+        t = re.sub(r"\bsite\s*:\s*\S+", " ", t, flags=re.IGNORECASE)
+        t = re.sub(r"[\"'|(){}\[\]]", " ", t)
+        t = re.sub(r"[^0-9A-Za-z가-힣\s]", " ", t)
+        t = re.sub(r"\s+", " ", t).strip()
+        if not t or len(t) < 2:
+            return ""
+        if "site" in t.lower():
+            return ""
+        return t
+
+    def _strip_html(self, text):
+        return re.sub(r"<[^>]+>", " ", str(text or ""))
+
+    def _fetch_blog_title_candidates(self, seed_text):
+        seed = self._normalize_keyword(seed_text)
+        if not seed:
+            return []
+        headers = {
+            "X-Naver-Client-Id": self.client_id,
+            "X-Naver-Client-Secret": self.client_secret
+        }
+        terms = []
+        for start in [1, 101, 201]:
+            params = {"query": seed, "display": 100, "start": start, "sort": "date"}
+            try:
+                resp = self._request_with_retry(
+                    self.NAVER_BLOG_SEARCH_URL,
+                    headers=headers,
+                    params=params,
+                    timeout=10,
+                    api_name="네이버 검색 API"
+                )
+                items = resp.json().get("items", []) or []
+            except Exception:
+                items = []
+            if not items:
+                break
+            for item in items:
+                title = self._normalize_keyword(self._strip_html(item.get("title", "")))
+                if not title:
+                    continue
+                tnorm = title.replace(" ", "").lower()
+                snorm = seed.replace(" ", "").lower()
+                if snorm not in tnorm:
+                    continue
+                words = [w for w in re.split(r"\s+", title) if w]
+                # title에서 seed가 포함된 구간 주변 단어를 후보로 생성
+                for i, w in enumerate(words):
+                    wn = w.replace(" ", "").lower()
+                    if snorm not in wn and snorm not in "".join(words[max(0, i-1):i+2]).replace(" ", "").lower():
+                        continue
+                    for span in [2, 3, 4]:
+                        s = max(0, i - 1)
+                        e = min(len(words), s + span)
+                        cand = self._normalize_keyword(" ".join(words[s:e]))
+                        if snorm in cand.replace(" ", "").lower():
+                            terms.append(cand)
+
+        dedup = []
+        seen = set()
+        for t in terms:
+            k = t.replace(" ", "").lower()
+            if not k or k in seen:
+                continue
+            if len(t) > 40 or len(t) < 2:
+                continue
+            seen.add(k)
+            dedup.append(t)
+        return dedup
+
+    def _resolve_term_volume_row(self, term):
+        term_norm = self._normalize_keyword(term)
+        if not term_norm:
+            return None
+        rows = self.get_searchad_related_keywords(term_norm)
+        if not rows:
+            return None
+        term_key = term_norm.replace(" ", "").lower()
+        best = None
+
+        def grams2(s):
+            s = s.replace(" ", "").lower()
+            if len(s) < 2:
+                return {s} if s else set()
+            return {s[i:i+2] for i in range(len(s) - 1)}
+
+        term_grams = grams2(term_norm)
+        for row in rows:
+            kw = self._normalize_keyword(row.get("keyword", ""))
+            kw_key = kw.replace(" ", "").lower()
+            if kw_key == term_key:
+                return {
+                    "keyword": term_norm,
+                    "monthly_pc_search": int(row.get("monthly_pc_search", 0)),
+                    "monthly_mobile_search": int(row.get("monthly_mobile_search", 0)),
+                    "monthly_total_search": int(row.get("monthly_total_search", 0)),
+                }
+            if term_key in kw_key:
+                cand = {
+                    "keyword": term_norm,
+                    "monthly_pc_search": int(row.get("monthly_pc_search", 0)),
+                    "monthly_mobile_search": int(row.get("monthly_mobile_search", 0)),
+                    "monthly_total_search": int(row.get("monthly_total_search", 0)),
+                }
+                if best is None or cand["monthly_total_search"] > best["monthly_total_search"]:
+                    best = cand
+                continue
+
+            # 정확일치가 없어도 유사도가 높은 검색광고 행을 후보 키워드에 매핑
+            kw_grams = grams2(kw)
+            overlap = len(term_grams & kw_grams) if term_grams and kw_grams else 0
+            if overlap <= 0:
+                continue
+            cand = {
+                "keyword": term_norm,
+                "monthly_pc_search": int(row.get("monthly_pc_search", 0)),
+                "monthly_mobile_search": int(row.get("monthly_mobile_search", 0)),
+                "monthly_total_search": int(row.get("monthly_total_search", 0)),
+                "_overlap": overlap
+            }
+            if best is None:
+                best = cand
+            else:
+                prev_overlap = int(best.get("_overlap", 0))
+                if overlap > prev_overlap or (
+                    overlap == prev_overlap and cand["monthly_total_search"] > best["monthly_total_search"]
+                ):
+                    best = cand
+        if best and "_overlap" in best:
+            best.pop("_overlap", None)
+        return best
+
+    def _collect_naver_candidates(self, seed_text, progress_callback=None, required_key=None):
+        seed = self._normalize_keyword(seed_text)
+        if not seed:
+            return []
+        seed_key = self._keyword_key(required_key if required_key is not None else seed)
+        if progress_callback:
+            progress_callback("1단계 네이버 검색결과/자동완성 키워드 수집 중...")
+
+        # 네이버 검색결과 연관검색어 + 자동완성검색어만 사용
+        ac_terms = self._fetch_autocomplete_candidates(seed)
+        extractor_related = []
+        serp_related = []
+        try:
+            scraper = NaverMobileSearchScraper(driver=None)
+            extractor_related = scraper.extract_related_keywords(seed, progress_callback=None) or []
+        except Exception:
+            extractor_related = []
+        try:
+            # 검색결과 페이지에서 추출한 관련 쿼리(related source)
+            serp_related = self._fetch_serp_candidates(seed) or []
+        except Exception:
+            serp_related = []
+
+        # 수집이 너무 적으면 같은 소스(연관/자동완성)를 Selenium으로 재시도
+        selenium_related = []
+        selenium_ac = []
+        if len(extractor_related) + len(serp_related) + len(ac_terms) < 3:
+            try:
+                driver = create_chrome_driver()
+                if driver:
+                    sc = NaverMobileSearchScraper(driver)
+                    if sc.search_keyword_mobile(seed, progress_callback=None):
+                        selenium_related = sc.extract_related_keywords_new(seed, progress_callback=None) or []
+                    selenium_ac = sc.extract_autocomplete_keywords(seed, progress_callback=None) or []
+                    try:
+                        driver.quit()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+        related_all = [
+            self._normalize_keyword(x) for x in (extractor_related + serp_related + selenium_related)
+            if self._normalize_keyword(x)
+        ]
+        ac_all = [self._normalize_keyword(x) for x in (ac_terms + selenium_ac) if self._normalize_keyword(x)]
+
+        candidates = []
+        seen = {}
+        for term in related_all:
+            t = self._sanitize_candidate_keyword(term)
+            if not t:
+                continue
+            key = t.replace(" ", "").lower()
+            if seed_key and seed_key not in key:
+                continue
+            if key in seen:
+                if seen[key] != "연관+자동완성":
+                    seen[key] = "연관"
+                continue
+            seen[key] = "연관"
+            candidates.append({"keyword": t, "source": "연관"})
+
+        for term in ac_all:
+            t = self._sanitize_candidate_keyword(term)
+            if not t:
+                continue
+            key = t.replace(" ", "").lower()
+            if seed_key and seed_key not in key:
+                continue
+            if key in seen:
+                for c in candidates:
+                    if c["keyword"].replace(" ", "").lower() == key:
+                        c["source"] = "연관+자동완성" if c["source"] == "연관" else "자동완성"
+                        break
+                continue
+            seen[key] = "자동완성"
+            candidates.append({"keyword": t, "source": "자동완성"})
+
+        if not candidates:
+            # 최후 fallback: 입력 키워드라도 분석 대상으로 유지
+            candidates.append({"keyword": seed, "source": "자동완성"})
+
+        if progress_callback:
+            progress_callback(
+                "키워드 수집 완료: "
+                f"검색결과 {len(related_all)}개, 자동완성 {len(ac_all)}개, "
+                f"요청기반 연관 {len(extractor_related)}개"
+            )
+        return candidates
 
     def _category_relevance(self, seed, keyword):
         seed_tokens = self._tokenize_text(seed)
@@ -3011,34 +3755,213 @@ class KeywordHunter:
                 score += 1
         return score
 
-    def analyze_related_keywords_with_content(self, seed_keyword, limit=30, offset=0, progress_callback=None):
-        seed = seed_keyword.strip()
+    def analyze_related_keywords_with_content(self, seed_keyword, limit=30, offset=0, progress_callback=None, expand_seeds=None, blog_count_mode="monthly"):
+        seed = self._normalize_keyword(seed_keyword)
         if not seed:
             raise ValueError("키워드를 입력해 주세요.")
 
         if progress_callback:
-            progress_callback(f"'{seed}' 연관 키워드를 조회합니다.")
-        keyword_rows = self.get_searchad_related_keywords(seed)
+            progress_callback(f"'{seed}' 분석을 시작합니다.")
+
+        # 1~4) 네이버 검색결과/자동완성 후보 수집
+        required_key = self._keyword_key(seed)
+        web_terms = self._collect_naver_candidates(seed, progress_callback=progress_callback, required_key=required_key)
+
+        # "더 많은 연관 키워드 보기"에서는 초기 결과(검색량 내림차순) 씨드로
+        # 연관의 연관을 재귀 확장한다. 재귀는 월 검색량이 1,000 초과인 키워드만 계속 진행한다.
+        expand_pool = []
+        if expand_seeds:
+            seen_expand = set()
+            for raw in expand_seeds:
+                t = self._normalize_keyword(raw)
+                if not t:
+                    continue
+                k = self._keyword_key(t)
+                if not k or k in seen_expand:
+                    continue
+                seen_expand.add(k)
+                expand_pool.append(t)
+
+        if expand_pool:
+            volume_threshold = 1000
+            max_nodes_per_root = 120
+            max_children_per_node = 80
+            seen_recursive_terms = {
+                self._keyword_key(item.get("keyword", "")) for item in web_terms if item.get("keyword")
+            }
+            seen_recursive_terms.discard("")
+
+            if progress_callback:
+                progress_callback(
+                    f"1단계 재귀 확장 수집 시작... ({len(expand_pool)}개 루트, 임계값 {volume_threshold:,})"
+                )
+
+            for root_idx, root_seed in enumerate(expand_pool, start=1):
+                root_key = self._keyword_key(root_seed)
+                if not root_key:
+                    continue
+                queue = deque([(root_seed, 0)])
+                visited_chain = {root_key}
+                expanded_nodes = 0
+
+                if progress_callback:
+                    progress_callback(f"[루트 {root_idx}/{len(expand_pool)}] '{root_seed}' 재귀 확장")
+
+                while queue and expanded_nodes < max_nodes_per_root:
+                    current_seed, depth = queue.popleft()
+                    expanded_nodes += 1
+
+                    try:
+                        rel_rows = self.get_searchad_related_keywords(current_seed) or []
+                    except Exception:
+                        rel_rows = []
+
+                    if not rel_rows:
+                        continue
+
+                    for rel in rel_rows[:max_children_per_node]:
+                        term = self._normalize_keyword(rel.get("keyword", ""))
+                        if not term:
+                            continue
+                        tkey = self._keyword_key(term)
+                        if not tkey or tkey == required_key:
+                            continue
+
+                        if tkey not in seen_recursive_terms:
+                            web_terms.append({"keyword": term, "source": "요청기반 연관(재귀)"})
+                            seen_recursive_terms.add(tkey)
+
+                        monthly_total = int(rel.get("monthly_total_search", 0))
+                        if monthly_total > volume_threshold and tkey not in visited_chain:
+                            visited_chain.add(tkey)
+                            queue.append((term, depth + 1))
+
+                    time.sleep(0.02)
+
+        if web_terms:
+            dedup_terms = []
+            seen_terms = set()
+            for item in web_terms:
+                k = self._keyword_key(item.get("keyword", ""))
+                if not k or k in seen_terms:
+                    continue
+                seen_terms.add(k)
+                dedup_terms.append(item)
+            web_terms = dedup_terms
+        if not web_terms:
+            return []
+
+        # 5) 수집한 키워드를 검색광고 API로 검색량 분석
+        merged = {}
+        total_terms = len(web_terms)
+        if progress_callback:
+            progress_callback(f"2단계 검색광고 검색량 분석 중... ({total_terms}개)")
+
+        # 속도 개선: seed 기준 검색광고 1회 조회 결과를 우선 매핑
+        base_volume_map = {}
+        try:
+            base_rows = self.get_searchad_related_keywords(seed)
+            for r in base_rows:
+                k = self._keyword_key(r.get("keyword", ""))
+                if not k:
+                    continue
+                base_volume_map[k] = {
+                    "keyword": self._normalize_keyword(r.get("keyword", "")),
+                    "monthly_pc_search": int(r.get("monthly_pc_search", 0)),
+                    "monthly_mobile_search": int(r.get("monthly_mobile_search", 0)),
+                    "monthly_total_search": int(r.get("monthly_total_search", 0)),
+                }
+        except Exception:
+            base_volume_map = {}
+
+        for idx, candidate in enumerate(web_terms, start=1):
+            term = self._normalize_keyword(candidate.get("keyword", ""))
+            if not term:
+                continue
+            if progress_callback:
+                progress_callback(f"[{idx}/{total_terms}] {term} 검색량 조회")
+            tnorm = self._normalize_keyword(term)
+            tkey = self._keyword_key(tnorm)
+            row = base_volume_map.get(tkey)
+            if row:
+                row = {
+                    "keyword": tnorm,
+                    "monthly_pc_search": int(row.get("monthly_pc_search", 0)),
+                    "monthly_mobile_search": int(row.get("monthly_mobile_search", 0)),
+                    "monthly_total_search": int(row.get("monthly_total_search", 0)),
+                }
+            else:
+                try:
+                    row = self._resolve_term_volume_row(term)
+                except Exception:
+                    row = None
+            if row:
+                key = self._keyword_key(row.get("keyword", ""))
+                payload = dict(row)
+            else:
+                # 수집된 키워드는 유지하되, 검색량 0으로 반영
+                key = self._keyword_key(term)
+                payload = {
+                    "keyword": self._normalize_keyword(term),
+                    "monthly_pc_search": 0,
+                    "monthly_mobile_search": 0,
+                    "monthly_total_search": 0,
+                }
+            if not key:
+                continue
+            prev = merged.get(key)
+            if prev is None or int(payload.get("monthly_total_search", 0)) > int(prev.get("monthly_total_search", 0)):
+                merged[key] = payload
+
+        keyword_rows = list(merged.values())
         if not keyword_rows:
             return []
 
-        # 입력 키워드가 포함된 연관 키워드만 분석
-        contains_seed = [
-            row for row in keyword_rows
-            if seed.replace(" ", "").lower() in row["keyword"].replace(" ", "").lower()
-        ]
-        source_rows = contains_seed if contains_seed else keyword_rows
-        source_rows = sorted(
-            source_rows,
-            key=lambda x: x["monthly_total_search"],
-            reverse=True
-        )
+        # 네이버 검색결과/자동완성으로 수집된 후보 자체를 분석 대상으로 사용
+        source_rows = keyword_rows
+        source_rows = sorted(source_rows, key=lambda x: -x["monthly_total_search"])
         if progress_callback:
-            progress_callback(f"후보 {len(source_rows)}개 중 배치 {max(1, limit)}개를 분석합니다.")
+            start = max(0, int(offset))
+            remaining = max(0, len(source_rows) - start)
+            batch_count = min(remaining, max(1, int(limit)))
+            progress_callback(f"수집 키워드 {len(source_rows)}개 중 이번 배치 {batch_count}개를 분석합니다.")
 
-        return self._score_keyword_rows(source_rows, limit, offset=offset, progress_callback=progress_callback)
+        return self._score_keyword_rows(
+            source_rows,
+            limit,
+            offset=offset,
+            progress_callback=progress_callback,
+            blog_count_mode=blog_count_mode
+        )
 
-    def find_golden_keywords(self, category_keyword, seed_keywords=None, max_candidates=30, offset=0, progress_callback=None):
+    def analyze_single_keyword_with_content(self, keyword, progress_callback=None, blog_count_mode="monthly"):
+        seed = self._normalize_keyword(keyword)
+        if not seed:
+            raise ValueError("키워드를 입력해 주세요.")
+        if progress_callback:
+            progress_callback(f"'{seed}' 단일 키워드 지표 계산을 시작합니다.")
+
+        row = self._resolve_term_volume_row(seed)
+        monthly_pc = int(row.get("monthly_pc_search", 0)) if row else 0
+        monthly_mobile = int(row.get("monthly_mobile_search", 0)) if row else 0
+        monthly_total = int(row.get("monthly_total_search", 0)) if row else 0
+
+        blog_docs = int(self.get_blog_document_count(seed, count_mode=blog_count_mode))
+        saturation = self.calculate_content_saturation_index(monthly_total, blog_docs)
+        result = [{
+            "keyword": seed,
+            "monthly_pc_search": monthly_pc,
+            "monthly_mobile_search": monthly_mobile,
+            "monthly_total_search": monthly_total,
+            "blog_document_count": blog_docs,
+            "content_saturation_index": float(saturation),
+            "section_position": "확인 필요",
+        }]
+        if progress_callback:
+            progress_callback(f"'{seed}' 단일 키워드 지표 계산 완료")
+        return result
+
+    def find_golden_keywords(self, category_keyword, seed_keywords=None, max_candidates=30, offset=0, progress_callback=None, blog_count_mode="monthly"):
         category_name = category_keyword.strip()
         if not category_name:
             raise ValueError("카테고리를 선택해 주세요.")
@@ -3069,7 +3992,7 @@ class KeywordHunter:
                 prev = merged.get(key)
                 if prev is None or int(row["monthly_total_search"]) > int(prev["monthly_total_search"]):
                     merged[key] = row
-            time.sleep(0.2)
+            time.sleep(0.05)
 
         keyword_rows = list(merged.values())
         if not keyword_rows:
@@ -3088,9 +4011,15 @@ class KeywordHunter:
         prefilter_limit = min(len(source_rows), max(max_candidates * 4, 150))
         source_rows = source_rows[:prefilter_limit]
         if progress_callback:
-            progress_callback(f"후보 {len(source_rows)}개를 1차 선별 후, 황금 키워드를 계산합니다.")
+            progress_callback(f"수집 키워드 {len(source_rows)}개를 1차 선별 후, 황금 키워드를 계산합니다.")
 
-        scored = self._score_keyword_rows(source_rows, max_candidates, offset=offset, progress_callback=progress_callback)
+        scored = self._score_keyword_rows(
+            source_rows,
+            max_candidates,
+            offset=offset,
+            progress_callback=progress_callback,
+            blog_count_mode=blog_count_mode
+        )
         # 포화 지수는 낮을수록 유리, 동률이면 검색량 높은 순
         scored.sort(
             key=lambda x: (x["content_saturation_index"], -x["monthly_total_search"])
@@ -3104,7 +4033,17 @@ class GoldenKeywordThread(QThread):
     error = pyqtSignal(str)
     log = pyqtSignal(str)
 
-    def __init__(self, analysis_type, keyword, limit, offset, credentials, category_seeds=None):
+    def __init__(
+        self,
+        analysis_type,
+        keyword,
+        limit,
+        offset,
+        credentials,
+        category_seeds=None,
+        blog_count_mode="monthly",
+        single_keyword_mode=False
+    ):
         super().__init__()
         self.analysis_type = analysis_type
         self.keyword = keyword
@@ -3112,8 +4051,11 @@ class GoldenKeywordThread(QThread):
         self.offset = offset
         self.credentials = credentials
         self.category_seeds = category_seeds or []
+        self.blog_count_mode = "total" if str(blog_count_mode).strip().lower() == "total" else "monthly"
+        self.single_keyword_mode = bool(single_keyword_mode)
 
     def run(self):
+        hunter = None
         try:
             hunter = KeywordHunter(
                 access_key=self.credentials["searchad_access_key"],
@@ -3121,18 +4063,24 @@ class GoldenKeywordThread(QThread):
                 customer_id=self.credentials["searchad_customer_id"],
                 client_id=self.credentials["naver_client_id"],
                 client_secret=self.credentials["naver_client_secret"],
-                usage_callback=lambda delta: API_USAGE_REPORTER.increment(delta),
-                proxy_url=self.credentials.get("proxy_url", ""),
-                proxy_token=self.credentials.get("proxy_token", ""),
-                machine_id=get_machine_id()
+                usage_callback=lambda delta: API_USAGE_REPORTER.increment(delta)
             )
             if self.analysis_type == "related":
-                results = hunter.analyze_related_keywords_with_content(
-                    self.keyword,
-                    limit=self.limit,
-                    offset=self.offset,
-                    progress_callback=lambda msg: self.log.emit(msg)
-                )
+                if self.single_keyword_mode:
+                    results = hunter.analyze_single_keyword_with_content(
+                        self.keyword,
+                        blog_count_mode=self.blog_count_mode,
+                        progress_callback=lambda msg: self.log.emit(msg)
+                    )
+                else:
+                    results = hunter.analyze_related_keywords_with_content(
+                        self.keyword,
+                        limit=self.limit,
+                        offset=self.offset,
+                        expand_seeds=self.category_seeds,
+                        blog_count_mode=self.blog_count_mode,
+                        progress_callback=lambda msg: self.log.emit(msg)
+                    )
                 try:
                     self.insight.emit(hunter.get_keyword_insight(self.keyword))
                 except Exception:
@@ -3143,17 +4091,126 @@ class GoldenKeywordThread(QThread):
                     seed_keywords=self.category_seeds,
                     max_candidates=self.limit,
                     offset=self.offset,
+                    blog_count_mode=self.blog_count_mode,
                     progress_callback=lambda msg: self.log.emit(msg)
                 )
             self.finished.emit(results)
         except Exception as e:
             self.error.emit(str(e))
+        finally:
+            if hunter:
+                hunter.close()
+
+
+class FileKeywordAnalysisThread(QThread):
+    finished = pyqtSignal(list, str)
+    error = pyqtSignal(str)
+    log = pyqtSignal(str)
+    progress = pyqtSignal(int, int)
+
+    def __init__(self, file_path, credentials, blog_count_mode="monthly"):
+        super().__init__()
+        self.file_path = file_path
+        self.credentials = credentials
+        self.blog_count_mode = "total" if str(blog_count_mode).strip().lower() == "total" else "monthly"
+
+    def _load_keywords(self):
+        ext = os.path.splitext(self.file_path)[1].lower()
+        if ext == ".csv":
+            try:
+                df = pd.read_csv(self.file_path, encoding="utf-8-sig")
+            except Exception:
+                df = pd.read_csv(self.file_path, encoding="cp949")
+        elif ext in [".xlsx", ".xls"]:
+            df = pd.read_excel(self.file_path)
+        else:
+            raise ValueError("지원 파일 형식은 xlsx, csv만 가능합니다.")
+
+        if df is None or df.empty:
+            return []
+
+        first_col = df.iloc[:, 0].tolist()
+        keywords = []
+        seen = set()
+        for raw in first_col:
+            text = str(raw or "").strip()
+            if not text or text.lower() == "nan":
+                continue
+            if text in ["키워드", "keyword"]:
+                continue
+            key = text.replace(" ", "").lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            keywords.append(text)
+        return keywords
+
+    def _save_output(self, rows):
+        blog_col = "전체 발행량" if self.blog_count_mode == "total" else "월간 발행량"
+        out_df = pd.DataFrame({
+            "키워드": [r.get("keyword", "") for r in rows],
+            "월 검색량": [int(r.get("monthly_total_search", 0)) for r in rows],
+            blog_col: [int(r.get("blog_document_count", 0)) for r in rows],
+            "콘텐츠 포화 지수": [round(float(r.get("content_saturation_index", 0.0)), 2) for r in rows],
+        })
+        base, ext = os.path.splitext(self.file_path)
+        if ext.lower() == ".csv":
+            output_path = f"{base}_분석결과.csv"
+            out_df.to_csv(output_path, index=False, encoding="utf-8-sig")
+        else:
+            output_path = f"{base}_분석결과.xlsx"
+            out_df.to_excel(output_path, index=False)
+        return output_path
+
+    def run(self):
+        hunter = None
+        try:
+            hunter = KeywordHunter(
+                access_key=self.credentials["searchad_access_key"],
+                secret_key=self.credentials["searchad_secret_key"],
+                customer_id=self.credentials["searchad_customer_id"],
+                client_id=self.credentials["naver_client_id"],
+                client_secret=self.credentials["naver_client_secret"],
+                usage_callback=lambda delta: API_USAGE_REPORTER.increment(delta)
+            )
+            keywords = self._load_keywords()
+            if not keywords:
+                raise ValueError("업로드 파일 A열에서 키워드를 찾지 못했습니다.")
+
+            self.log.emit(f"파일 분석 시작: {len(keywords)}개 키워드")
+            results = []
+            total = len(keywords)
+            for idx, kw in enumerate(keywords, start=1):
+                self.progress.emit(idx, total)
+                row = hunter._resolve_term_volume_row(kw)
+                monthly_pc = int(row.get("monthly_pc_search", 0)) if row else 0
+                monthly_mobile = int(row.get("monthly_mobile_search", 0)) if row else 0
+                monthly_total = int(row.get("monthly_total_search", 0)) if row else 0
+                blog_docs = int(hunter.get_blog_document_count(kw, count_mode=self.blog_count_mode))
+                saturation = float(hunter.calculate_content_saturation_index(monthly_total, blog_docs))
+                results.append({
+                    "keyword": str(kw).replace("+", " ").strip(),
+                    "monthly_pc_search": monthly_pc,
+                    "monthly_mobile_search": monthly_mobile,
+                    "monthly_total_search": monthly_total,
+                    "blog_document_count": blog_docs,
+                    "content_saturation_index": saturation,
+                    "section_position": "확인 필요",
+                })
+
+            output_path = self._save_output(results)
+            self.finished.emit(results, output_path)
+        except Exception as e:
+            self.error.emit(str(e))
+        finally:
+            if hunter:
+                hunter.close()
 
 
 class ParallelKeywordThread(QThread):
-    finished = pyqtSignal(str)              # ?꾨즺 ????λ맂 ?뚯씪 寃쎈줈 ?쒓렇??
-    error = pyqtSignal(str)                 # ?먮윭 ?쒓렇??
-    log = pyqtSignal(str, str)              # 濡쒓렇 ?쒓렇??(?ㅼ썙?? 硫붿떆吏)
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+    log = pyqtSignal(str, str)
     
     def __init__(self, keyword, save_dir, extract_autocomplete=True):
         super().__init__()
@@ -3168,20 +4225,21 @@ class ParallelKeywordThread(QThread):
         try:
             self.log.emit(self.keyword, f"'{self.keyword}' 검색을 시작합니다...")
             
-            # 釉뚮씪?곗? ?앹꽦
+            # comment removed (encoding issue)
             self.driver = create_chrome_driver()
             if not self.driver:
                 self.error.emit(f"'{self.keyword}' 브라우저 생성 실패")
                 return
 
-            # 寃?됯린 珥덇린??
-            self.searcher = NaverMobileSearchScraper(driver=self.driver)
-            self.searcher.save_dir = self.save_dir
-            self.searcher.is_running = self.is_running
-            self.searcher.search_thread = self
+            # comment removed (encoding issue)
+            searcher = NaverMobileSearchScraper(driver=self.driver)
+            searcher.save_dir = self.save_dir
+            searcher.is_running = self.is_running
+            searcher.search_thread = self
+            self.searcher = searcher
             
-            # ?ㅼ썙??異붿텧 ?ㅽ뻾
-            success = self.searcher.recursive_keyword_extraction(
+            # comment removed (encoding issue)
+            success = searcher.recursive_keyword_extraction(
                 self.keyword, 
                 progress_callback=self._log_wrapper,
                 extract_autocomplete=self.extract_autocomplete
@@ -3195,12 +4253,12 @@ class ParallelKeywordThread(QThread):
 
             saved_path = None
             has_partial_result = bool(
-                self.searcher and
-                hasattr(self.searcher, "all_related_keywords") and
-                self.searcher.all_related_keywords
+                searcher and
+                hasattr(searcher, "all_related_keywords") and
+                searcher.all_related_keywords
             )
             if has_partial_result:
-                if self.searcher.save_recursive_results_to_excel(save_path, self._log_wrapper):
+                if searcher.save_recursive_results_to_excel(save_path, self._log_wrapper):
                     saved_path = save_path
 
             if success and self.is_running:
@@ -3222,7 +4280,7 @@ class ParallelKeywordThread(QThread):
             self.error.emit(f"'{self.keyword}' 작업 중 오류: {str(e)}")
             
         finally:
-            # 釉뚮씪?곗? 醫낅즺 諛??뺣━
+            # comment removed (encoding issue)
             if self.driver:
                 try:
                     self.driver.quit()
@@ -3231,11 +4289,11 @@ class ParallelKeywordThread(QThread):
                 self.driver = None
 
     def _log_wrapper(self, msg):
-        """濡쒓렇 ?섑띁: ?ㅼ썙???앸퀎??異붽?"""
+        """Description"""
         self.log.emit(self.keyword, msg)
 
     def stop(self):
-        """?묒뾽 以묐떒"""
+        """Description"""
         self.is_running = False
         if self.searcher:
             self.searcher.is_running = False
@@ -3352,23 +4410,117 @@ STYLESHEET = f"""
     }}
 """
 
+DARK_STYLESHEET = """
+    QMainWindow, QWidget {
+        background-color: #12161b;
+        color: #e6edf3 !important;
+    }
 
-def create_chrome_driver(log_callback=None):
-    """Chrome WebDriver ?앹꽦 諛??ㅼ젙 (?낅┰?곸쑝濡??ㅽ뻾 媛??"""
+    QGroupBox {
+        font-weight: bold;
+        background-color: #1b222b;
+        border: 2px solid #30404d;
+        border-radius: 16px;
+        padding-top: 30px;
+        margin-top: 20px;
+        color: #e6edf3 !important;
+        font-size: 16px;
+    }
+    QGroupBox::title {
+        subcontrol-origin: margin;
+        left: 25px;
+        padding: 8px 15px;
+        color: #9be2bc !important;
+        font-weight: bold;
+        font-size: 18px;
+        background-color: #1b222b;
+        border: 2px solid #00a83a;
+        border-radius: 8px;
+    }
+
+    QPushButton {
+        background-color: #00a83a;
+        color: #ffffff !important;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: bold;
+        border: none;
+    }
+    QPushButton:hover {
+        background-color: #078f37;
+        color: #ffffff !important;
+    }
+    QPushButton:disabled {
+        background-color: #3a4652;
+        color: #9aa8b6 !important;
+    }
+
+    QLineEdit, QTextEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #3a4652;
+        border-radius: 8px;
+        background-color: #171d24;
+        color: #e6edf3 !important;
+    }
+    QLineEdit:read-only {
+        background-color: #1f2a24;
+        color: #d3dfd8 !important;
+    }
+
+    QCheckBox {
+        color: #dbe5ef !important;
+        font-size: 14px;
+        font-weight: 600;
+        spacing: 15px;
+    }
+    QCheckBox::indicator {
+        width: 24px;
+        height: 24px;
+        border: 3px solid #3a4652;
+        border-radius: 6px;
+        background-color: #1b222b;
+    }
+    QCheckBox::indicator:checked {
+        background-color: #00a83a;
+        border: 3px solid #00a83a;
+    }
+
+    QStatusBar {
+        background: #1b222b;
+        color: #d7e2ed !important;
+        border-top: 3px solid #00a83a;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    QLabel {
+        color: #dce6f0 !important;
+    }
+"""
+
+
+def create_chrome_driver(log_callback=None, force_headless=False):
+    """Description"""
     try:
         if log_callback:
-            log_callback("Chrome ?쒕씪?대쾭 ?ㅼ젙???쒖옉?⑸땲??..")
+            log_callback("log update")
         
         try:
             driver_path = ChromeDriverManager().install()
             if log_callback:
-                log_callback(f"Chrome ?쒕씪?대쾭 寃쎈줈: {driver_path}")
+                log_callback("log update")
         except Exception as e:
             if log_callback:
-                log_callback(f"?좑툘 webdriver-manager ?ㅻ쪟 (濡쒖뺄 ?쒕씪?대쾭 ?ъ슜 ?쒕룄): {str(e)}")
+                log_callback("log update")
             driver_path = None
         
         options = webdriver.ChromeOptions()
+        if force_headless or SELENIUM_HEADLESS:
+            options.add_argument("--headless=new")
+        options.add_argument("--window-size=1920,1080")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
@@ -3379,6 +4531,11 @@ def create_chrome_driver(log_callback=None):
             service = Service(driver_path)
         else:
             service = Service()
+        if os.name == "nt":
+            try:
+                service.creation_flags = subprocess.CREATE_NO_WINDOW
+            except Exception:
+                pass
         
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(20)
@@ -3387,13 +4544,13 @@ def create_chrome_driver(log_callback=None):
         driver.get("about:blank")
         
         if log_callback:
-            log_callback("??Chrome ?쒕씪?대쾭媛 ?깃났?곸쑝濡?珥덇린?붾릺?덉뒿?덈떎.")
+            log_callback("log update")
             
         return driver
 
     except Exception as e:
         if log_callback:
-            log_callback(f"??Chrome ?쒕씪?대쾭 ?앹꽦 ?ㅽ뙣: {str(e)}")
+            log_callback("log update")
         raise e
 
 
@@ -3401,7 +4558,7 @@ class KeywordExtractorMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # ?꾩씠肄??ㅼ젙
+        # comment removed (encoding issue)
         icon_path = get_icon_path()
         if icon_path:
             self.setWindowIcon(QIcon(icon_path))
@@ -3410,62 +4567,69 @@ class KeywordExtractorMainWindow(QMainWindow):
             safe_print("아이콘 파일을 찾을 수 없습니다.")
         
         self.setWindowTitle("네이버 연관키워드 추출기")
-        self.resize(1200, 800) # 湲곕낯 ?ш린 ?ㅼ젙
-        self.showMaximized()   # ?꾨줈洹몃옩 ?ㅽ뻾 ???꾩껜 ?붾㈃?쇰줈 ?쒖옉
+        self.resize(1200, 800)
+        self.showMaximized()
         
-        # ?ㅼ젙 諛??쒕씪?대쾭 珥덇린??
+        # comment removed (encoding issue)
         self.settings = Settings()
         self.driver = None
-        # self.search_thread = None  # ?⑥씪 ?ㅻ젅?????由ъ뒪???ъ슜
-        self.active_threads = []     # ?? ??? ??
-        self.completed_threads = 0   # ??? ??? ?
-        self.total_threads = 0       # ?? ??? ?
+        # comment removed (encoding issue)
+        self.active_threads = []
+        self.completed_threads = 0
+        self.total_threads = 0
         self.stop_requested = False
         self.related_keyword_results = []
         self.category_keyword_results = []
         self.golden_keyword_thread = None
-        self.category_feature_enabled = False
+        self.file_keyword_thread = None
         self.last_analysis_keyword = {"related": "", "category": ""}
         self.analysis_offset = {"related": 0, "category": 0}
+        self.analysis_keep_existing = {"related": False, "category": False}
+        self.current_analysis_mode = ""
+        self.blog_count_mode = self.settings.get_blog_count_mode()
+        self.related_single_mode = False
+        self.related_progress_total = 0
+        self.related_spinner_timer = QTimer(self)
+        self.related_spinner_timer.setInterval(120)
+        self.related_spinner_timer.timeout.connect(self._tick_related_spinner)
         
-        # ?щ옒??蹂댄샇 ?ㅼ젙
+        # comment removed (encoding issue)
         self.setup_crash_protection()
         
-        # UI 珥덇린??
+        # comment removed (encoding issue)
         self.init_ui()
         self.setup_chrome_driver()
-        
-        # ?ㅽ????곸슜
-        self.setStyleSheet(STYLESHEET)
+        self.current_theme_mode = "light"
+        self.apply_theme(self.settings.get_theme_mode(), save=False)
 
     def check_license_info(self):
-        """?쇱씠?좎뒪 ?뺣낫 ?뺤씤"""
-        # 癒몄떊 ID ?뺤씤
+        """Description"""
+        # comment removed (encoding issue)
         machine_id = get_machine_id()
         
-        # 援ш? ?쒗듃?먯꽌 留뚮즺???뺤씤
+        # comment removed (encoding issue)
         expiration_date = check_license_from_sheet(machine_id)
         
         if expiration_date:
             try:
-                # ?좎쭨 鍮꾧탳 (YYYY-MM-DD ?뺤떇 媛??
+                # comment removed (encoding issue)
                 exp_date = datetime.strptime(str(expiration_date).strip(), '%Y-%m-%d')
                 today = datetime.now()
                 
                 if exp_date < today:
-                    # 留뚮즺??
+                    # comment removed (encoding issue)
                     self.show_license_dialog(machine_id, expired=True)
                 else:
-                    # ?좏슚??
+                    # comment removed (encoding issue)
                     self.usage_label.setText(f"사용 기간: {expiration_date}까지")
                     self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
             except:
-                # ?좎쭨 ?뺤떇???꾨땲硫??쇰떒 ?듦낵 (?⑥닚 ?띿뒪???? ?먮뒗 留뚮즺???놁쓬?쇰줈 媛꾩＜
-                # ?ш린?쒕뒗 ?띿뒪??洹몃?濡??쒖떆 (?? "臾댁젣??)
+                # comment removed (encoding issue)
+                # comment removed (encoding issue)
                 self.usage_label.setText(f"사용 기간: {expiration_date}")
                 self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
         else:
-            # ?깅줉?섏? ?딆쓬
+            # comment removed (encoding issue)
             self.show_license_dialog(machine_id)
             
     def show_license_dialog(self, machine_id, expired=False):
@@ -3478,12 +4642,12 @@ class KeywordExtractorMainWindow(QMainWindow):
         sys.exit(0)
 
     def setup_crash_protection(self):
-        """?щ옒??蹂댄샇 ?ㅼ젙"""
+        """Description"""
         global _current_window
         _current_window = self
         sys.excepthook = handle_exception
         
-        # ?쇱씠?좎뒪 泥댄겕 ?쒖옉
+        # comment removed (encoding issue)
         QTimer.singleShot(100, self.check_license_info)
         
         try:
@@ -3497,10 +4661,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         safe_print("크래시 보호 시스템이 활성화되었습니다.")
 
     def setup_chrome_driver(self):
-        """硫붿씤 ?덈룄?곗슜 Chrome WebDriver ?ㅼ젙 (?꾩슂 ??"""
-        # 蹂묐젹 紐⑤뱶?먯꽌??媛쒕퀎 ?ㅻ젅?쒓? ?쒕씪?대쾭瑜??앹꽦?섎?濡??ш린?쒕뒗 ?앹꽦?섏? ?딄굅??
-        # ?먮뒗 ?⑥씪 ?ㅽ뻾 ?뚯뒪?몃? ?꾪빐 ?④꺼?????덉쓬. 
-        # ?쇰떒 湲곗〈 濡쒖쭅 ?좎?瑜??꾪빐 ?⑥닔 ?몄텧濡?蹂寃쏀븯吏留? ?ㅼ젣濡쒕뒗 start_search?먯꽌 ?앹꽦??
+        """Description"""
+        # comment removed (encoding issue)
+        # comment removed (encoding issue)
+        # comment removed (encoding issue)
         pass
 
     def init_ui(self):
@@ -3511,12 +4675,20 @@ class KeywordExtractorMainWindow(QMainWindow):
         central_layout = QVBoxLayout(central_widget)
         central_layout.setContentsMargins(0, 0, 0, 0)
 
-        nav_widget = QWidget()
-        nav_layout = QHBoxLayout(nav_widget)
+        self.nav_widget = QWidget()
+        nav_layout = QHBoxLayout(self.nav_widget)
         nav_layout.setContentsMargins(10, 6, 10, 4)
         nav_layout.setSpacing(8)
         left_slot = QWidget()
         left_slot.setFixedWidth(240)
+        left_slot_layout = QHBoxLayout(left_slot)
+        left_slot_layout.setContentsMargins(0, 0, 0, 0)
+        left_slot_layout.setSpacing(0)
+        self.theme_toggle_button = QPushButton(self._theme_button_text("light"))
+        self.theme_toggle_button.setObjectName("themeToggleButton")
+        self.theme_toggle_button.setFixedWidth(240)
+        self.theme_toggle_button.clicked.connect(self.toggle_theme_mode)
+        left_slot_layout.addWidget(self.theme_toggle_button)
         self.section_related_button = QPushButton("연관 키워드 추출")
         self.section_related_button.setCheckable(True)
         self.section_gold_button = QPushButton("황금 키워드 분석")
@@ -3533,7 +4705,126 @@ class KeywordExtractorMainWindow(QMainWindow):
         nav_layout.addWidget(self.section_gold_button)
         nav_layout.addStretch(1)
         nav_layout.addWidget(self.usage_label)
-        nav_widget.setStyleSheet("""
+        self.nav_widget.setStyleSheet(self._nav_stylesheet("light"))
+        central_layout.addWidget(self.nav_widget)
+
+        self.main_tabs = QTabWidget()
+        self.main_tabs.setObjectName("mainNavigationTabs")
+        self.main_tabs.setStyleSheet(self._main_tabs_stylesheet("light"))
+        main_tab_bar = self.main_tabs.tabBar()
+        if main_tab_bar is not None:
+            main_tab_bar.hide()
+        self.main_tabs.currentChanged.connect(self._sync_main_section_buttons)
+        central_layout.addWidget(self.main_tabs)
+
+        extractor_tab = QWidget()
+        extractor_tab_layout = QVBoxLayout(extractor_tab)
+        extractor_tab_layout.setContentsMargins(0, 0, 0, 0)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        extractor_tab_layout.addWidget(scroll_area)
+
+        scroll_content = QWidget()
+        main_layout = QVBoxLayout(scroll_content)
+        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        scroll_area.setWidget(scroll_content)
+        
+        # comment removed (encoding issue)
+        top_section_layout = QHBoxLayout()
+        
+        # comment removed (encoding issue)
+        self.setup_search_section(top_section_layout)
+        
+        # comment removed (encoding issue)
+        self.setup_progress_section(top_section_layout)
+        
+        main_layout.addLayout(top_section_layout)
+        
+        # comment removed (encoding issue)
+        self.setup_save_section(main_layout)
+        self.main_tabs.addTab(extractor_tab, "연관 키워드 추출")
+
+        analysis_tab = QWidget()
+        analysis_tab_layout = QVBoxLayout(analysis_tab)
+        analysis_tab_layout.setContentsMargins(10, 10, 10, 10)
+        self.setup_golden_keyword_section(analysis_tab_layout)
+        self.main_tabs.addTab(analysis_tab, "황금 키워드 분석")
+        self.switch_main_section(0)
+            
+        # comment removed (encoding issue)
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.status_bar.showMessage("준비 완료")
+
+    def switch_main_section(self, index):
+        self.main_tabs.setCurrentIndex(index)
+        self._sync_main_section_buttons(index)
+
+    def _sync_main_section_buttons(self, index):
+        self.section_related_button.setChecked(index == 0)
+        self.section_gold_button.setChecked(index == 1)
+
+    def _theme_button_text(self, mode):
+        return "테마: 다크" if mode == "dark" else "테마: 라이트"
+
+    def toggle_theme_mode(self):
+        next_mode = "dark" if getattr(self, "current_theme_mode", "light") == "light" else "light"
+        self.apply_theme(next_mode)
+
+    def apply_theme(self, mode, save=True):
+        mode = "dark" if str(mode).strip().lower() == "dark" else "light"
+        self.current_theme_mode = mode
+        self.setStyleSheet(DARK_STYLESHEET if mode == "dark" else STYLESHEET)
+
+        if hasattr(self, "theme_toggle_button"):
+            self.theme_toggle_button.setText(self._theme_button_text(mode))
+        if hasattr(self, "nav_widget"):
+            self.nav_widget.setStyleSheet(self._nav_stylesheet(mode))
+        if hasattr(self, "main_tabs"):
+            self.main_tabs.setStyleSheet(self._main_tabs_stylesheet(mode))
+        if hasattr(self, "progress_tabs"):
+            self.progress_tabs.setStyleSheet(self._progress_tabs_stylesheet(mode))
+        if hasattr(self, "golden_root_widget"):
+            self.golden_root_widget.setStyleSheet(self._golden_root_stylesheet(mode))
+        if hasattr(self, "related_table"):
+            self.related_table.setStyleSheet(self._result_table_stylesheet(mode))
+        if hasattr(self, "related_table_placeholder"):
+            self.related_table_placeholder.setStyleSheet(self._result_table_stylesheet(mode))
+            self._populate_related_guide_table()
+        if hasattr(self, "category_table"):
+            self.category_table.setStyleSheet(self._result_table_stylesheet(mode))
+        if hasattr(self, "related_spinner"):
+            self.related_spinner.set_mode(mode)
+
+        if save and hasattr(self, "settings"):
+            self.settings.set_theme_mode(mode)
+
+    def _nav_stylesheet(self, mode):
+        if mode == "dark":
+            return """
+                QPushButton {
+                    min-width: 180px;
+                    min-height: 34px;
+                    padding: 6px 12px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 800;
+                    color: #d8f7e8;
+                    background: #1f3a2f;
+                    border: 1px solid #2f5b47;
+                }
+                QPushButton:checked {
+                    color: #ffffff;
+                    background: #00a83a;
+                    border: 1px solid #04c14a;
+                }
+                QPushButton:hover:!checked {
+                    background: #28483a;
+                }
+            """
+        return """
             QPushButton {
                 min-width: 180px;
                 min-height: 34px;
@@ -3553,12 +4844,40 @@ class KeywordExtractorMainWindow(QMainWindow):
             QPushButton:hover:!checked {
                 background: #dff0e7;
             }
-        """)
-        central_layout.addWidget(nav_widget)
+        """
 
-        self.main_tabs = QTabWidget()
-        self.main_tabs.setObjectName("mainNavigationTabs")
-        self.main_tabs.setStyleSheet("""
+    def _main_tabs_stylesheet(self, mode):
+        if mode == "dark":
+            return """
+                QTabWidget#mainNavigationTabs::pane {
+                    border: none;
+                    top: -1px;
+                }
+                QTabWidget#mainNavigationTabs QTabBar::tab {
+                    min-width: 220px;
+                    min-height: 40px;
+                    padding: 8px 18px;
+                    margin: 8px 6px 2px 6px;
+                    border-radius: 10px;
+                    font-size: 15px;
+                    font-weight: 800;
+                    color: #cceedd;
+                    background: #223029;
+                    border: 1px solid #355444;
+                }
+                QTabWidget#mainNavigationTabs QTabBar::tab:selected {
+                    color: #ffffff;
+                    background: #00a83a;
+                    border: 1px solid #04c14a;
+                }
+                QTabWidget#mainNavigationTabs QTabBar::tab:hover:!selected {
+                    background: #2a3a32;
+                }
+                QTabWidget#mainNavigationTabs QTabWidget::tab-bar {
+                    alignment: center;
+                }
+            """
+        return """
             QTabWidget#mainNavigationTabs::pane {
                 border: none;
                 top: -1px;
@@ -3586,59 +4905,160 @@ class KeywordExtractorMainWindow(QMainWindow):
             QTabWidget#mainNavigationTabs QTabWidget::tab-bar {
                 alignment: center;
             }
-        """)
-        self.main_tabs.tabBar().hide()
-        self.main_tabs.currentChanged.connect(self._sync_main_section_buttons)
-        central_layout.addWidget(self.main_tabs)
+        """
 
-        extractor_tab = QWidget()
-        extractor_tab_layout = QVBoxLayout(extractor_tab)
-        extractor_tab_layout.setContentsMargins(0, 0, 0, 0)
+    def _progress_tabs_stylesheet(self, mode):
+        if mode == "dark":
+            return """
+                QTabWidget#progressTabs {
+                    background: #171b20;
+                }
+                QTabWidget#progressTabs::pane {
+                    border: 1px solid #3a4652;
+                    border-radius: 8px;
+                    top: 0px;
+                }
+                QTabWidget#progressTabs::tab-bar { alignment: left; }
+                QTabWidget#progressTabs QTabBar {
+                    background: #171b20;
+                    border: none;
+                }
+                QTabWidget#progressTabs QTabBar::tab {
+                    background: #242b33;
+                    color: #d9e3ec;
+                    padding: 1px 6px;
+                    min-width: 40px;
+                    max-width: 68px;
+                    min-height: 20px;
+                    font-size: 12px;
+                    font-weight: 400;
+                    border: 1px solid #3a4652;
+                    border-top-left-radius: 6px;
+                    border-top-right-radius: 6px;
+                    margin-right: 2px;
+                }
+                QTabWidget#progressTabs QTabBar::tab:selected {
+                    background: #2b4b66;
+                    color: #9fd0ff;
+                    border: 1px solid #4a7aa4;
+                    border-bottom: 1px solid #4a7aa4;
+                }
+            """
+        return """
+            QTabWidget#progressTabs {
+                background: #ffffff;
+            }
+            QTabWidget#progressTabs::pane {
+                border: 1px solid #cccccc;
+                border-radius: 8px;
+                top: 0px;
+            }
+            QTabWidget#progressTabs::tab-bar { alignment: left; }
+            QTabWidget#progressTabs QTabBar {
+                background: #ffffff;
+                border: none;
+            }
+            QTabWidget#progressTabs QTabBar::tab {
+                background: #f0f0f0;
+                padding: 1px 6px;
+                min-width: 40px;
+                max-width: 68px;
+                min-height: 20px;
+                font-size: 12px;
+                font-weight: 400;
+                border: 1px solid #d0d0d0;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                margin-right: 2px;
+            }
+            QTabWidget#progressTabs QTabBar::tab:selected {
+                background: #E6F0FD;
+                color: #1E6ECA;
+                border: 1px solid #1E6ECA;
+                border-bottom: 1px solid #1E6ECA;
+            }
+        """
 
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        extractor_tab_layout.addWidget(scroll_area)
+    def _result_table_stylesheet(self, mode):
+        if mode == "dark":
+            return """
+                QTableWidget {
+                    gridline-color: #31404d;
+                    border: 1px solid #3a4652;
+                    border-radius: 8px;
+                    background: #171b20;
+                    color: #e3ecf5;
+                    alternate-background-color: #1f252d;
+                }
+                QHeaderView::section {
+                    background-color: #23303c;
+                    color: #d2e7ff;
+                    font-weight: 700;
+                    padding: 6px;
+                    border: 0px;
+                    border-bottom: 1px solid #3f5364;
+                }
+            """
+        return """
+            QTableWidget {
+                gridline-color: #d9e9e0;
+                border: 1px solid #d4edda;
+                border-radius: 8px;
+                background: #ffffff;
+                alternate-background-color: #f6fbf8;
+            }
+            QHeaderView::section {
+                background-color: #e8f5f0;
+                color: #1f5136;
+                font-weight: 700;
+                padding: 6px;
+                border: 0px;
+                border-bottom: 1px solid #cde9d8;
+            }
+        """
 
-        scroll_content = QWidget()
-        main_layout = QVBoxLayout(scroll_content)
-        main_layout.setSpacing(10)
-        main_layout.setContentsMargins(10, 10, 10, 10)
-        scroll_area.setWidget(scroll_content)
-        
-        # ?곷떒 ?뱀뀡 (寃??+ 吏꾪뻾 ?곹솴) - 媛濡?諛곗튂
-        top_section_layout = QHBoxLayout()
-        
-        # 寃???뱀뀡 (?쇱そ)
-        self.setup_search_section(top_section_layout)
-        
-        # 吏꾪뻾 ?곹솴 ?뱀뀡 (?ㅻⅨ履?
-        self.setup_progress_section(top_section_layout)
-        
-        main_layout.addLayout(top_section_layout)
-        
-        # ????꾩튂 ?뱀뀡 (?섎떒)
-        self.setup_save_section(main_layout)
-        self.main_tabs.addTab(extractor_tab, "연관 키워드 추출")
-
-        analysis_tab = QWidget()
-        analysis_tab_layout = QVBoxLayout(analysis_tab)
-        analysis_tab_layout.setContentsMargins(10, 10, 10, 10)
-        self.setup_golden_keyword_section(analysis_tab_layout)
-        self.main_tabs.addTab(analysis_tab, "황금 키워드 분석")
-        self.switch_main_section(0)
-            
-        # ?곹깭諛?
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("준비 완료")
-
-    def switch_main_section(self, index):
-        self.main_tabs.setCurrentIndex(index)
-        self._sync_main_section_buttons(index)
-
-    def _sync_main_section_buttons(self, index):
-        self.section_related_button.setChecked(index == 0)
-        self.section_gold_button.setChecked(index == 1)
+    def _golden_root_stylesheet(self, mode):
+        if mode == "dark":
+            return """
+                QGroupBox { font-size: 14px; font-weight: 700; }
+                QGroupBox::title {
+                    subcontrol-origin: margin;
+                    left: 25px;
+                    padding: 8px 15px;
+                    color: #bdecd0;
+                    font-size: 18px;
+                    font-weight: 700;
+                    background-color: #171b20;
+                    border: 2px solid #00a83a;
+                    border-radius: 8px;
+                }
+                QGroupBox#leftPanel, QGroupBox#rightPanel {
+                    background: #1d242c;
+                    border: 1px solid #2f3a44;
+                    border-radius: 10px;
+                    margin-top: 8px;
+                }
+            """
+        return """
+            QGroupBox { font-size: 14px; font-weight: 700; }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 25px;
+                padding: 8px 15px;
+                color: #185a3a;
+                font-size: 18px;
+                font-weight: 700;
+                background-color: #ffffff;
+                border: 2px solid #03c75a;
+                border-radius: 8px;
+            }
+            QGroupBox#leftPanel, QGroupBox#rightPanel {
+                background: #fbfdfc;
+                border: 1px solid #cfe8d7;
+                border-radius: 10px;
+                margin-top: 8px;
+            }
+        """
 
     def setup_search_section(self, main_layout):
         """검색 섹션 설정"""
@@ -3646,7 +5066,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         search_group.setObjectName("extractSearchGroup")
         search_layout = QVBoxLayout(search_group)
         
-        # 寃???낅젰李?
+        # comment removed (encoding issue)
         self.search_input = MultiKeywordTextEdit()
         self.search_input.setPlaceholderText(
             "사용 방법\n"
@@ -3654,16 +5074,16 @@ class KeywordExtractorMainWindow(QMainWindow):
             "2. Enter로 바로 추출 시작, Shift+Enter로 줄바꿈합니다.\n"
             "3. 여러 키워드를 동시에 병렬 처리합니다."
         )
-        # ?믪씠 ?쒗븳 ?쒓굅 諛??뺤옣 ?뺤콉 ?ㅼ젙
+        # comment removed (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.search_input.search_requested.connect(self.start_search)
         search_layout.addWidget(self.search_input)
         
-        # ?щ갚 理쒖냼??
+        # comment removed (encoding issue)
         search_layout.setContentsMargins(10, 10, 10, 10)
         search_layout.setSpacing(5)
         
-        # 踰꾪듉??
+        # comment removed (encoding issue)
         button_layout = QHBoxLayout()
         
         self.start_button = QPushButton("키워드 추출 시작")
@@ -3701,19 +5121,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         path_layout.addWidget(self.save_path_input)
         path_layout.addWidget(self.browse_button)
         
-        # 湲곕낯 寃쎈줈 ?ㅼ젙
+        # comment removed (encoding issue)
         saved_dir = self.settings.get_save_dir()
         if saved_dir and os.path.exists(saved_dir):
             self.save_path_input.setText(saved_dir)
         else:
-            # ?ъ슜?먮퀎 諛뷀깢?붾㈃ 寃쎈줈 ?숈쟻 ?앹꽦
+            # comment removed (encoding issue)
             desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
             default_dir = os.path.join(desktop_path, "keyword_results")
             
             try:
                 os.makedirs(default_dir, exist_ok=True)
             except Exception:
-                # 諛뷀깢?붾㈃ ?묎렐 ?ㅽ뙣 ????臾몄꽌濡??泥?
+                # comment removed (encoding issue)
                 default_dir = os.path.join(os.path.expanduser("~"), "Documents", "keyword_results")
                 os.makedirs(default_dir, exist_ok=True)
                 
@@ -3731,65 +5151,27 @@ class KeywordExtractorMainWindow(QMainWindow):
         """진행 상황 섹션 설정"""
         progress_group = QGroupBox("진행 상황")
         progress_group.setObjectName("extractProgressGroup")
-        progress_group.setStyleSheet("QGroupBox#extractProgressGroup { background: #ffffff; }")
         progress_layout = QVBoxLayout(progress_group)
-        progress_layout.setContentsMargins(8, 0, 8, 8)
+        progress_layout.setContentsMargins(10, 2, 10, 10)
         progress_layout.setSpacing(0)
         
-        # ???꾩젽?쇰줈 蹂寃?
+        # comment removed (encoding issue)
         self.progress_tabs = QTabWidget()
         self.progress_tabs.setObjectName("progressTabs")
-        self.progress_tabs.tabBar().setExpanding(False)
-        self.progress_tabs.tabBar().setUsesScrollButtons(False)
-        self.progress_tabs.setContentsMargins(0, 0, 0, 0)
-        self.progress_tabs.setStyleSheet("""
-            QTabWidget#progressTabs {
-                background: #ffffff;
-                margin: 0px;
-                padding: 0px;
-            }
-            QTabWidget#progressTabs::pane {
-                border: none;
-                border-radius: 0px;
-                top: 0px;
-                margin-top: 0px;
-                background: #ffffff;
-            }
-            QTabWidget#progressTabs::tab-bar { alignment: left; }
-            QTabWidget#progressTabs QTabBar {
-                background: #ffffff;
-                margin: 0px;
-                padding: 0px;
-                border: none;
-            }
-            QTabWidget#progressTabs QTabBar::tab {
-                background: #ffffff;
-                padding: 1px 6px;
-                min-width: 40px;
-                max-width: 68px;
-                min-height: 20px;
-                font-size: 12px;
-                font-weight: 400;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
-                margin: 0px 2px 0px 0px;
-                border: none;
-            }
-            QTabWidget#progressTabs QTabBar::tab:selected {
-                background: #ffffff;
-                color: #1E6ECA;
-                border: none;
-            }
-        """)
+        progress_tab_bar = self.progress_tabs.tabBar()
+        if progress_tab_bar is not None:
+            progress_tab_bar.setExpanding(False)
+            progress_tab_bar.setUsesScrollButtons(False)
+        self.progress_tabs.setStyleSheet(self._progress_tabs_stylesheet("light"))
         
-        # '?꾩껜' ??(?쒖뒪??濡쒓렇??
+        # comment removed (encoding issue)
         self.total_log_text = SmartProgressTextEdit(min_height=100, max_height=800)
         self.total_log_text.setReadOnly(True)
         self.total_log_text.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.total_log_text.setPlaceholderText("여기에 전체 진행 로그가 표시됩니다.")
         self.progress_tabs.addTab(self.total_log_text, "전체 로그")
         
-        # ??愿由ъ슜 ?뺤뀛?덈━
+        # comment removed (encoding issue)
         self.log_widgets = {"전체": self.total_log_text}
         
         progress_layout.addWidget(self.progress_tabs)
@@ -3809,6 +5191,7 @@ class KeywordExtractorMainWindow(QMainWindow):
 
     def setup_golden_keyword_section(self, parent_layout):
         root_widget = QWidget()
+        self.golden_root_widget = root_widget
         root = QVBoxLayout(root_widget)
         root.setSpacing(10)
         root.setContentsMargins(0, 0, 0, 0)
@@ -3847,46 +5230,91 @@ class KeywordExtractorMainWindow(QMainWindow):
         left_layout.setContentsMargins(10, 10, 10, 10)
 
         left_top = QHBoxLayout()
-        self.related_keyword_input = QLineEdit()
+        self.related_keyword_input = KoreanDefaultLineEdit()
         self.related_keyword_input.setPlaceholderText("예: 연말정산")
         self.related_keyword_input.returnPressed.connect(self.start_related_keyword_analysis)
         left_top.addWidget(self.related_keyword_input, 1)
 
-        left_limit_card = QFrame()
-        left_limit_card.setObjectName("metricBlue")
-        left_limit_layout = QHBoxLayout(left_limit_card)
-        left_limit_layout.setContentsMargins(8, 6, 8, 6)
-        left_limit_layout.addWidget(QLabel("분석 개수"))
-        self.related_limit_spin = QSpinBox()
-        self.related_limit_spin.setRange(5, 100)
-        self.related_limit_spin.setValue(10)
-        self.related_limit_spin.setSuffix("개")
-        left_limit_layout.addWidget(self.related_limit_spin)
-        left_top.addWidget(left_limit_card)
+        self.blog_count_mode_combo = QComboBox()
+        self.blog_count_mode_combo.setObjectName("blogCountModeCombo")
+        self.blog_count_mode_combo.addItem("월간 발행량", "monthly")
+        self.blog_count_mode_combo.addItem("전체 발행량", "total")
+        self.blog_count_mode_combo.setCurrentIndex(0 if self.blog_count_mode == "monthly" else 1)
+        self.blog_count_mode_combo.currentIndexChanged.connect(self.on_blog_count_mode_changed)
+        left_top.addWidget(self.blog_count_mode_combo)
+
+        self.related_batch_size = 10
+
+        self.related_upload_button = QPushButton("파일 업로드")
+        self.related_upload_button.setObjectName("uploadButton")
+        self.related_upload_button.clicked.connect(self.start_related_file_analysis)
+        left_top.addWidget(self.related_upload_button)
 
         self.related_keyword_button = QPushButton("분석 실행")
         self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
-        self.related_continue_button = QPushButton("이어서 실행")
-        self.related_continue_button.clicked.connect(lambda: self._expand_analysis_scope("related"))
-        self.related_continue_button.setEnabled(False)
+        self.related_single_button = QPushButton("단일 키워드")
+        self.related_single_button.clicked.connect(self.start_single_keyword_analysis)
         self.related_save_button = QPushButton("저장")
         self.related_save_button.setEnabled(False)
         self.related_save_button.clicked.connect(lambda: self.save_results_for_mode("related"))
         left_top.addWidget(self.related_keyword_button)
-        left_top.addWidget(self.related_continue_button)
+        left_top.addWidget(self.related_single_button)
         left_top.addWidget(self.related_save_button)
         left_layout.addLayout(left_top)
 
-        self.related_sort_hint = QLabel("열 제목 클릭: 오름/내림 정렬")
+        self.blog_count_mode_hint = QLabel("")
+        self.blog_count_mode_hint.setObjectName("summaryHint")
+        left_layout.addWidget(self.blog_count_mode_hint)
+        self._update_blog_count_mode_hint()
+
+        self.related_sort_hint = QLabel("")
         self.related_sort_hint.setObjectName("sortHint")
+        self.related_sort_hint.setVisible(False)
         left_layout.addWidget(self.related_sort_hint)
+        self.related_loading_widget = QWidget()
+        related_loading_layout = QHBoxLayout(self.related_loading_widget)
+        related_loading_layout.setContentsMargins(4, 2, 4, 2)
+        related_loading_layout.setSpacing(8)
+        self.related_spinner = SpiralSpinner()
+        self.related_loading_text = QLabel("작업 중...")
+        self.related_loading_text.setObjectName("loadingText")
+        self.related_progress_bar = QProgressBar()
+        self.related_progress_bar.setMinimum(0)
+        self.related_progress_bar.setMaximum(100)
+        self.related_progress_bar.setValue(0)
+        self.related_progress_bar.setTextVisible(True)
+        related_loading_layout.addWidget(self.related_spinner)
+        related_loading_layout.addWidget(self.related_loading_text)
+        related_loading_layout.addWidget(self.related_progress_bar, 1)
+        self.related_loading_widget.setVisible(False)
+        left_layout.addWidget(self.related_loading_widget)
 
         self.related_table = QTableWidget()
         self._init_result_table(self.related_table)
-        left_layout.addWidget(self.related_table)
+        self.related_table_placeholder = QTableWidget()
+        self.related_table_placeholder.setObjectName("relatedGuideTable")
+        self._init_result_table(self.related_table_placeholder)
+        self._populate_related_guide_table()
+
+        self.related_table_stack_widget = QWidget()
+        self.related_table_stack = QStackedLayout(self.related_table_stack_widget)
+        self.related_table_stack.setContentsMargins(0, 0, 0, 0)
+        self.related_table_stack.addWidget(self.related_table_placeholder)
+        self.related_table_stack.addWidget(self.related_table)
+        self.related_table_stack.setCurrentIndex(0)
+        left_layout.addWidget(self.related_table_stack_widget)
+        related_more_row = QHBoxLayout()
+        related_more_row.addStretch(1)
+        self.related_more_button = QPushButton("더 많은 연관 키워드 보기")
+        self.related_more_button.clicked.connect(self.start_related_keyword_analysis_more)
+        self.related_more_button.setEnabled(False)
+        self.related_more_button.setObjectName("moreLinkButton")
+        related_more_row.addWidget(self.related_more_button)
+        related_more_row.addStretch(1)
+        left_layout.addLayout(related_more_row)
         split.addWidget(left_group, 1)
 
-        # Right panel: category golden keyword recommendation
+        # Right panel: category golden keyword recommendation (read-only for now)
         right_group = QGroupBox("카테고리 황금키워드 추천")
         right_group.setObjectName("rightPanel")
         right_layout = QVBoxLayout(right_group)
@@ -3894,58 +5322,103 @@ class KeywordExtractorMainWindow(QMainWindow):
         right_layout.setContentsMargins(10, 10, 10, 10)
 
         right_top = QHBoxLayout()
+        right_top.setSpacing(10)
         self.golden_category_combo = QComboBox()
         self.golden_category_combo.addItems(list(self.category_seed_map.keys()))
+        self.golden_category_combo.setObjectName("categoryCenterCombo")
+        self.golden_category_combo.setEditable(True)
+        combo_line_edit = self.golden_category_combo.lineEdit()
+        if combo_line_edit is not None:
+            combo_line_edit.setReadOnly(True)
+            combo_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.golden_category_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         right_top.addWidget(self.golden_category_combo, 1)
 
         right_limit_card = QFrame()
         right_limit_card.setObjectName("metricBlue")
+        right_limit_card.setMinimumWidth(210)
         right_limit_layout = QHBoxLayout(right_limit_card)
         right_limit_layout.setContentsMargins(8, 6, 8, 6)
+        right_limit_layout.setSpacing(8)
         right_limit_layout.addWidget(QLabel("추천 개수"))
         self.category_limit_spin = QSpinBox()
+        self.category_limit_spin.setObjectName("categoryCenterSpin")
         self.category_limit_spin.setRange(5, 100)
         self.category_limit_spin.setValue(10)
         self.category_limit_spin.setSuffix("개")
+        self.category_limit_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.category_limit_spin.setMinimumWidth(90)
         right_limit_layout.addWidget(self.category_limit_spin)
         right_top.addWidget(right_limit_card)
 
         self.golden_start_button = QPushButton("추천 실행")
+        self.golden_start_button.setObjectName("categoryActionButton")
+        self.golden_start_button.setMinimumWidth(120)
         self.golden_start_button.clicked.connect(self.start_category_golden_keyword_search)
         self.category_continue_button = QPushButton("이어서 실행")
+        self.category_continue_button.setObjectName("categoryActionButton")
+        self.category_continue_button.setMinimumWidth(130)
         self.category_continue_button.clicked.connect(lambda: self._expand_analysis_scope("category"))
         self.category_continue_button.setEnabled(False)
         self.category_save_button = QPushButton("저장")
+        self.category_save_button.setObjectName("categoryActionButton")
+        self.category_save_button.setMinimumWidth(90)
         self.category_save_button.setEnabled(False)
         self.category_save_button.clicked.connect(lambda: self.save_results_for_mode("category"))
         right_top.addWidget(self.golden_start_button)
         right_top.addWidget(self.category_continue_button)
         right_top.addWidget(self.category_save_button)
-        self.category_top_row_widget = QWidget()
-        self.category_top_row_widget.setLayout(right_top)
-        right_layout.addWidget(self.category_top_row_widget)
+        right_layout.addLayout(right_top)
 
-        self.category_sort_hint = QLabel("열 제목 클릭: 오름/내림 정렬")
+        self.category_sort_hint = QLabel("")
         self.category_sort_hint.setObjectName("sortHint")
+        self.category_sort_hint.setVisible(False)
         right_layout.addWidget(self.category_sort_hint)
-
-        self.category_update_notice = QLabel("업데이트 예정")
-        self.category_update_notice.setObjectName("updateNotice")
-        self.category_update_notice.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        right_layout.addWidget(self.category_update_notice)
 
         self.category_table = QTableWidget()
         self._init_result_table(self.category_table)
         right_layout.addWidget(self.category_table)
+
+        for w in [
+            self.golden_category_combo,
+            self.category_limit_spin,
+            self.golden_start_button,
+            self.category_continue_button,
+            self.category_save_button,
+            self.category_table
+        ]:
+            w.setEnabled(False)
+
+        self.category_notice_card = QFrame()
+        self.category_notice_card.setObjectName("categoryNoticeCard")
+        notice_layout = QVBoxLayout(self.category_notice_card)
+        notice_layout.setContentsMargins(16, 18, 16, 18)
+        notice_layout.setSpacing(10)
+        notice_title = QLabel("업데이트 예정")
+        notice_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        notice_title.setObjectName("categoryNoticeTitle")
+        self.category_notice_text = QLabel(
+            "카테고리 황금키워드 추천 기능은 현재 개선 중입니다.\n"
+            "다음 업데이트에서 새 로직으로 제공됩니다."
+        )
+        self.category_notice_text.setWordWrap(True)
+        self.category_notice_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.category_notice_text.setObjectName("categoryNoticeText")
+        notice_layout.addStretch(1)
+        notice_layout.addWidget(notice_title)
+        notice_layout.addWidget(self.category_notice_text)
+        notice_layout.addStretch(1)
+        right_layout.addWidget(self.category_notice_card)
         split.addWidget(right_group, 1)
 
         root.addLayout(split)
 
         self.insight_group = QGroupBox("인사이트")
         insight_layout = QVBoxLayout(self.insight_group)
-        self.insight_title_label = QLabel("연관 키워드 분석 실행 시 입력 키워드 인사이트가 표시됩니다.")
+        self.insight_title_label = QLabel("")
         self.insight_title_label.setObjectName("insightTitle")
         self.insight_title_label.setVisible(False)
+        insight_layout.addWidget(self.insight_title_label)
 
         ratio_row = QHBoxLayout()
         self.month_ratio_chart = InsightChartWidget("월별 검색 비율", chart_type="bar")
@@ -4003,13 +5476,90 @@ class KeywordExtractorMainWindow(QMainWindow):
                 font-weight: 700;
                 padding-left: 2px;
             }
-            QLabel#updateNotice {
-                color: #8a6d1a;
+            QLabel#summaryHint {
+                color: #4f6b5b;
                 font-size: 12px;
                 font-weight: 700;
-                padding: 0 2px 2px 0;
+                padding-left: 2px;
+            }
+            QFrame#categoryNoticeCard {
+                background: #fef9eb;
+                border: 1px solid #f3d48b;
+                border-radius: 10px;
+                min-height: 230px;
+            }
+            QLabel#categoryNoticeTitle {
+                color: #9a6a00;
+                font-size: 16px;
+                font-weight: 800;
+            }
+            QLabel#categoryNoticeText {
+                color: #6f4e00;
+                font-size: 15px;
+                font-weight: 700;
+                line-height: 1.5;
+            }
+            QLabel#loadingSpinner {
+                color: #1f6a49;
+                font-size: 14px;
+                font-weight: 800;
+                min-width: 14px;
+            }
+            QLabel#loadingText {
+                color: #2f5f4a;
+                font-size: 12px;
+                font-weight: 700;
+            }
+            QFrame#relatedGuideCard {
+                background: #f8fcfa;
+                border: 1px dashed #bfe5ce;
+                border-radius: 8px;
+            }
+            QLabel#relatedGuideTitle {
+                color: #1f5136;
+                font-size: 15px;
+                font-weight: 800;
+            }
+            QLabel#relatedGuideText {
+                color: #4b6b5b;
+                font-size: 13px;
+                font-weight: 600;
+                line-height: 1.45;
             }
             QPushButton { font-size: 13px; font-weight: 700; min-height: 34px; border-radius: 8px; }
+            QPushButton#categoryActionButton {
+                min-height: 36px;
+                padding: 6px 14px;
+                text-align: center;
+            }
+            QPushButton#uploadButton {
+                background: #ecf3ff;
+                color: #1f4f8a !important;
+                border: 1px solid #c6d9f5;
+                padding: 6px 12px;
+            }
+            QPushButton#uploadButton:hover {
+                background: #e2eeff;
+                color: #123f74 !important;
+            }
+            QPushButton#moreLinkButton {
+                min-height: 34px;
+                padding: 8px 18px;
+                border: none;
+                border-radius: 8px;
+                background: #03c75a;
+                color: #ffffff !important;
+                font-size: 13px;
+                font-weight: 700;
+            }
+            QPushButton#moreLinkButton:hover {
+                background: #028a4a;
+                color: #ffffff !important;
+            }
+            QPushButton#moreLinkButton:disabled {
+                background: #dcdcdc;
+                color: #666666 !important;
+            }
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
                 min-height: 34px;
                 font-size: 13px;
@@ -4017,13 +5567,45 @@ class KeywordExtractorMainWindow(QMainWindow):
                 border: 1px solid #cfd8d3;
                 border-radius: 7px;
             }
+            QProgressBar {
+                min-height: 16px;
+                max-height: 16px;
+                border: 1px solid #cfd8d3;
+                border-radius: 8px;
+                background: #f3f7f5;
+                text-align: center;
+                color: #1f5136;
+                font-size: 11px;
+                font-weight: 700;
+            }
+            QProgressBar::chunk {
+                border-radius: 7px;
+                background: #03c75a;
+            }
             QComboBox {
                 padding-left: 10px;
                 padding-right: 28px;
             }
+            QComboBox#categoryCenterCombo {
+                text-align: center;
+                padding-left: 12px;
+                padding-right: 30px;
+            }
+            QComboBox#categoryCenterCombo QLineEdit {
+                qproperty-alignment: 'AlignCenter';
+            }
             QComboBox::drop-down {
                 border: none;
                 width: 26px;
+            }
+            QComboBox::down-arrow {
+                image: none;
+                width: 0px;
+                height: 0px;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 7px solid #4f6f61;
+                margin-right: 8px;
             }
             QSpinBox::up-button, QDoubleSpinBox::up-button {
                 subcontrol-origin: border;
@@ -4048,18 +5630,34 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QSpinBox::up-arrow, QDoubleSpinBox::up-arrow,
             QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
-                width: 9px;
-                height: 9px;
+                image: none;
+                width: 0px;
+                height: 0px;
+            }
+            QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-bottom: 7px solid #4f6f61;
+            }
+            QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 7px solid #4f6f61;
+            }
+            QSpinBox#categoryCenterSpin {
+                qproperty-alignment: 'AlignCenter';
+                padding-left: 8px;
+                padding-right: 24px;
             }
         """)
 
-        self._set_category_feature_enabled(False)
+        root_widget.setStyleSheet(self._golden_root_stylesheet("light"))
         parent_layout.addWidget(root_widget)
 
     def _init_result_table(self, table_widget):
         table_widget.setColumnCount(4)
         table_widget.setHorizontalHeaderLabels(
-            ["키워드 ▾▴", "월 검색량 ▾▴", "월 블로그 발행량 ▾▴", "콘텐츠 포화 지수 ▾▴"]
+            ["키워드 ↕", "월 검색량 ↕", "월 블로그 발행량 ↕", "콘텐츠 포화 지수 ↕"]
         )
         header = table_widget.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
@@ -4070,55 +5668,149 @@ class KeywordExtractorMainWindow(QMainWindow):
         table_widget.setAlternatingRowColors(True)
         table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         table_widget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
+        # 드래그로 연속 구간을 쉽게 선택할 수 있도록 행 단위 선택을 사용
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table_widget.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         table_widget.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-        QScroller.grabGesture(
-            table_widget.viewport(),
-            QScroller.ScrollerGestureType.LeftMouseButtonGesture
+        table_widget._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), table_widget)
+        table_widget._copy_shortcut.activated.connect(
+            lambda tw=table_widget: self.copy_selected_table_cells(tw)
         )
         table_widget.setSortingEnabled(True)
-        table_widget.setStyleSheet("""
-            QTableWidget {
-                gridline-color: #d9e9e0;
-                border: 1px solid #d4edda;
-                border-radius: 8px;
-                background: #ffffff;
-                alternate-background-color: #f6fbf8;
-            }
-            QHeaderView::section {
-                background-color: #e8f5f0;
-                color: #1f5136;
-                font-weight: 700;
-                padding: 6px;
-                border: 0px;
-                border-bottom: 1px solid #cde9d8;
-            }
-        """)
+        table_widget.setStyleSheet(self._result_table_stylesheet(getattr(self, "current_theme_mode", "light")))
+        self._update_blog_count_column_header()
 
-    def _set_category_feature_enabled(self, enabled):
-        self.category_feature_enabled = bool(enabled)
-        widgets = [
-            self.golden_category_combo,
-            self.category_limit_spin,
-            self.golden_start_button,
-            self.category_continue_button,
-            self.category_save_button,
-            self.category_table,
+    def _populate_related_guide_table(self):
+        guide_table = getattr(self, "related_table_placeholder", None)
+        if not isinstance(guide_table, QTableWidget):
+            return
+
+        lines = [
+            "연관 키워드 분석 사용법",
+            "1. 실행 전 설정: '월간 발행량 / 전체 발행량' 중 하나를 먼저 선택하세요.",
+            "2. 설정 차이: 월간 발행량은 수집 정밀도가 높지만 시간이 더 걸리고, 전체 발행량은 더 빠르게 분석됩니다.",
+            "3. 버튼 차이: '분석 실행'은 입력창의 여러 키워드를 일괄 분석하고, '단일 키워드'는 1개 키워드만 빠르게 분석합니다.",
+            "4. 분석 시작: 키워드 입력 후 버튼을 누르거나, 여러 키워드는 '파일 업로드'를 사용하세요. (xlsx/csv, A열 기준)",
+            "5. 진행 확인: 하단 진행 막대와 로그 탭에서 단계별 상태를 확인할 수 있습니다.",
+            "6. 결과 표 항목: 키워드 / 월 검색량 / 월 블로그 발행량 / 콘텐츠 포화 지수",
+            "7. 표 정렬: 각 열 제목의 ↕를 클릭하면 오름차순/내림차순으로 정렬됩니다.",
+            "8. 추가 확장: '더 많은 연관 키워드 보기'를 누르면 현재 결과 기반으로 재분석합니다.",
+            "9. 저장: 분석 완료 후 '저장' 버튼으로 현재 결과를 파일로 저장하세요.",
         ]
-        for widget in widgets:
-            widget.setEnabled(self.category_feature_enabled)
-        self.category_top_row_widget.setVisible(True)
-        self.category_sort_hint.setVisible(True)
-        self.category_table.setVisible(True)
-        self.category_update_notice.setVisible(not self.category_feature_enabled)
+
+        guide_table.setSortingEnabled(False)
+        guide_table.clearContents()
+        guide_table.setRowCount(len(lines))
+        guide_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        guide_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        guide_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+        gray_title = QColor("#5f6368")
+        gray_body = QColor("#6f7680")
+
+        for row, text in enumerate(lines):
+            guide_table.setSpan(row, 0, 1, 4)
+            item = QTableWidgetItem(text)
+            item.setTextAlignment(int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft))
+            item.setForeground(gray_title if row == 0 else gray_body)
+            if row == 0:
+                f = item.font()
+                f.setBold(True)
+                f.setPointSize(max(11, f.pointSize()))
+                item.setFont(f)
+            guide_table.setItem(row, 0, item)
+            guide_table.setRowHeight(row, 38 if row == 0 else 34)
+
+    def copy_selected_table_cells(self, table_widget):
+        indexes = table_widget.selectedIndexes()
+        if not indexes:
+            return
+        rows = sorted({idx.row() for idx in indexes})
+        cols = sorted({idx.column() for idx in indexes})
+        selected = {(idx.row(), idx.column()): idx for idx in indexes}
+        lines = []
+        for r in rows:
+            values = []
+            for c in cols:
+                idx = selected.get((r, c))
+                values.append(idx.data() if idx is not None else "")
+            lines.append("\t".join(values))
+        clipboard = QApplication.clipboard()
+        if clipboard is not None:
+            clipboard.setText("\n".join(lines))
+
+    def _tick_related_spinner(self):
+        if not hasattr(self, "related_spinner"):
+            return
+        self.related_spinner.step()
+
+    def _show_related_loading(self, text="작업 중...", indeterminate=True):
+        self.related_loading_text.setText(text)
+        if indeterminate:
+            self.related_progress_bar.setRange(0, 0)
+        else:
+            self.related_progress_bar.setRange(0, max(1, self.related_progress_total or 100))
+            self.related_progress_bar.setValue(0)
+        self.related_loading_widget.setVisible(True)
+        if not self.related_spinner_timer.isActive():
+            self.related_spinner_timer.start()
+
+    def _update_related_loading_progress(self, current, total, text=None):
+        total = max(1, int(total))
+        current = max(0, min(int(current), total))
+        self.related_progress_total = total
+        self.related_progress_bar.setRange(0, total)
+        self.related_progress_bar.setValue(current)
+        if text:
+            self.related_loading_text.setText(text)
+
+    def _hide_related_loading(self):
+        if self.related_spinner_timer.isActive():
+            self.related_spinner_timer.stop()
+        self.related_loading_widget.setVisible(False)
+
+    def _set_related_table_guide_visible(self, visible):
+        if not hasattr(self, "related_table_stack"):
+            return
+        self.related_table_stack.setCurrentIndex(0 if visible else 1)
+
+    def _get_blog_count_mode(self):
+        if hasattr(self, "blog_count_mode_combo"):
+            value = self.blog_count_mode_combo.currentData()
+            if value in ("monthly", "total"):
+                return value
+        return "total" if str(getattr(self, "blog_count_mode", "monthly")).lower() == "total" else "monthly"
+
+    def _get_blog_count_display_name(self):
+        return "전체 발행량" if self._get_blog_count_mode() == "total" else "월간 발행량"
+
+    def _update_blog_count_mode_hint(self):
+        if not hasattr(self, "blog_count_mode_hint"):
+            return
+        self.blog_count_mode_hint.setText("")
+        self.blog_count_mode_hint.setVisible(False)
+
+    def _update_blog_count_column_header(self):
+        title = f"{self._get_blog_count_display_name()} ↕"
+        for table in [
+            getattr(self, "related_table", None),
+            getattr(self, "category_table", None),
+            getattr(self, "related_table_placeholder", None),
+        ]:
+            if not table:
+                continue
+            header_item = table.horizontalHeaderItem(2)
+            if header_item:
+                header_item.setText(title)
+
+    def on_blog_count_mode_changed(self):
+        self.blog_count_mode = self._get_blog_count_mode()
+        self.settings.set_blog_count_mode(self.blog_count_mode)
+        self._update_blog_count_column_header()
+        self._update_blog_count_mode_hint()
 
     def _expand_analysis_scope(self, mode):
-        if mode == "category" and not self.category_feature_enabled:
-            QMessageBox.information(self, "안내", "카테고리 황금키워드 추천 기능은 업데이트 예정입니다.")
-            return
-        limit_spin = self.related_limit_spin if mode == "related" else self.category_limit_spin
-        batch_size = int(limit_spin.value())
+        batch_size = int(self.related_batch_size if mode == "related" else self.category_limit_spin.value())
         self.analysis_offset[mode] = int(self.analysis_offset.get(mode, 0)) + batch_size
 
         keyword = self.last_analysis_keyword.get(mode, "").strip()
@@ -4135,8 +5827,18 @@ class KeywordExtractorMainWindow(QMainWindow):
             offset=int(self.analysis_offset.get(mode, 0))
         )
 
-    def _start_golden_analysis(self, analysis_type, keyword, category_seeds=None, offset=0):
-        if self.golden_keyword_thread and self.golden_keyword_thread.isRunning():
+    def _start_golden_analysis(
+        self,
+        analysis_type,
+        keyword,
+        category_seeds=None,
+        offset=0,
+        keep_existing=False,
+        single_keyword_mode=False
+    ):
+        if (self.golden_keyword_thread and self.golden_keyword_thread.isRunning()) or (
+            self.file_keyword_thread and self.file_keyword_thread.isRunning()
+        ):
             QMessageBox.information(self, "진행 중", "다른 분석이 이미 실행 중입니다.")
             return
         if not keyword:
@@ -4159,12 +5861,22 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.last_analysis_keyword[analysis_type] = keyword
         self.analysis_offset[analysis_type] = int(offset)
+        self.analysis_keep_existing[analysis_type] = bool(keep_existing)
+        self.current_analysis_mode = analysis_type
+        self.related_single_mode = bool(single_keyword_mode) if analysis_type == "related" else False
         if analysis_type == "related":
-            self.related_keyword_results = []
-            self.related_table.setRowCount(0)
-            self.related_save_button.setEnabled(False)
+            if not keep_existing:
+                self.related_keyword_results = []
+                self.related_table.setRowCount(0)
+                self.related_save_button.setEnabled(False)
+                self._set_related_table_guide_visible(True)
             self.related_keyword_button.setEnabled(False)
-            self.related_continue_button.setEnabled(False)
+            self.related_single_button.setEnabled(False)
+            self.related_upload_button.setEnabled(False)
+            self.related_more_button.setEnabled(False)
+            self.related_progress_total = 0
+            loading_text = "작업 중... 단일 키워드 지표를 계산하고 있습니다." if self.related_single_mode else "작업 중... 키워드를 수집하고 있습니다."
+            self._show_related_loading(loading_text, indeterminate=True)
             self.insight_title_label.setText("키워드 인사이트를 불러오는 중...")
             self.month_ratio_chart.set_data([], [])
             self.weekday_ratio_chart.set_data([], [])
@@ -4176,14 +5888,19 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.golden_start_button.setEnabled(False)
             self.category_continue_button.setEnabled(False)
         self.status_bar.showMessage("키워드 분석 중...")
+        selected_mode = self._get_blog_count_mode()
+        if analysis_type == "related" and self.related_single_mode:
+            self.on_golden_keyword_log("단일 키워드 모드로 실행합니다.")
 
         self.golden_keyword_thread = GoldenKeywordThread(
             analysis_type=analysis_type,
             keyword=keyword,
-            limit=int(self.related_limit_spin.value() if analysis_type == "related" else self.category_limit_spin.value()),
+            limit=int(100000 if analysis_type == "related" else self.category_limit_spin.value()),
             offset=int(self.analysis_offset.get(analysis_type, 0)),
             credentials=credentials,
-            category_seeds=category_seeds or []
+            category_seeds=category_seeds or [],
+            blog_count_mode=selected_mode,
+            single_keyword_mode=self.related_single_mode
         )
         self.golden_keyword_thread.log.connect(self.on_golden_keyword_log)
         self.golden_keyword_thread.insight.connect(self.on_keyword_insight)
@@ -4194,30 +5911,225 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_keyword_thread.start()
 
     def start_related_keyword_analysis(self):
-        self._start_golden_analysis("related", self.related_keyword_input.text().strip(), offset=0)
+        self._start_golden_analysis(
+            "related",
+            self.related_keyword_input.text().strip(),
+            offset=0,
+            keep_existing=False,
+            single_keyword_mode=False
+        )
+
+    def start_single_keyword_analysis(self):
+        self._start_golden_analysis(
+            "related",
+            self.related_keyword_input.text().strip(),
+            offset=0,
+            keep_existing=False,
+            single_keyword_mode=True
+        )
+
+    def start_related_file_analysis(self):
+        if (self.golden_keyword_thread and self.golden_keyword_thread.isRunning()) or (
+            self.file_keyword_thread and self.file_keyword_thread.isRunning()
+        ):
+            QMessageBox.information(self, "진행 중", "다른 분석이 이미 실행 중입니다.")
+            return
+
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "키워드 파일 선택",
+            "",
+            "Excel/CSV Files (*.xlsx *.csv)"
+        )
+        if not file_path:
+            return
+
+        ext = os.path.splitext(file_path)[1].lower()
+        if ext not in [".xlsx", ".csv"]:
+            QMessageBox.warning(self, "파일 형식 오류", "xlsx, csv 파일만 업로드할 수 있습니다.")
+            return
+
+        try:
+            credentials, _ = load_api_credentials_from_file()
+        except FileNotFoundError:
+            QMessageBox.warning(self, "설정 필요", "분석에 필요한 API 설정을 확인해 주세요.")
+            return
+        except Exception as e:
+            QMessageBox.warning(self, "API 키 오류", str(e))
+            return
+
+        API_USAGE_REPORTER.configure(
+            machine_id=get_machine_id(),
+            webhook_url=credentials.get("usage_webhook_url", ""),
+            webhook_token=credentials.get("usage_webhook_token", ""),
+        )
+
+        self.current_analysis_mode = "related"
+        self.related_keyword_results = []
+        self.related_table.setRowCount(0)
+        self._set_related_table_guide_visible(True)
+        self.related_save_button.setEnabled(False)
+        self.related_more_button.setEnabled(False)
+        self.related_keyword_button.setEnabled(False)
+        self.related_upload_button.setEnabled(False)
+        self.related_progress_total = 0
+        self._show_related_loading("작업 중... 업로드 파일 분석 준비 중", indeterminate=True)
+        self.status_bar.showMessage("업로드 파일 분석 중...")
+        selected_mode = self._get_blog_count_mode()
+
+        self.file_keyword_thread = FileKeywordAnalysisThread(
+            file_path,
+            credentials,
+            blog_count_mode=selected_mode
+        )
+        self.file_keyword_thread.log.connect(self.on_golden_keyword_log)
+        self.file_keyword_thread.progress.connect(self.on_related_file_progress)
+        self.file_keyword_thread.finished.connect(self.on_related_file_finished)
+        self.file_keyword_thread.error.connect(self.on_related_file_error)
+        self.file_keyword_thread.start()
+
+    def on_related_file_progress(self, current, total):
+        self._update_related_loading_progress(
+            current,
+            total,
+            f"작업 중... {current}/{total}"
+        )
+
+    def on_related_file_finished(self, results, output_path):
+        self._hide_related_loading()
+        self.current_analysis_mode = ""
+        self.related_keyword_button.setEnabled(True)
+        self.related_single_button.setEnabled(True)
+        self.related_upload_button.setEnabled(True)
+        self.related_save_button.setEnabled(True)
+        self.related_more_button.setEnabled(False)
+        self.related_keyword_results = list(results or [])
+        self._set_related_table_guide_visible(not bool(self.related_keyword_results))
+        self.apply_filters_for_mode("related")
+        self.status_bar.showMessage(f"파일 분석 완료 ({len(self.related_keyword_results)}개)")
+        QMessageBox.information(
+            self,
+            "파일 분석 완료",
+            f"분석 결과 파일 저장 완료:\n{output_path}\n\n"
+            "A열 키워드 기준으로\n"
+            f"B열 월 검색량, C열 {self._get_blog_count_display_name()}, D열 콘텐츠 포화 지수로 생성했습니다."
+        )
+
+    def on_related_file_error(self, error_message):
+        self._hide_related_loading()
+        self.current_analysis_mode = ""
+        self.related_keyword_button.setEnabled(True)
+        self.related_single_button.setEnabled(True)
+        self.related_upload_button.setEnabled(True)
+        self.related_save_button.setEnabled(bool(self.related_keyword_results))
+        self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
+        self.status_bar.showMessage("파일 분석 실패")
+        QMessageBox.critical(self, "파일 분석 오류", str(error_message))
+
+    def start_related_keyword_analysis_more(self):
+        keyword = self.last_analysis_keyword.get("related", "").strip() or self.related_keyword_input.text().strip()
+        if not keyword:
+            QMessageBox.warning(self, "입력 오류", "먼저 연관 키워드 분석을 실행해 주세요.")
+            return
+
+        rows = [r for r in (self.related_keyword_results or []) if str(r.get("keyword", "")).strip()]
+        if not rows:
+            QMessageBox.warning(self, "안내", "표 결과가 없어 확장 분석을 진행할 수 없습니다.")
+            return
+
+        sorted_rows = sorted(
+            rows,
+            key=lambda r: int(r.get("monthly_total_search", 0)),
+            reverse=True
+        )
+
+        # 표 결과를 검색량 내림차순으로 모두 순회하되, 1,000 초과 키워드만 재귀 확장 대상으로 사용
+        expand_seeds = []
+        seen_seed_keys = set()
+        for row in sorted_rows:
+            monthly = int(row.get("monthly_total_search", 0))
+            if monthly <= 1000:
+                continue
+            seed_text = str(row.get("keyword", "")).replace("+", " ").strip()
+            seed_key = seed_text.replace(" ", "").lower()
+            if not seed_text or seed_key in seen_seed_keys:
+                continue
+            seen_seed_keys.add(seed_key)
+            expand_seeds.append(seed_text)
+
+        if not expand_seeds:
+            QMessageBox.information(
+                self,
+                "안내",
+                "현재 표 결과에서 월 검색량 1,000 초과 키워드가 없어\n"
+                "'더 많은 연관 키워드 보기' 재귀 확장을 적용할 수 없습니다."
+            )
+            return
+
+        self.status_bar.showMessage(
+            f"확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과)"
+        )
+        self._start_golden_analysis(
+            "related",
+            keyword,
+            category_seeds=expand_seeds,
+            offset=0,
+            keep_existing=True
+        )
 
     def start_category_golden_keyword_search(self):
-        if not self.category_feature_enabled:
-            QMessageBox.information(self, "안내", "카테고리 황금키워드 추천 기능은 업데이트 예정입니다.")
-            return
-        selected = self.golden_category_combo.currentText().strip()
-        seeds = self.category_seed_map.get(selected, [selected.replace("/", " ")])
-        self._start_golden_analysis("category", selected, seeds, offset=0)
+        QMessageBox.information(self, "안내", "카테고리 황금키워드 추천 기능은 업데이트 예정입니다.")
 
     def on_golden_keyword_log(self, message):
         self.status_bar.showMessage(sanitize_display_text(message))
+        text = sanitize_display_text(message)
+        if self.current_analysis_mode != "related":
+            return
+        m_batch = re.search(r"(?:후보|수집 키워드)\s+(\d+)개\s+중\s+이번\s*배치\s+(\d+)개|(?:후보|수집 키워드)\s+(\d+)개\s+중\s+배치\s+(\d+)개", text)
+        if m_batch:
+            batch = int(m_batch.group(2) or m_batch.group(4))
+            self.related_progress_total = max(1, batch)
+            self._update_related_loading_progress(
+                0,
+                self.related_progress_total,
+                f"작업 중... 0/{self.related_progress_total}"
+            )
+            return
+        m_step = re.search(r"\[(\d+)/(\d+)\]", text)
+        if m_step:
+            cur = int(m_step.group(1))
+            total = int(m_step.group(2))
+            # 1단계: 후보 검색량 조회(0~75%)
+            pct = int((cur / max(1, total)) * 75)
+            self.related_progress_bar.setRange(0, 100)
+            self.related_progress_bar.setValue(pct)
+            self.related_loading_text.setText(f"1단계 검색량 조회 중... {cur}/{total}")
+            return
+        m_eval = re.search(r"\[EVAL\s+(\d+)/(\d+)\]", text)
+        if m_eval:
+            cur = int(m_eval.group(1))
+            total = int(m_eval.group(2))
+            # 2단계: 블로그/포화지수 계산(75~100%)
+            pct = 75 + int((cur / max(1, total)) * 25)
+            self.related_progress_bar.setRange(0, 100)
+            self.related_progress_bar.setValue(min(100, pct))
+            self.related_loading_text.setText(f"2단계 콘텐츠 지표 계산 중... {cur}/{total}")
+            return
+        if "단일 키워드" in text:
+            self._show_related_loading("작업 중... 단일 키워드 지표 계산 중", indeterminate=True)
+            return
+        if "키워드 수집 완료" in text:
+            self._show_related_loading("작업 중... 검색량 분석 준비 중", indeterminate=True)
 
     def on_keyword_insight(self, insight):
         if not insight:
             self.insight_title_label.setText("인사이트 데이터를 불러오지 못했습니다.")
             return
 
-        keyword = str(insight.get("keyword", "")).strip()
-        self.insight_title_label.setText(f"인사이트: {keyword}")
+        self.insight_title_label.setText("인사이트")
         month_ratio = insight.get("month_ratio", [])
         weekday_ratio = insight.get("weekday_ratio", [])
         age_ratio = insight.get("age_ratio", [])
-
         self.month_ratio_chart.set_data(
             [str(x.get("label", "")) for x in month_ratio],
             [float(x.get("value", 0.0)) for x in month_ratio]
@@ -4233,9 +6145,30 @@ class KeywordExtractorMainWindow(QMainWindow):
 
     def on_golden_keyword_finished(self, results, analysis_type):
         self.related_keyword_button.setEnabled(True)
-        self.golden_start_button.setEnabled(self.category_feature_enabled)
+        self.related_upload_button.setEnabled(True)
+        self.related_single_button.setEnabled(True)
+        self.golden_start_button.setEnabled(False)
         if analysis_type == "related":
-            self.related_keyword_results = results or []
+            self._hide_related_loading()
+        self.current_analysis_mode = ""
+        keep_existing = bool(self.analysis_keep_existing.get(analysis_type, False))
+        if analysis_type == "related":
+            incoming = results or []
+            if keep_existing and self.related_keyword_results:
+                existing_keys = {
+                    str(r.get("keyword", "")).replace("+", " ").strip().lower()
+                    for r in self.related_keyword_results
+                }
+                for row in incoming:
+                    key = str(row.get("keyword", "")).replace("+", " ").strip().lower()
+                    if key and key not in existing_keys:
+                        row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                        self.related_keyword_results.append(row)
+                        existing_keys.add(key)
+            else:
+                for row in incoming:
+                    row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                self.related_keyword_results = incoming
             current_rows = self.related_keyword_results
         else:
             self.category_keyword_results = results or []
@@ -4244,43 +6177,58 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not current_rows:
             self.status_bar.showMessage("분석 완료 (결과 없음)")
             if analysis_type == "related":
-                self.related_continue_button.setEnabled(True)
+                self.related_more_button.setEnabled(not self.related_single_mode)
+                self.related_keyword_results = []
+                self.apply_filters_for_mode("related")
+                QMessageBox.information(
+                    self,
+                    "안내",
+                    "수집된 연관/자동완성 키워드가 충분하지 않아 결과가 비었습니다.\n"
+                    "키워드 띄어쓰기 없이 다시 시도하거나, '더 많은 연관 키워드 보기'를 눌러 추가 수집을 진행해 주세요."
+                )
+                self.related_single_mode = False
             else:
                 self.category_continue_button.setEnabled(True)
             return
 
         if analysis_type == "related":
             self.related_save_button.setEnabled(True)
-            self.related_continue_button.setEnabled(True)
+            self.related_more_button.setEnabled(not self.related_single_mode)
+            self.related_single_mode = False
         else:
-            self.category_save_button.setEnabled(self.category_feature_enabled)
-            self.category_continue_button.setEnabled(self.category_feature_enabled)
+            self.category_save_button.setEnabled(False)
+            self.category_continue_button.setEnabled(False)
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 황금키워드 추천"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
 
     def on_golden_keyword_error(self, error_message):
         self.related_keyword_button.setEnabled(True)
-        self.golden_start_button.setEnabled(self.category_feature_enabled)
-        self.related_continue_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
-        self.category_continue_button.setEnabled(
-            self.category_feature_enabled and bool(self.last_analysis_keyword.get("category", "").strip())
-        )
+        self.related_upload_button.setEnabled(True)
+        self.related_single_button.setEnabled(True)
+        self.golden_start_button.setEnabled(False)
+        self._hide_related_loading()
+        self.current_analysis_mode = ""
+        self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
+        self.related_single_mode = False
+        self.category_continue_button.setEnabled(False)
         self.related_save_button.setEnabled(bool(self.related_keyword_results))
-        self.category_save_button.setEnabled(self.category_feature_enabled and bool(self.category_keyword_results))
+        self.category_save_button.setEnabled(False)
         self.status_bar.showMessage("분석 실패")
         if "(429)" in str(error_message) or "too many" in str(error_message).lower():
             QMessageBox.warning(
                 self,
                 "요청 제한 안내",
                 "API 요청 제한(429)에 도달했습니다.\n"
-                "1-2분 후 다시 시도하거나, 추천 개수/분석 개수를 낮춘 뒤 실행해 주세요."
+                "1-2분 후 다시 시도해 주세요."
             )
             return
         QMessageBox.critical(self, "키워드 분석 오류", error_message)
 
     def render_results_for_mode(self, mode, results):
         table = self.related_table if mode == "related" else self.category_table
+        if mode == "related":
+            self._set_related_table_guide_visible(len(results) == 0)
         table.setSortingEnabled(False)
         table.setRowCount(len(results))
         for idx, row in enumerate(results, start=1):
@@ -4288,7 +6236,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             monthly = int(row.get("monthly_total_search", 0))
             blog_count = int(row.get("blog_document_count", 0))
             items = [
-                QTableWidgetItem(str(row["keyword"])),
+                QTableWidgetItem(str(row["keyword"]).replace("+", " ").strip()),
                 SortableNumericItem(f"{monthly:,}", monthly),
                 SortableNumericItem(f"{blog_count:,}", blog_count),
                 SortableNumericItem(f"{saturation:.2f}%", saturation),
@@ -4308,9 +6256,14 @@ class KeywordExtractorMainWindow(QMainWindow):
     def _get_sorted_filtered_results_for_mode(self, mode):
         return list(self.related_keyword_results if mode == "related" else self.category_keyword_results)
 
+    def _update_related_summary(self):
+        return
+
     def apply_filters_for_mode(self, mode):
         filtered = self._get_sorted_filtered_results_for_mode(mode)
         save_button = self.related_save_button if mode == "related" else self.category_save_button
+        if mode == "related":
+            self._update_related_summary()
         self.render_results_for_mode(mode, filtered)
         save_button.setEnabled(bool(filtered))
 
@@ -4325,7 +6278,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         filename = "related_keywords.txt" if mode == "related" else "category_golden_keywords.txt"
         save_path = os.path.join(save_dir, filename)
 
-        top_keywords = [row["keyword"] for row in filtered_results]
+        top_keywords = [str(row["keyword"]).replace("+", " ").strip() for row in filtered_results]
         with open(save_path, "w", encoding="utf-8") as f:
             f.write("\n".join(top_keywords))
 
@@ -4359,13 +6312,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         # if not self.driver check removed as threads handle their own drivers
 
         
-        # UI ?곹깭 蹂寃?
+        # comment removed (encoding issue)
         self.start_button.setEnabled(False)
         self.pause_button.setEnabled(True)
         self.pause_button.setText("일시정지")
         self.stop_button.setEnabled(True)
         self.search_input.setEnabled(False)
-        # self.progress_text.clear() ??젣??(??珥덇린?붾줈 ?泥?
+        # comment removed (encoding issue)
         self.status_bar.showMessage("키워드 추출 중...")
         
         self.update_progress(f"키워드 추출 작업 시작 (총 {len(keywords)}개)")
@@ -4373,27 +6326,27 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.update_progress(f"저장 폴더: {save_dir}")
         self.update_progress("병렬 처리 모드로 실행합니다.")
         
-        # ??珥덇린??(湲곗〈 媛쒕퀎 ???쒓굅, '?꾩껜 濡쒓렇'???좎?)
+        # comment removed (encoding issue)
         while self.progress_tabs.count() > 1:
             self.progress_tabs.removeTab(1)
             
         self.log_widgets = {"전체": self.total_log_text}
         self.total_log_text.clear()
         
-        # 寃???ㅻ젅???쒖옉 (蹂묐젹 ?ㅽ뻾)
+        # comment removed (encoding issue)
         self.active_threads = []
         self.completed_threads = 0
         self.total_threads = len(keywords)
         self.stop_requested = False
         
-        # 媛??ㅼ썙?쒕퀎 ???앹꽦
+        # comment removed (encoding issue)
         for keyword in keywords:
             log_widget = SmartProgressTextEdit(min_height=100, max_height=800)
             log_widget.setReadOnly(True)
             self.progress_tabs.addTab(log_widget, keyword)
             self.log_widgets[keyword] = log_widget
             
-            # ???꾪솚 (泥?踰덉㎏ ?ㅼ썙?쒕줈)
+            # comment removed (encoding issue)
             if keywords.index(keyword) == 0:
                 self.progress_tabs.setCurrentIndex(1)
         
@@ -4401,14 +6354,14 @@ class KeywordExtractorMainWindow(QMainWindow):
             thread = ParallelKeywordThread(keyword, save_dir, True)
             thread.finished.connect(self.on_thread_finished)
             thread.error.connect(self.on_thread_error)
-            thread.log.connect(self.update_progress) # ?쒓렇??留ㅽ븨 ?먮룞 泥섎━??
+            thread.log.connect(self.update_progress)
             
             self.active_threads.append(thread)
             thread.start()
             self.update_progress(keyword, f"'{keyword}' 작업 시작...")
 
     def on_thread_finished(self, save_path):
-        """?ㅻ젅???묒뾽 ?꾨즺 泥섎━"""
+        """Description"""
         if save_path:
             self.update_progress("전체", f"저장 완료: {save_path}")
         self.completed_threads += 1
@@ -4421,7 +6374,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.check_all_threads_finished()
         
     def check_all_threads_finished(self):
-        """紐⑤뱺 ?ㅻ젅?쒓? ?꾨즺?섏뿀?붿? ?뺤씤"""
+        """Description"""
         if self.completed_threads >= self.total_threads:
             if self.stop_requested:
                 self.search_finished("중단 요청된 작업이 모두 종료되었습니다.")
@@ -4462,16 +6415,16 @@ class KeywordExtractorMainWindow(QMainWindow):
         QMessageBox.critical(self, "추출 오류", f"연관키워드 추출 중 오류가 발생했습니다:\n{error_msg}")
 
     def update_progress(self, keyword_or_msg, message=None):
-        """吏꾪뻾 ?곹솴 ?낅뜲?댄듃 (?ㅼ썙?쒕퀎 ??遺꾨━ 吏??"""
+        """Description"""
         current_time = datetime.now().strftime('%H:%M:%S')
         
-        # ?몄옄 泥섎━ (湲곗〈 ?명솚??+ ?덈줈???쒓렇??
+        # comment removed (encoding issue)
         if message is None:
-            # ?⑥씪 ?몄옄 ?몄텧??寃쎌슦 (湲곕낯 ?쒖뒪??硫붿떆吏 ??
+            # comment removed (encoding issue)
             target_keyword = "전체"
             msg_content = keyword_or_msg
         else:
-            # (?ㅼ썙?? 硫붿떆吏) ?뺥깭 ?몄텧
+            # comment removed (encoding issue)
             target_keyword = keyword_or_msg
             msg_content = message
 
@@ -4479,7 +6432,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         msg_content = sanitize_display_text(msg_content)
         formatted_message = f"[{current_time}] {msg_content}"
         
-        # 1. ?대떦 ?ㅼ썙?쒖쓽 媛쒕퀎 ??뿉 濡쒓렇 異붽?
+        # comment removed (encoding issue)
         if target_keyword in self.log_widgets:
             widget = self.log_widgets[target_keyword]
             if hasattr(widget, 'append_with_smart_scroll'):
@@ -4487,7 +6440,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             else:
                 widget.append(formatted_message)
         
-        # 2. '?꾩껜 濡쒓렇' ??뿉??紐⑤뱺 濡쒓렇 異붽? (?좏깮?ы빆, 紐⑤땲?곕쭅 ?몄쓽 ?꾪빐)
+        # comment removed (encoding issue)
         if target_keyword != "전체":
             formatted_total_msg = f"[{current_time}] [{target_keyword}] {msg_content}"
             if hasattr(self.total_log_text, 'append_with_smart_scroll'):
@@ -4496,24 +6449,24 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.total_log_text.append(formatted_total_msg)
 
     def pause_resume_search(self):
-        """?쇱떆?뺤?/?ш컻 ?좉?"""
-        # 蹂묐젹 紐⑤뱶?먯꽌??媛쒕퀎 ?ㅻ젅???쇱떆?뺤? 吏?먯씠 蹂듭옟?섎?濡?
-        # ?꾩옱????湲곕뒫??鍮꾪솢?깊솕?섍굅??濡쒓렇留??④? (?먮뒗 異뷀썑 援ы쁽)
-        # ?ш린?쒕뒗 ?⑥닚??踰꾪듉 ?곹깭留??좉??섎뒗 寃껋쑝濡??꾩떆 泥섎━
+        """Description"""
+        # comment removed (encoding issue)
+        # comment removed (encoding issue)
+        # comment removed (encoding issue)
         pass
 
     def on_search_paused(self):
-        """?쇱떆?뺤? ??UI ?낅뜲?댄듃"""
+        """Description"""
         self.pause_button.setText("재개")
         self.status_bar.showMessage("키워드 추출이 일시정지되었습니다.")
     
     def on_search_resumed(self):
-        """?ш컻 ??UI ?낅뜲?댄듃"""
+        """Description"""
         self.pause_button.setText("일시정지")
         self.status_bar.showMessage("키워드 추출 중...")
 
     def reset_ui_state(self):
-        """UI ?곹깭 由ъ뀑"""
+        """Description"""
         self.start_button.setEnabled(True)
         self.pause_button.setEnabled(False)
         self.pause_button.setText("일시정지")
@@ -4524,7 +6477,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         """Handle window close event and cleanup."""
         global _crash_save_enabled
         
-        # ?쒖꽦 ?ㅻ젅?쒓? ?덈뒗吏 ?뺤씤
+        # comment removed (encoding issue)
         if hasattr(self, 'active_threads') and self.active_threads:
             running_threads = [t for t in self.active_threads if t.isRunning()]
             
@@ -4539,7 +6492,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                 if reply == QMessageBox.StandardButton.Yes:
                     self.update_progress("전체", "프로그램 종료를 위해 작업을 정리하고 있습니다...")
                     
-                    # 紐⑤뱺 ?ㅻ젅??以묐떒
+                    # comment removed (encoding issue)
                     for thread in running_threads:
                         thread.stop()
                         thread.wait(1000)
@@ -4553,11 +6506,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             if self.golden_keyword_thread.isRunning():
                 self.golden_keyword_thread.quit()
                 self.golden_keyword_thread.wait(1000)
+        if hasattr(self, "file_keyword_thread") and self.file_keyword_thread:
+            if self.file_keyword_thread.isRunning():
+                self.file_keyword_thread.quit()
+                self.file_keyword_thread.wait(1000)
         
         _crash_save_enabled = False
         
         if self.driver:
-            pass  # 硫붿씤 ?쒕씪?대쾭?????댁긽 ?ъ슜?섏? ?딆쓬
+            pass
         
         event.accept()
 
@@ -4573,7 +6530,7 @@ def main():
     
     app = QApplication(sys.argv)
     
-    # ?좏뵆由ъ??댁뀡 ?꾩씠肄??ㅼ젙
+    # comment removed (encoding issue)
     icon_path = get_icon_path()
     if icon_path:
         app.setWindowIcon(QIcon(icon_path))
@@ -4583,36 +6540,36 @@ def main():
     
     app.setApplicationName("네이버 연관키워드 추출기")
     
-    # 1. 癒몄떊 ID ?뺤씤
+    # comment removed (encoding issue)
     machine_id = get_machine_id()
     safe_print(f"Machine ID: {machine_id}")
     
-    # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
-    # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
+    # comment removed (encoding issue)
+    # comment removed (encoding issue)
     expiry_date_str = check_license_from_sheet(machine_id)
     
     if expiry_date_str:
         try:
-            # ?좎쭨 鍮꾧탳 濡쒖쭅 (YYYY-MM-DD ?뺤떇 媛??
+            # comment removed (encoding issue)
             expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
             current_date = datetime.now()
             
-            # 留뚮즺?쇱씠 吏??寃쎌슦 (留뚮즺???ㅼ쓬?좊???李⑤떒)
+            # comment removed (encoding issue)
             if current_date > expiry_date + pd.Timedelta(days=1):
                 safe_print(f"라이선스 만료: {expiry_date_str}")
                 app_dummy = QApplication.instance() or QApplication(sys.argv)
                 
-                # 留뚮즺 ?ㅼ씠?쇰줈洹??쒖떆
+                # comment removed (encoding issue)
                 dialog = ExpiredDialog(expiry_date_str)
                 dialog.exec()
                 sys.exit(0)
             
-            # ?쇱씠?좎뒪 ?좏슚??-> 硫붿씤 ?꾨줈洹몃옩 ?ㅽ뻾
+            # comment removed (encoding issue)
             safe_print(f"라이선스 확인 완료: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
             window.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
-            window.show()
+            window.showMaximized()
             
             try:
                 sys.exit(app.exec())
@@ -4621,15 +6578,15 @@ def main():
                 raise
                 
         except ValueError:
-            # ?좎쭨 ?뺤떇???섎せ??寃쎌슦?먮룄 ?쇰떒 ?ㅽ뻾? ?쒖폒二쇰릺 寃쎄퀬 (?좎? ?몄쓽)
+            # comment removed (encoding issue)
             safe_print(f"라이선스 날짜 형식 확인 필요: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
-            window.show()
+            window.showMaximized()
             sys.exit(app.exec())
             
     else:
-        # ?쇱씠?좎뒪 ?놁쓬 -> ?ㅼ씠?쇰줈洹??쒖떆 ??醫낅즺
+        # comment removed (encoding issue)
         safe_print("미등록 기기 - 실행 차단")
         dialog = UnregisteredDialog(machine_id)
         dialog.exec()

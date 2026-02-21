@@ -118,7 +118,7 @@ def get_icon_path():
         # PyInstaller濡?鍮뚮뱶??exe ?뚯씪??寃쎌슦 (理쒖슦??
         if hasattr(sys, '_MEIPASS'):
             # PyInstaller媛 ?앹꽦???꾩떆 ?대뜑?먯꽌 李얘린
-            icon_path = os.path.join(sys._MEIPASS, 'your_icon.ico')
+            icon_path = os.path.join(sys._MEIPASS, 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
@@ -126,23 +126,23 @@ def get_icon_path():
         if getattr(sys, 'frozen', False):
             # exe ?뚯씪???덈뒗 ?붾젆?좊━
             exe_dir = os.path.dirname(sys.executable)
-            icon_path = os.path.join(exe_dir, 'your_icon.ico')
+            icon_path = os.path.join(exe_dir, 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
         # ?쇰컲 Python ?ㅽ겕由쏀듃 ?ㅽ뻾??寃쎌슦
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        icon_path = os.path.join(script_dir, 'your_icon.ico')
+        icon_path = os.path.join(script_dir, 'auto_naver.ico')
         if os.path.exists(icon_path):
             return icon_path
         
         # assets ?대뜑?먯꽌 李얘린
-        assets_icon = os.path.join(script_dir, 'assets', 'your_icon.ico')
+        assets_icon = os.path.join(script_dir, 'assets', 'auto_naver.ico')
         if os.path.exists(assets_icon):
             return assets_icon
         
         # ?꾩옱 ?묒뾽 ?붾젆?좊━?먯꽌 李얘린
-        cwd_icon = os.path.join(os.getcwd(), 'your_icon.ico')
+        cwd_icon = os.path.join(os.getcwd(), 'auto_naver.ico')
         if os.path.exists(cwd_icon):
             return cwd_icon
             
@@ -172,6 +172,16 @@ def safe_print(*args, **kwargs):
     builtins.print(*normalized, **kwargs)
 
 
+def get_embedded_api_credentials():
+    return {
+        "searchad_access_key": "01000000000e64e897c68f6e79f36bca6a49962aa41145858136b2e00f482bc1677f3a1446",
+        "searchad_secret_key": "AQAAAABfmxB5yE7SY0Bij8RNJKkZ4af7UA++fTEhxfgv/FKteQ==",
+        "searchad_customer_id": "3010221",
+        "naver_client_id": "GSiFqhyeZrtRo1PAR0RF",
+        "naver_client_secret": "1TV2afJdhU",
+    }
+
+
 def load_api_credentials_from_file():
     required_keys = [
         "searchad_access_key",
@@ -181,29 +191,29 @@ def load_api_credentials_from_file():
         "naver_client_secret",
     ]
     api_file = get_app_base_dir() / "api_keys.json"
+    embedded = get_embedded_api_credentials()
+    credentials = {key: str(embedded.get(key, "")).strip() for key in required_keys}
 
-    if not api_file.exists():
-        template = {k: "" for k in required_keys}
-        with open(api_file, "w", encoding="utf-8") as f:
-            json.dump(template, f, ensure_ascii=False, indent=2)
-        raise FileNotFoundError(str(api_file))
+    if api_file.exists():
+        try:
+            with open(api_file, "r", encoding="utf-8-sig") as f:
+                data = json.load(f)
+            if not isinstance(data, dict):
+                raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
+            for key in required_keys:
+                value = str(data.get(key, "")).strip()
+                if value:
+                    credentials[key] = value
+        except Exception as e:
+            safe_print(f"api_keys.json 읽기 실패(내장 키 사용): {e}")
 
-    with open(api_file, "r", encoding="utf-8-sig") as f:
-        data = json.load(f)
-
-    if not isinstance(data, dict):
-        raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
-
-    credentials = {}
     missing = []
     for key in required_keys:
-        value = str(data.get(key, "")).strip()
-        credentials[key] = value
-        if not value:
+        if not credentials.get(key):
             missing.append(key)
 
     if missing:
-        raise ValueError("api_keys.json 필수 항목 누락: " + ", ".join(missing))
+        raise ValueError("필수 API 키 누락: " + ", ".join(missing))
     return credentials, api_file
 
 

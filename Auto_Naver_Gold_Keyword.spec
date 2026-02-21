@@ -5,7 +5,7 @@ a = Analysis(
     ['Auto_Naver_Gold_Keyword.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('auto_naver.ico', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,5 +35,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['your_icon.ico'],
+    icon=['auto_naver.ico'],
 )
