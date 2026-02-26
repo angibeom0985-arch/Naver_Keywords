@@ -1,10 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+
+local_binaries = []
+if os.path.exists('chromedriver.exe'):
+    local_binaries.append(('chromedriver.exe', '.'))
 
 a = Analysis(
     ['Auto_Naver_Keyword.py'],
     pathex=[],
-    binaries=[],
+    binaries=local_binaries,
     datas=[('auto_naver.ico', '.')],
     hiddenimports=[],
     hookspath=[],

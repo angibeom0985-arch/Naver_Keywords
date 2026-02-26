@@ -113,9 +113,10 @@ SELENIUM_HEADLESS = False
 # comment removed (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "9808ecd261f917072ef4aa92222de467ff3950794597460c6b0503ad1417806c"
+MACHINE_ID_GUARD_HASH = "455b5b319b7b875afa6144cf27a649dfe51dc3632b38dafb1a22edfa9aa0c552"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
+MACHINE_ID_PREFIX = "Gold Keyword-"
 
 
 class ApiUsageReporter:
@@ -370,18 +371,53 @@ def load_api_credentials_from_file():
     return credentials, api_file
 
 
-def get_machine_id():
-    """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
-    cache_path = Path.home() / ".auto_naver_machine_id.txt"
+def _machine_id_cache_paths():
+    paths = [Path.home() / ".auto_naver_machine_id.txt"]
+    appdata = os.getenv("APPDATA", "").strip()
+    if appdata:
+        paths.append(Path(appdata) / "AutoNaverKeyword" / "machine_id.txt")
+    return paths
 
-    # 0) 캐시 우선 사용: 기능 업데이트/빌드 변경으로 추출 경로가 달라도 ID가 유지됨
+
+def _load_persisted_machine_id():
+    for path in _machine_id_cache_paths():
+        try:
+            if path.exists():
+                cached = path.read_text(encoding="utf-8-sig").strip()
+                if cached.startswith("MID-"):
+                    return cached
+        except Exception:
+            pass
     try:
-        if cache_path.exists():
-            cached = cache_path.read_text(encoding="utf-8-sig").strip()
-            if cached:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
+            cached, _ = winreg.QueryValueEx(key, "MachineId")
+            cached = str(cached).strip()
+            if cached.startswith("MID-"):
                 return cached
     except Exception:
         pass
+    return None
+
+
+def _save_persisted_machine_id(machine_id):
+    for path in _machine_id_cache_paths():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(machine_id, encoding="utf-8")
+        except Exception:
+            pass
+    try:
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
+            winreg.SetValueEx(key, "MachineId", 0, winreg.REG_SZ, machine_id)
+    except Exception:
+        pass
+
+
+def get_machine_id():
+    """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
+    cached = _load_persisted_machine_id()
+    if cached:
+        return cached if cached.startswith(MACHINE_ID_PREFIX) else f"{MACHINE_ID_PREFIX}{cached}"
 
     parts = []
 
@@ -426,18 +462,21 @@ def get_machine_id():
     except Exception:
         pass
 
+    # 5) 결정적 fallback (랜덤 금지: 재빌드/재실행에도 동일)
     if not parts:
-        parts.append(f"FALLBACK:{uuid.uuid4()}")
+        fallback = "|".join([
+            os.getenv("COMPUTERNAME", ""),
+            os.getenv("USERDOMAIN", ""),
+            os.getenv("PROCESSOR_IDENTIFIER", ""),
+            os.getenv("SystemDrive", ""),
+            f"{uuid.getnode():012x}",
+        ])
+        parts.append(f"FALLBACK:{fallback}")
 
     raw = "|".join(parts)
     stable_id = "MID-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
-
-    try:
-        cache_path.write_text(stable_id, encoding="utf-8")
-    except Exception:
-        pass
-
-    return stable_id
+    _save_persisted_machine_id(stable_id)
+    return f"{MACHINE_ID_PREFIX}{stable_id}"
 
 
 def check_license_from_sheet(machine_id):

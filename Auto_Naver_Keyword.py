@@ -19,6 +19,7 @@ import io
 import builtins
 import uuid
 import winreg
+from typing import Any, Optional
 from pathlib import Path
 from datetime import datetime
 import time
@@ -31,9 +32,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.remote.webdriver import WebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 
-# BeautifulSoup for HTML parsing (釉뚮씪?곗? ?놁씠 HTML ?뚯떛)
+# comment cleaned (encoding issue)
 try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
@@ -41,9 +43,9 @@ except ImportError:
     print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
-# 釉뚮씪?곗? ?놁씠 ?묒뾽?섍린 ?꾪빐 selenium ?쒓굅
+# comment cleaned (encoding issue)
 
-# Qt ?뚮윭洹몄씤 寃쎈줈 ?ㅼ젙 (PyQt6 ?ㅻ쪟 ?닿껐)
+# comment cleaned (encoding issue)
 try:
     import PyQt6
     qt_plugin_path = os.path.join(
@@ -54,7 +56,7 @@ try:
         os.environ['QT_PLUGIN_PATH'] = qt_plugin_path
         print(f"Qt 플러그인 경로 설정: {qt_plugin_path}")
     else:
-        # ???寃쎈줈 ?쒕룄
+        # comment cleaned (encoding issue)
         alt_path = os.path.join(
             os.path.dirname(PyQt6.__file__),
             'Qt',
@@ -80,7 +82,7 @@ from PyQt6.QtGui import (
 
 import pandas as pd
 
-# BeautifulSoup for HTML parsing (釉뚮씪?곗? ?놁씠 HTML ?뚯떛)
+# comment cleaned (encoding issue)
 try:
     from bs4 import BeautifulSoup
     BEAUTIFULSOUP_AVAILABLE = True
@@ -88,60 +90,62 @@ except ImportError:
     print("BeautifulSoup가 설치되지 않았습니다: pip install beautifulsoup4")
     BEAUTIFULSOUP_AVAILABLE = False
 
-# ?ㅼ썙??異붿텧 ?꾩슜 - OpenAI API 遺덊븘??
+# comment cleaned (encoding issue)
 OPENAI_AVAILABLE = False
 
-# ?ㅼ씠踰?釉뚮옖??湲곕컲 議고솕濡쒖슫 ?됱긽 ?붾젅??
-NAVER_GREEN = "#03c75a"              # 硫붿씤 ?ㅼ씠踰?洹몃┛
-NAVER_GREEN_DARK = "#028a4a"         # 吏꾪븳 洹몃┛ (hover)
-NAVER_GREEN_LIGHT = "#e8f5f0"        # ?고븳 洹몃┛ (諛곌꼍)
-NAVER_GREEN_ULTRA_LIGHT = "#f0faf7"  # 留ㅼ슦 ?고븳 洹몃┛ (?꾩껜 諛곌꼍)
-WHITE_COLOR = "#ffffff"               # ?쒕갚??
-TEXT_PRIMARY = "#212529"             # 吏꾪븳 ?띿뒪??
-TEXT_SECONDARY = "#6c757d"           # 蹂댁“ ?띿뒪??
-BACKGROUND_MAIN = "#f0faf7"          # 硫붿씤 諛곌꼍 (?고븳 洹몃┛)
-BACKGROUND_CARD = "#ffffff"          # 移대뱶 諛곌꼍
-BORDER_COLOR = "#d4edda"             # ?고븳 洹몃┛ ?뚮몢由?
-BORDER_FOCUS = "#03c75a"             # ?ъ빱???뚮몢由?
-PLACEHOLDER_COLOR = "#8a8a8a"        # ?먮━?쒖떆??
+# comment cleaned (encoding issue)
+NAVER_GREEN = "#03c75a"              # 메인 이그린
+NAVER_GREEN_DARK = "#028a4a"         # 진한 그린 (hover)
+NAVER_GREEN_LIGHT = "#e8f5f0"        # 한 그린 (배경)
+NAVER_GREEN_ULTRA_LIGHT = "#f0faf7"  # 매우 한 그린 (체 배경)
+WHITE_COLOR = "#ffffff"               # 백
+TEXT_PRIMARY = "#212529"             # 진한 스
+TEXT_SECONDARY = "#6c757d"           # 보조 스
+BACKGROUND_MAIN = "#f0faf7"          # 메인 배경 (한 그린)
+BACKGROUND_CARD = "#ffffff"          # 카드 배경
+BORDER_COLOR = "#d4edda"             # 한 그린 두
+BORDER_FOCUS = "#03c75a"             # 커두
+PLACEHOLDER_COLOR = "#8a8a8a"        # 리시
 
-# ?꾩뿭 蹂?? ?щ옒??蹂댄샇瑜??꾪븳 ?꾩옱 ?묒뾽 ?곹깭 異붿쟻
+# comment cleaned (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "9491ed89095c9822c512bd386b2a54102992e3466af1d351361903eacb79f585"
+MACHINE_ID_GUARD_HASH = "39185df9b843b979ce5f989e26ae7e692407c83a5ea380e8dbf7c986e444e375"
 MACHINE_ID_APPROVAL_FILE = "machine_id_change_approval.txt"
 MACHINE_ID_APPROVAL_TOKEN = "I_APPROVE_MACHINE_ID_CHANGE"
-# ?꾩씠肄?寃쎈줈 ?ㅼ젙 (exe ?뚯씪 吏??
+MACHINE_ID_PREFIX = "Keyword-"
+# comment cleaned (encoding issue)
 def get_icon_path():
-    """?꾩씠肄??뚯씪 寃쎈줈瑜?諛섑솚 (exe? py 紐⑤몢 吏?? - ?낅┰ ?ㅽ뻾 媛쒖꽑"""
+    """Text cleaned due to encoding issue."""
     try:
-        # PyInstaller濡?鍮뚮뱶??exe ?뚯씪??寃쎌슦 (理쒖슦??
-        if hasattr(sys, '_MEIPASS'):
-            # PyInstaller媛 ?앹꽦???꾩떆 ?대뜑?먯꽌 李얘린
-            icon_path = os.path.join(sys._MEIPASS, 'auto_naver.ico')
+        # comment cleaned (encoding issue)
+        meipass_dir = getattr(sys, "_MEIPASS", None)
+        if meipass_dir:
+            # comment cleaned (encoding issue)
+            icon_path = os.path.join(meipass_dir, 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
-        # exe ?뚯씪怨?媛숈? ?꾩튂?먯꽌 李얘린 (諛고룷 ??
+        # comment cleaned (encoding issue)
         if getattr(sys, 'frozen', False):
-            # exe ?뚯씪???덈뒗 ?붾젆?좊━
+            # comment cleaned (encoding issue)
             exe_dir = os.path.dirname(sys.executable)
             icon_path = os.path.join(exe_dir, 'auto_naver.ico')
             if os.path.exists(icon_path):
                 return icon_path
         
-        # ?쇰컲 Python ?ㅽ겕由쏀듃 ?ㅽ뻾??寃쎌슦
+        # comment cleaned (encoding issue)
         script_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = os.path.join(script_dir, 'auto_naver.ico')
         if os.path.exists(icon_path):
             return icon_path
         
-        # assets ?대뜑?먯꽌 李얘린
+        # comment cleaned (encoding issue)
         assets_icon = os.path.join(script_dir, 'assets', 'auto_naver.ico')
         if os.path.exists(assets_icon):
             return assets_icon
         
-        # ?꾩옱 ?묒뾽 ?붾젆?좊━?먯꽌 李얘린
+        # comment cleaned (encoding issue)
         cwd_icon = os.path.join(os.getcwd(), 'auto_naver.ico')
         if os.path.exists(cwd_icon):
             return cwd_icon
@@ -217,18 +221,53 @@ def load_api_credentials_from_file():
     return credentials, api_file
 
 
-def get_machine_id():
-    """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
-    cache_path = Path.home() / ".auto_naver_machine_id.txt"
+def _machine_id_cache_paths():
+    paths = [Path.home() / ".auto_naver_machine_id.txt"]
+    appdata = os.getenv("APPDATA", "").strip()
+    if appdata:
+        paths.append(Path(appdata) / "AutoNaverKeyword" / "machine_id.txt")
+    return paths
 
-    # 0) 캐시 우선 사용: 기능 업데이트/빌드 변경으로 추출 경로가 달라도 ID가 유지됨
+
+def _load_persisted_machine_id():
+    for path in _machine_id_cache_paths():
+        try:
+            if path.exists():
+                cached = path.read_text(encoding="utf-8-sig").strip()
+                if cached.startswith("MID-"):
+                    return cached
+        except Exception:
+            pass
     try:
-        if cache_path.exists():
-            cached = cache_path.read_text(encoding="utf-8-sig").strip()
-            if cached:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
+            cached, _ = winreg.QueryValueEx(key, "MachineId")
+            cached = str(cached).strip()
+            if cached.startswith("MID-"):
                 return cached
     except Exception:
         pass
+    return None
+
+
+def _save_persisted_machine_id(machine_id):
+    for path in _machine_id_cache_paths():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(machine_id, encoding="utf-8")
+        except Exception:
+            pass
+    try:
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
+            winreg.SetValueEx(key, "MachineId", 0, winreg.REG_SZ, machine_id)
+    except Exception:
+        pass
+
+
+def get_machine_id():
+    """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
+    cached = _load_persisted_machine_id()
+    if cached:
+        return cached if cached.startswith(MACHINE_ID_PREFIX) else f"{MACHINE_ID_PREFIX}{cached}"
 
     parts = []
 
@@ -273,33 +312,36 @@ def get_machine_id():
     except Exception:
         pass
 
+    # 5) 결정적 fallback (랜덤 금지: 재빌드/재실행에도 동일)
     if not parts:
-        parts.append(f"FALLBACK:{uuid.uuid4()}")
+        fallback = "|".join([
+            os.getenv("COMPUTERNAME", ""),
+            os.getenv("USERDOMAIN", ""),
+            os.getenv("PROCESSOR_IDENTIFIER", ""),
+            os.getenv("SystemDrive", ""),
+            f"{uuid.getnode():012x}",
+        ])
+        parts.append(f"FALLBACK:{fallback}")
 
     raw = "|".join(parts)
     stable_id = "MID-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
-
-    try:
-        cache_path.write_text(stable_id, encoding="utf-8")
-    except Exception:
-        pass
-
-    return stable_id
+    _save_persisted_machine_id(stable_id)
+    return f"{MACHINE_ID_PREFIX}{stable_id}"
 
 
 def check_license_from_sheet(machine_id):
-    """援ш? ?쒗듃?먯꽌 ?쇱씠?좎뒪 ?뺣낫 ?뺤씤"""
+    """Text cleaned due to encoding issue."""
     sheet_url = "https://docs.google.com/spreadsheets/d/10-AseeTNvE97wo29HT2ajui918bg5ICj5L9UOYV0NBo/export?format=csv&gid=0"
     try:
         safe_print(f"라이선스 확인 중... ID: {machine_id}")
         response = requests.get(sheet_url, timeout=5)
         if response.status_code == 200:
-            # CSV ?뚯떛
+            # comment cleaned (encoding issue)
             df = pd.read_csv(io.StringIO(response.text))
             
-            # 癒몄떊 ID 而щ읆 李얘린 (3踰덉㎏ 而щ읆 媛??
+            # comment cleaned (encoding issue)
             if len(df.columns) >= 4:
-                # 怨듬갚 ?쒓굅 諛?臾몄옄??蹂????鍮꾧탳
+                # comment cleaned (encoding issue)
                 df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.strip()
                 target_row = df[df.iloc[:, 2] == str(machine_id)]
                 
@@ -361,7 +403,7 @@ class UnregisteredDialog(QDialog):
         layout.setSpacing(20)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
+        # comment cleaned (encoding issue)
         warning_layout = QHBoxLayout()
         warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
@@ -374,7 +416,7 @@ class UnregisteredDialog(QDialog):
         warning_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addLayout(warning_layout)
         
-        # 2. 釉붾（ 諛뺤뒪 ?곸뿭
+        # comment cleaned (encoding issue)
         blue_box = QFrame()
         blue_box.setStyleSheet("""
             QFrame {
@@ -391,7 +433,7 @@ class UnregisteredDialog(QDialog):
         info_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #0066CC; border: none;")
         box_layout.addWidget(info_label)
         
-        # 癒몄떊 ID ?낅젰李?+ 蹂듭궗 踰꾪듉
+        # comment cleaned (encoding issue)
         id_layout = QHBoxLayout()
         self.id_input = QLineEdit(machine_id)
         self.id_input.setReadOnly(True)
@@ -431,7 +473,7 @@ class UnregisteredDialog(QDialog):
         
         layout.addWidget(blue_box)
         
-        # 3. ?섎떒 李멸퀬 臾멸뎄
+        # comment cleaned (encoding issue)
         note_layout = QHBoxLayout()
         bulb_icon = QLabel("💡")
         bulb_icon.setStyleSheet("font-size: 16px; background-color: transparent;")
@@ -442,7 +484,7 @@ class UnregisteredDialog(QDialog):
         note_layout.addStretch()
         layout.addLayout(note_layout)
         
-        # 4. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
+        # comment cleaned (encoding issue)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         ok_btn = QPushButton("확인")
@@ -467,14 +509,16 @@ class UnregisteredDialog(QDialog):
 
     def copy_to_clipboard(self):
         clipboard = QApplication.clipboard()
+        if clipboard is None:
+            return
         clipboard.setText(self.id_input.text())
         sender = self.sender()
-        if sender:
+        if isinstance(sender, QPushButton):
             sender.setText("완료")
             sender.setEnabled(False)
             QTimer.singleShot(2000, lambda: self._reset_btn(sender))
 
-    def _reset_btn(self, btn):
+    def _reset_btn(self, btn: QPushButton):
         btn.setText("복사")
         btn.setEnabled(True)
 
@@ -492,7 +536,7 @@ class ExpiredDialog(QDialog):
         layout.setSpacing(25)
         layout.setContentsMargins(30, 30, 30, 30)
         
-        # 1. 寃쎄퀬 ?꾩씠肄?諛??띿뒪??
+        # comment cleaned (encoding issue)
         warning_layout = QHBoxLayout()
         warning_icon = QLabel("⚠")
         warning_icon.setStyleSheet("font-size: 40px; background-color: transparent;")
@@ -505,7 +549,7 @@ class ExpiredDialog(QDialog):
         warning_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addLayout(warning_layout)
         
-        # 2. 踰좎씠吏 諛뺤뒪 ?곸뿭
+        # comment cleaned (encoding issue)
         yellow_box = QFrame()
         yellow_box.setStyleSheet("""
             QFrame {
@@ -524,7 +568,7 @@ class ExpiredDialog(QDialog):
         
         kakao_btn = QPushButton("카카오톡 바로가기")
         kakao_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        kakao_btn.setMinimumHeight(60)  # 紐낆떆???믪씠 ?ㅼ젙?쇰줈 ?ш린 ?뺣낫
+        kakao_btn.setMinimumHeight(60)  # 명시이 정로 기 보
         kakao_btn.setStyleSheet("""
             QPushButton {
                 background-color: #1E6ECA;
@@ -544,7 +588,7 @@ class ExpiredDialog(QDialog):
         
         layout.addWidget(yellow_box)
         
-        # 3. ?뺤씤 踰꾪듉 (?곗륫 ?섎떒)
+        # comment cleaned (encoding issue)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
         ok_btn = QPushButton("확인")
@@ -579,33 +623,33 @@ class ResizableTextEdit(QTextEdit):
         super().__init__(parent)
         self.min_height = min_height
         self.max_height = max_height
-        self.resize_step = 30  # ?ㅽ겕濡ㅻ떦 ?ш린 蹂?붾웾
+        self.resize_step = 30  # 크롤당 기 량
         
     def wheelEvent(self, event):
-        # Ctrl ?ㅺ? ?뚮┛ ?곹깭?먯꽌 留덉슦?????대깽??泥섎━
+        # comment cleaned (encoding issue)
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # ??諛⑺뼢 ?뺤씤
+            # comment cleaned (encoding issue)
             delta = event.angleDelta().y()
             current_height = self.height()
             
-            if delta > 0:  # ?꾨줈 ?ㅽ겕濡?(李??ш린 利앷?)
+            if delta > 0:  # 로 크(기 증)
                 new_height = min(current_height + self.resize_step, self.max_height)
-            else:  # ?꾨옒濡??ㅽ겕濡?(李??ш린 媛먯냼)
+            else:  # 래크(기 감소)
                 new_height = max(current_height - self.resize_step, self.min_height)
             
-            # 理쒕? ?믪씠 ?ㅼ젙 ?낅뜲?댄듃
+            # comment cleaned (encoding issue)
             self.setMaximumHeight(new_height)
             self.setMinimumHeight(new_height)
             
-            # ?대깽??泥섎━ ?꾨즺
+            # comment cleaned (encoding issue)
             event.accept()
         else:
-            # ?쇰컲 ?ㅽ겕濡?泥섎━
+            # comment cleaned (encoding issue)
             super().wheelEvent(event)
 
 
 class SmartProgressTextEdit(ResizableTextEdit):
-    """?ㅻ쭏???먮룞 ?ㅽ겕濡??쒖뼱媛 ?덈뒗 吏꾪뻾?곹솴 ?띿뒪???먮뵒??- 寃??湲곕뒫 ?ы븿"""
+    """Text cleaned due to encoding issue."""
     
     def __init__(self, parent=None, min_height=200, max_height=800):
         super().__init__(parent, min_height, max_height)
@@ -615,23 +659,23 @@ class SmartProgressTextEdit(ResizableTextEdit):
         self.search_widget = None
         self.last_search_text = ""
         
-        # ?ㅽ겕濡ㅻ컮 蹂寃??대깽???곌껐
+        # comment cleaned (encoding issue)
         scrollbar = self.verticalScrollBar()
         if scrollbar:
             scrollbar.valueChanged.connect(self._on_scroll_changed)
             scrollbar.sliderPressed.connect(self._on_user_scroll_start)
             scrollbar.sliderReleased.connect(self._on_user_scroll_end)
         
-        # Ctrl+F ?⑥텞???ㅼ젙
+        # comment cleaned (encoding issue)
         self.search_shortcut = QShortcut(QKeySequence("Ctrl+F"), self)
         self.search_shortcut.activated.connect(self.show_search_dialog)
         
     def _on_scroll_changed(self, value):
-        """?ㅽ겕濡??꾩튂 蹂寃????몄텧"""
+        """Text cleaned due to encoding issue."""
         import time
         current_time = time.time()
         
-        # ?ъ슜?먭? ?ㅽ겕濡?以묒씠 ?꾨땲怨? 留덉?留??ㅽ겕濡ㅻ줈遺??1珥덇? 吏?ъ쑝硫??먮룞 ?ㅽ겕濡??ы솢?깊솕
+        # comment cleaned (encoding issue)
         if not self.user_is_scrolling and current_time - self.last_scroll_time > 1.0:
             self.auto_scroll_enabled = True
             
@@ -646,41 +690,41 @@ class SmartProgressTextEdit(ResizableTextEdit):
         self.user_is_scrolling = False
         self.last_scroll_time = time.time()
         
-        # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+        # comment cleaned (encoding issue)
         QTimer.singleShot(3000, self._enable_auto_scroll)
         
     def _enable_auto_scroll(self):
-        """?먮룞 ?ㅽ겕濡??ы솢?깊솕"""
+        """Text cleaned due to encoding issue."""
         if not self.user_is_scrolling:
             self.auto_scroll_enabled = True
             
-            # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+            # comment cleaned (encoding issue)
             QTimer.singleShot(3000, self._enable_auto_scroll)
             
     def wheelEvent(self, event):
         """Handle wheel event."""
-        # ?ъ슜?먭? ?좊줈 ?ㅽ겕濡ㅽ븯??寃쎌슦 (Ctrl???뚮━吏 ?딆븯????
+        # comment cleaned (encoding issue)
         if not (event.modifiers() & Qt.KeyboardModifier.ControlModifier):
             import time
             self.auto_scroll_enabled = False
             self.last_scroll_time = time.time()
-            # 3珥????먮룞 ?ㅽ겕濡??ы솢?깊솕
+            # comment cleaned (encoding issue)
             QTimer.singleShot(3000, self._enable_auto_scroll)
             
         super().wheelEvent(event)
         
     def append_with_smart_scroll(self, text):
-        """?ㅻ쭏???ㅽ겕濡ㅼ씠 ?덈뒗 ?띿뒪??異붽?"""
-        # ?ㅽ겕濡ㅻ컮媛 留??꾨옒???덈뒗吏 ?뺤씤
+        """Text cleaned due to encoding issue."""
+        # comment cleaned (encoding issue)
         scrollbar = self.verticalScrollBar()
         was_at_bottom = False
         if scrollbar:
             was_at_bottom = scrollbar.value() >= scrollbar.maximum() - 10
         
-        # ?띿뒪??異붽?
+        # comment cleaned (encoding issue)
         self.append(text)
         
-        # ?먮룞 ?ㅽ겕濡ㅼ씠 ?쒖꽦?붾릺???덇퀬, ?댁쟾??留??꾨옒???덉뿀?ㅻ㈃ ?ㅽ겕濡?
+        # comment cleaned (encoding issue)
         if scrollbar and self.auto_scroll_enabled and (was_at_bottom or scrollbar.maximum() == 0):
             scrollbar.setValue(scrollbar.maximum())
     
@@ -704,22 +748,22 @@ class SmartProgressTextEdit(ResizableTextEdit):
         if not search_text:
             return
         
-        # ?꾩껜 ?띿뒪?몄뿉??寃??
+        # comment cleaned (encoding issue)
         text_content = self.toPlainText()
         
-        # ?꾩옱 而ㅼ꽌 ?꾩튂 媛?몄삤湲?
+        # comment cleaned (encoding issue)
         cursor = self.textCursor()
         current_position = cursor.position()
         
-        # ?꾩옱 ?꾩튂遺??寃??
+        # comment cleaned (encoding issue)
         found_index = text_content.find(search_text, current_position)
         
         if found_index == -1:
-            # 泥섏쓬遺???ㅼ떆 寃??
+            # comment cleaned (encoding issue)
             found_index = text_content.find(search_text)
             
         if found_index != -1:
-            # 寃??寃곌낵 ?섏씠?쇱씠??
+            # comment cleaned (encoding issue)
             cursor.setPosition(found_index)
             cursor.setPosition(found_index + len(search_text), cursor.MoveMode.KeepAnchor)
             self.setTextCursor(cursor)
@@ -737,21 +781,21 @@ def emergency_save_data():
         return
     
     try:
-        safe_print("?슚 ?묎툒 ????쒖옉...")
+        safe_print(" ...")
         
         saved_count = 0
         
-        # ?쒖꽦 ?ㅻ젅???뺤씤 (蹂묐젹 泥섎━ 吏??
+        # comment cleaned (encoding issue)
         if hasattr(_current_window, 'active_threads') and _current_window.active_threads:
             save_dir = _current_window.save_path_input.text().strip()
             if not save_dir:
-                # ?ъ슜?먮퀎 諛뷀깢?붾㈃ 寃쎈줈 ?숈쟻 ?앹꽦
+                # comment cleaned (encoding issue)
                 desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
                 save_dir = os.path.join(desktop_path, "keyword_results")
                 try:
                     os.makedirs(save_dir, exist_ok=True)
                 except Exception:
-                    # 諛뷀깢?붾㈃ ?묎렐 ?ㅽ뙣 ????臾몄꽌濡??泥?
+                    # comment cleaned (encoding issue)
                     save_dir = os.path.join(os.path.expanduser("~"), "Documents", "keyword_results")
                     os.makedirs(save_dir, exist_ok=True)
             
@@ -768,36 +812,34 @@ def emergency_save_data():
                         searcher = thread.searcher
                         base_keyword = thread.keyword
                         
-                        # ?덉쟾???뚯씪紐??앹꽦
+                        # comment cleaned (encoding issue)
                         safe_keyword = re.sub(r'[^\w가-힣\s]', '', base_keyword).strip()[:20]
                         if not safe_keyword:
                             safe_keyword = "응급저장"
                         
                         emergency_file = os.path.join(save_dir, f"{safe_keyword}_응급저장_{current_time}.xlsx")
                         
-                        # ?곗씠?????
+                        # comment cleaned (encoding issue)
                         if searcher.save_recursive_results_to_excel(emergency_file):
-                            safe_print(f"???묎툒 ????꾨즺 ({base_keyword}): {emergency_file}")
+                            safe_print(f" ...")
                             saved_count += 1
                 except Exception as inner_e:
-                    safe_print(f"?좑툘 媛쒕퀎 ?ㅻ젅??????ㅽ뙣: {str(inner_e)}")
+                    safe_print(f" ...")
                     continue
             
             if saved_count > 0:
-                safe_print(f"?뱤 珥?{saved_count}媛쒖쓽 ?묒뾽???묎툒 ??λ릺?덉뒿?덈떎.")
+                safe_print(f" ...")
             else:
-                safe_print("?좑툘 ??ν븷 ?곗씠?곌? ?녾굅???ㅽ뙣?덉뒿?덈떎.")
+                safe_print(" ...")
             
     except Exception as e:
-        safe_print(f"???묎툒 ???珥덇린???ㅽ뙣: {str(e)}")
-        
-    except Exception as e:
-        safe_print(f"???묎툒 ????ㅽ뙣: {str(e)}")
-        # ?묎툒 ??λ룄 ?ㅽ뙣??寃쎌슦 理쒖냼??JSON?쇰줈?쇰룄 ????쒕룄
+        safe_print(f": {str(e)}")
+        # comment cleaned (encoding issue)
         try:
-            if (_current_window and _current_window.search_thread and 
-                hasattr(_current_window.search_thread, 'searcher') and
-                hasattr(_current_window.search_thread.searcher, 'all_related_keywords')):
+            search_thread = getattr(_current_window, "search_thread", None)
+            searcher = getattr(search_thread, "searcher", None)
+            all_related_keywords = getattr(searcher, "all_related_keywords", None)
+            if all_related_keywords:
                 
                 backup_dir = os.path.join(os.getcwd(), "emergency_backup")
                 os.makedirs(backup_dir, exist_ok=True)
@@ -805,12 +847,12 @@ def emergency_save_data():
                 backup_file = os.path.join(backup_dir, f"emergency_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
                 
                 with open(backup_file, 'w', encoding='utf-8') as f:
-                    json.dump(_current_window.search_thread.searcher.all_related_keywords, f, 
+                    json.dump(all_related_keywords, f, 
                              ensure_ascii=False, indent=2)
                 
-                safe_print(f"?뱞 JSON 諛깆뾽 ????꾨즺: {backup_file}")
+                safe_print(f" ...")
         except:
-            safe_print("??JSON 諛깆뾽 ??λ룄 ?ㅽ뙣")
+            safe_print(" ...")
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -818,14 +860,14 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     global _crash_save_enabled
     
     if _crash_save_enabled:
-        safe_print("?슚 泥섎━?섏? ?딆? ?덉쇅 諛쒖깮!")
-        safe_print(f"?덉쇅 ??? {exc_type.__name__}")
-        safe_print(f"?덉쇅 ?댁슜: {str(exc_value)}")
+        safe_print(" ...")
+        safe_print(f" ...")
+        safe_print(f" ...")
         
-        # ?묎툒 ????섑뻾
+        # comment cleaned (encoding issue)
         emergency_save_data()
         
-        # ?덉쇅 ?뺣낫瑜??뚯씪濡????
+        # comment cleaned (encoding issue)
         try:
             crash_dir = os.path.join(os.getcwd(), "crash_logs")
             os.makedirs(crash_dir, exist_ok=True)
@@ -835,34 +877,34 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     crash_dir, f"crash_log_{current_time}.txt")
             
             with open(crash_file, 'w', encoding='utf-8') as f:
-                f.write(f"?щ옒??諛쒖깮 ?쒓컙: {datetime.now()}\n")
-                f.write(f"?덉쇅 ??? {exc_type.__name__}\n")
-                f.write(f"?덉쇅 ?댁슜: {str(exc_value)}\n\n")
-                f.write("?ㅽ깮 ?몃젅?댁뒪:\n")
+                f.write(f"래발생 간: {datetime.now()}\n")
+                f.write(f"외  {exc_type.__name__}\n")
+                f.write(f"외 용: {str(exc_value)}\n\n")
+                f.write("택 레스:\n")
                 traceback.print_exception(
     exc_type, exc_value, exc_traceback, file=f)
             
-            safe_print(f"?뱷 ?щ옒??濡쒓렇 ??? {crash_file}")
+            safe_print(f" ...")
         except:
             pass
     
-    # 湲곕낯 ?덉쇅 泥섎━湲??몄텧
+    # comment cleaned (encoding issue)
     sys.__excepthook__(exc_type, exc_value, exc_traceback)
 
 
 def handle_signal(signum, frame):
-    """?쒓렇???몃뱾??(Ctrl+C, 媛뺤젣 醫낅즺 ??"""
+    """Text cleaned due to encoding issue."""
     signal_names = {
         signal.SIGINT: "SIGINT (Ctrl+C)",
-        signal.SIGTERM: "SIGTERM (醫낅즺 ?붿껌)"
+        signal.SIGTERM: "SIGTERM (종료 청)"
     }
     
     signal_name = signal_names.get(signum, f"Signal {signum}")
-    safe_print(f"?슚 {signal_name} ?좏샇 ?섏떊! ?묎툒 ???以?..")
+    safe_print(f" ...")
     
     emergency_save_data()
     
-    # ?뺤긽 醫낅즺
+    # comment cleaned (encoding issue)
     if _current_window:
         _current_window.close()
     
@@ -870,26 +912,30 @@ def handle_signal(signum, frame):
 
 
 class MultiKeywordTextEdit(QTextEdit):
-    """?щ윭 ?ㅼ썙???낅젰???꾪븳 而ㅼ뒪? ?띿뒪???먮뵒??- paintEvent 湲곕컲 placeholder 諛?媛?낆꽦 媛쒖꽑"""
+    """Text cleaned due to encoding issue."""
     search_requested = pyqtSignal()
+    _link_rect: Optional[QRect]
+    resize_step: int
+    min_height: int
+    max_height: int
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self._placeholder_text = ""
         
-        # ?대?吏 諛?留곹겕 ?ㅼ젙
+        # comment cleaned (encoding issue)
         self._cta_text = "키워드 공부하러 가기"
         self._cta_url = "https://cafe.naver.com/f-e/cafes/31118881/articles/2036?menuid=12&referrerAllArticles=false"
         self._link_rect = None
         
-        # 二쇱냼 ?쒖떆以?而ㅼ꽌 蹂寃쎌쓣 ?꾪븳 ?몃옒???쒖꽦??
+        # comment cleaned (encoding issue)
         self.setMouseTracking(True)
         
-        # ?ㅽ겕濡??뺤콉 ?ㅼ젙
+        # comment cleaned (encoding issue)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         
-        # ?ㅼ씠踰?洹몃┛ ?뚮쭏 湲곕낯 ?ㅽ????곸슜 (?됯컙 180% 異붽?)
+        # comment cleaned (encoding issue)
         self.setStyleSheet(f"""
             QTextEdit {{
                 background-color: {BACKGROUND_CARD} !important;
@@ -922,7 +968,7 @@ class MultiKeywordTextEdit(QTextEdit):
         """)
         
     def setPlaceholderText(self, text):
-        """Placeholder ?띿뒪???ㅼ젙"""
+        """Text cleaned due to encoding issue."""
         self._placeholder_text = text
         self.update()
         
@@ -930,12 +976,15 @@ class MultiKeywordTextEdit(QTextEdit):
         """Custom paint event for placeholder and CTA."""
         super().paintEvent(event)
         
-        # ?ъ빱?ㅺ? ?녾퀬 ?띿뒪?멸? 鍮꾩뼱?덉쓣 ?뚮쭔 placeholder ?쒖떆
+        # comment cleaned (encoding issue)
         if not self.toPlainText().strip() and not self.hasFocus():
-            painter = QPainter(self.viewport())
+            viewport = self.viewport()
+            if viewport is None:
+                return
+            painter = QPainter(viewport)
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
             
-            # --- 1. ?띿뒪??洹몃━湲?---
+            # comment cleaned (encoding issue)
             painter.setPen(QColor("#777777"))
             font = self.font()
             font.setPointSize(11)
@@ -947,35 +996,35 @@ class MultiKeywordTextEdit(QTextEdit):
             line_spacing = 2.2
             text_block_height = (len(lines) * line_height * line_spacing)
             
-            viewport_rect = self.viewport().rect()
+            viewport_rect = viewport.rect()
             padding_left = 60
             
-            # ?띿뒪?? ?대?吏, 留곹겕 ?꾩껜 ?믪씠 怨꾩궛 (???
+            # comment cleaned (encoding issue)
             link_h = 40
             spacing_between = 20
             
-            # ?꾩껜 而⑦뀗痢좎쓽 ?쒖옉 Y (?붾㈃ 以묒븰 ?뺣젹)
+            # comment cleaned (encoding issue)
             total_content_height = text_block_height + spacing_between + link_h
             start_y = (viewport_rect.height() - total_content_height) / 2 + metrics.ascent()
             
             current_y = start_y
             
-            # ?띿뒪??洹몃━湲?
+            # comment cleaned (encoding issue)
             for i, line in enumerate(lines):
                 painter.drawText(int(viewport_rect.left() + padding_left), int(current_y), line)
                 current_y += (line_height * line_spacing)
             
             current_y += spacing_between
             
-            # --- 2. ?대?吏 洹몃━湲?(?쒓굅?? ---
+            # comment cleaned (encoding issue)
             
-            # --- 3. 留곹겕 洹몃━湲?---
+            # comment cleaned (encoding issue)
             link_font = self.font()
             link_font.setPointSize(11)
             link_font.setUnderline(True)
             link_font.setBold(True)
             painter.setFont(link_font)
-            painter.setPen(QColor("#0066CC")) # ?뚮???留곹겕
+            painter.setPen(QColor("#0066CC")) # 링크
             
             link_metrics = painter.fontMetrics()
             link_width = link_metrics.horizontalAdvance(self._cta_text)
@@ -983,68 +1032,72 @@ class MultiKeywordTextEdit(QTextEdit):
             
             painter.drawText(int(link_x), int(current_y + link_metrics.ascent()), self._cta_text)
             
-            # 留곹겕 ?곸뿭 ???(?대┃ 媛먯???
+            # comment cleaned (encoding issue)
             self._link_rect = QRect(int(link_x), int(current_y), int(link_width), int(link_metrics.height() + 10))
 
     def mouseMoveEvent(self, event):
         """Handle mouse move for link hover."""
-        if self._link_rect and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
-            self.viewport().setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+        viewport = self.viewport()
+        if viewport is None:
+            super().mouseMoveEvent(event)
+            return
+        if self._link_rect is not None and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
+            viewport.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         else:
-            self.viewport().setCursor(QCursor(Qt.CursorShape.IBeamCursor))
+            viewport.setCursor(QCursor(Qt.CursorShape.IBeamCursor))
         super().mouseMoveEvent(event)
 
     def mousePressEvent(self, event):
-        """留덉슦???대┃ ??留곹겕 ?닿린"""
-        if self._link_rect and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
+        """Text cleaned due to encoding issue."""
+        if self._link_rect is not None and self._link_rect.contains(event.pos()) and not self.toPlainText().strip():
             QDesktopServices.openUrl(QUrl(self._cta_url))
-            return # 留곹겕 ?대┃ ???ъ빱???≪? ?딆쓬
+            return # 링크 릭 커 음
 
         super().mousePressEvent(event)
     
     def keyPressEvent(self, event):
-        """???낅젰 ?대깽??泥섎━"""
+        """Text cleaned due to encoding issue."""
         if event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
             if event.modifiers() == Qt.KeyboardModifier.ShiftModifier:
-                # Shift+Enter: 以꾨컮轅?
+                # comment cleaned (encoding issue)
                 super().keyPressEvent(event)
             else:
-                # Enter: 寃???쒖옉 ?좏샇 諛쒖깮
+                # comment cleaned (encoding issue)
                 self.search_requested.emit()
                 event.accept()
         else:
             super().keyPressEvent(event)
 
     def wheelEvent(self, event):
-        """留덉슦?????대깽??泥섎━ - Ctrl+?좊줈 ?ш린 議곗젅 湲곕뒫 異붽?"""
-        # Ctrl ?ㅺ? ?뚮┛ ?곹깭?먯꽌 留덉슦?????대깽??泥섎━ (?ш린 議곗젅)
+        """Text cleaned due to encoding issue."""
+        # comment cleaned (encoding issue)
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # ??諛⑺뼢 ?뺤씤
+            # comment cleaned (encoding issue)
             delta = event.angleDelta().y()
             current_height = self.height()
             
-            if delta > 0:  # ?꾨줈 ?ㅽ겕濡?(李??ш린 利앷?)
+            if delta > 0:  # 로 크(기 증)
                 new_height = min(current_height + self.resize_step, self.max_height)
-            else:  # ?꾨옒濡??ㅽ겕濡?(李??ш린 媛먯냼)
+            else:  # 래크(기 감소)
                 new_height = max(current_height - self.resize_step, self.min_height)
             
-            # 理쒕?/理쒖냼 ?믪씠 ?ㅼ젙 ?낅뜲?댄듃
+            # comment cleaned (encoding issue)
             self.setMaximumHeight(new_height)
             self.setMinimumHeight(new_height)
             
-            # ?대깽??泥섎━ ?꾨즺
+            # comment cleaned (encoding issue)
             event.accept()
         else:
-            # ?쇰컲 ?ㅽ겕濡?泥섎━
+            # comment cleaned (encoding issue)
             super().wheelEvent(event)
 
 
 class NaverMobileSearchScraper:
-    """釉뚮씪?곗? 湲곕컲 ?ㅼ씠踰??ㅼ썙??異붿텧 (媛쒖꽑??"""
+    """Text cleaned due to encoding issue."""
     
-    def __init__(self, driver=None):
+    def __init__(self, driver: Optional[WebDriver] = None):
         self.session = requests.Session()
-        self.driver = driver
+        self.driver: Optional[WebDriver] = driver
         self.results = []
         self.searched_keywords = set()
         self.save_dir = ""
@@ -1053,9 +1106,9 @@ class NaverMobileSearchScraper:
         self.all_related_keywords = []
         self.base_keyword = ""
         self.processed_keywords = set()
-        self.search_thread = None
+        self.search_thread: Optional[Any] = None
         
-        # User-Agent ?ㅼ젙 (?ㅼ젣 釉뚮씪?곗?泥섎읆 蹂댁씠寃?
+        # comment cleaned (encoding issue)
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -1066,65 +1119,11 @@ class NaverMobileSearchScraper:
             'Upgrade-Insecure-Requests': '1',
         })
 
-    def check_internet_connection(self):
-        """?명꽣???곌껐 ?곹깭 ?뺤씤"""
-        try:
-            response = requests.get("https://www.naver.com", timeout=5)
-            return response.status_code == 200
-        except:
-            try:
-                socket.create_connection(("8.8.8.8", 53), timeout=3)
-                return True
-            except:
-                return False
-
-    def check_pause_status(self, progress_callback=None):
-        """?쇱떆?뺤? ?곹깭 泥댄겕 諛??명꽣???곌껐 ?뺤씤"""
-        if not self.is_running:
-            return False
-        
-        # ?쇱떆?뺤? ?곹깭 ?뺤씤
-        if self.search_thread and hasattr(self.search_thread, 'is_paused'):
-            if self.search_thread.is_paused:
-                if progress_callback:
-                    progress_callback("?몌툘 ?묒뾽???쇱떆?뺤??섏뿀?듬땲?? '?ш컻' 踰꾪듉???뚮윭二쇱꽭??")
-                
-                while self.search_thread.is_paused and self.is_running:
-                    time.sleep(0.5)
-                
-                if not self.is_running:
-                    return False
-                
-                if progress_callback:
-                    progress_callback("?띰툘 ?묒뾽???ш컻?⑸땲??")
-        
-        # ?명꽣???곌껐 ?곹깭 ?뺤씤
-        if not self.check_internet_connection():
-            if progress_callback:
-                progress_callback("?뙋 ?명꽣???곌껐???딆뼱議뚯뒿?덈떎. ?곌껐??湲곕떎由щ뒗 以?..")
-            
-            connection_wait_count = 0
-            while not self.check_internet_connection() and self.is_running:
-                time.sleep(2)
-                connection_wait_count += 1
-                
-                if connection_wait_count % 5 == 0 and progress_callback:
-                    progress_callback(f"?봽 ?명꽣???곌껐 ?쒕룄 以?.. ({connection_wait_count * 2}珥?寃쎄낵)")
-            
-            if not self.is_running:
-                return False
-            
-            if self.check_internet_connection():
-                if progress_callback:
-                    progress_callback("???명꽣???곌껐??蹂듦뎄?섏뿀?듬땲?? ?묒뾽??怨꾩냽 吏꾪뻾?⑸땲??")
-        
-        return True
-
     def search_keyword(self, keyword, progress_callback=None):
-        """?ㅼ씠踰꾩뿉???ㅼ썙??寃??(HTTP ?붿껌?쇰줈)"""
+        """네이버에서 키워드를 검색하고 HTML을 반환합니다."""
         try:
             if progress_callback:
-                progress_callback(f"'{keyword}' 寃???쒖옉... (釉뚮씪?곗? ?놁씠)")
+                progress_callback(f"'{keyword}' 검색 시작...")
             
             encoded_keyword = urllib.parse.quote(keyword)
             search_url = f"https://search.naver.com/search.naver?where=nexearch&sm=top_hty&fbm=0&ie=utf8&query={encoded_keyword}"
@@ -1133,26 +1132,23 @@ class NaverMobileSearchScraper:
             response.raise_for_status()
             
             if progress_callback:
-                progress_callback("寃???꾨즺")
+                progress_callback("검색 완료")
             
             return response.text
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"寃???ㅻ쪟: {str(e)}")
+                progress_callback(f"검색 오류: {str(e)}")
             return None
 
-    # extract_autocomplete_keywords (requests version) removed to avoid duplication
-    pass
-
     def extract_related_keywords(self, keyword, progress_callback=None):
-        """?곌?寃?됱뼱 異붿텧 (HTML ?뚯떛)"""
+        """연관 키워드를 HTML 파싱으로 추출합니다."""
         keywords = []
         
         try:
             if not BEAUTIFULSOUP_AVAILABLE:
                 if progress_callback:
-                    progress_callback("??BeautifulSoup???ㅼ튂?섏? ?딆븯?듬땲??")
+                    progress_callback("BeautifulSoup가 설치되지 않았습니다.")
                 return keywords
             
             html_content = self.search_keyword(keyword, progress_callback)
@@ -1162,9 +1158,9 @@ class NaverMobileSearchScraper:
             soup = BeautifulSoup(html_content, 'html.parser')
             
             if progress_callback:
-                progress_callback(f"'{keyword}' ?섏씠吏?먯꽌 ?곌?寃?됱뼱 異붿텧 以?..")
+                progress_callback(f"'{keyword}' 페이지에서 연관어를 추출하는 중...")
             
-            # ?곌?寃?됱뼱 ?좏깮?먮뱾
+            # comment cleaned (encoding issue)
             related_selectors = [
                 '.related_srch a',
                 '.lst_related a', 
@@ -1177,7 +1173,7 @@ class NaverMobileSearchScraper:
             for selector in related_selectors:
                 elements = soup.select(selector)
                 if elements and progress_callback:
-                    progress_callback(f"?좏깮??'{selector}'?먯꽌 {len(elements)}媛??붿냼 諛쒓껄")
+                    progress_callback(f"선택자 '{selector}'에서 {len(elements)}개 요소를 발견했습니다.")
                 
                 for element in elements:
                     try:
@@ -1186,29 +1182,29 @@ class NaverMobileSearchScraper:
                             keywords.append(keyword_text)
                             found_count += 1
                             if progress_callback:
-                                progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                progress_callback(f"연관 키워드 발견 ({found_count}): {keyword_text}")
                     except:
                         continue
             
             if progress_callback:
-                progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?곌??ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                progress_callback(f"연관 키워드 {len(keywords)}개 추출 완료")
             
             return keywords
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?곌??ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback(f"연관 키워드 추출 오류: {str(e)}")
             return []
 
     def check_internet_connection(self):
-        """?명꽣???곌껐 ?곹깭 ?뺤씤"""
+        """인터넷 연결 상태를 확인합니다."""
         try:
-            # ?ㅼ씠踰꾩뿉 媛꾨떒???붿껌?쇰줈 ?곌껐 ?뺤씤
+            # comment cleaned (encoding issue)
             response = requests.get("https://www.naver.com", timeout=5)
             return response.status_code == 200
         except:
             try:
-                # ??덉쑝濡?援ш? DNS ?뺤씤
+                # comment cleaned (encoding issue)
                 import socket
                 socket.create_connection(("8.8.8.8", 53), timeout=3)
                 return True
@@ -1216,104 +1212,123 @@ class NaverMobileSearchScraper:
                 return False
 
     def check_pause_status(self, progress_callback=None):
-        """?쇱떆?뺤? ?곹깭 泥댄겕 諛??명꽣???곌껐 ?뺤씤 - 媛쒖꽑??踰꾩쟾"""
-        # 1. ?꾨줈洹몃옩 以묐떒 ?곹깭 ?뺤씤
+        """일시정지 상태와 인터넷 연결 상태를 확인합니다."""
+        # comment cleaned (encoding issue)
         if not self.is_running:
             return False
         
-        # 2. ?쇱떆?뺤? ?곹깭 ?뺤씤
-        if self.search_thread and hasattr(self.search_thread, 'is_paused'):
-            if self.search_thread.is_paused:
+        # comment cleaned (encoding issue)
+        search_thread = self.search_thread
+        if search_thread and hasattr(search_thread, 'is_paused'):
+            if search_thread.is_paused:
                 if progress_callback:
-                    progress_callback("?몌툘 ?묒뾽???쇱떆?뺤??섏뿀?듬땲?? '?ш컻' 踰꾪듉???뚮윭二쇱꽭??")
+                    progress_callback("작업이 일시정지되었습니다. '재개' 버튼을 눌러주세요.")
                 
-                # ?쇱떆?뺤? ?곹깭?먯꽌 ?湲?
-                while self.search_thread.is_paused and self.is_running:
+                # comment cleaned (encoding issue)
+                while search_thread.is_paused and self.is_running:
                     time.sleep(0.5)
                 
                 if not self.is_running:
                     return False
                 
                 if progress_callback:
-                    progress_callback("?띰툘 ?묒뾽???ш컻?⑸땲??")
+                    progress_callback("작업을 재개합니다.")
         
-        # 3. ?명꽣???곌껐 ?곹깭 ?뺤씤
+        # comment cleaned (encoding issue)
         if not self.check_internet_connection():
             if progress_callback:
-                progress_callback("?뙋 ?명꽣???곌껐???딆뼱議뚯뒿?덈떎. ?곌껐??湲곕떎由щ뒗 以?..")
+                progress_callback("인터넷 연결이 끊어졌습니다. 연결 복구를 기다립니다...")
             
-            # ?명꽣???곌껐??蹂듦뎄???뚭퉴吏 ?湲?
+            # comment cleaned (encoding issue)
             connection_wait_count = 0
             while not self.check_internet_connection() and self.is_running:
                 time.sleep(2)
                 connection_wait_count += 1
                 
-                # ?쇱떆?뺤? ?곹깭???④퍡 ?뺤씤
-                if self.search_thread and hasattr(self.search_thread, 'is_paused') and self.search_thread.is_paused:
+                # comment cleaned (encoding issue)
+                if search_thread and hasattr(search_thread, 'is_paused') and search_thread.is_paused:
                     if progress_callback:
                         progress_callback("인터넷 연결 대기 중 일시정지됨")
                     break
                 
-                # 10珥덈쭏???곌껐 ?쒕룄 硫붿떆吏
+                # comment cleaned (encoding issue)
                 if connection_wait_count % 5 == 0 and progress_callback:
-                    progress_callback(f"?봽 ?명꽣???곌껐 ?쒕룄 以?.. ({connection_wait_count * 2}珥?寃쎄낵)")
+                    progress_callback(f"인터넷 재연결 시도 중... ({connection_wait_count * 2}초 경과)")
             
             if not self.is_running:
                 return False
             
-            # ?명꽣?룹씠 ?ㅼ떆 ?곌껐??寃쎌슦
+            # comment cleaned (encoding issue)
             if self.check_internet_connection():
                 if progress_callback:
-                    progress_callback("???명꽣???곌껐??蹂듦뎄?섏뿀?듬땲?? ?묒뾽??怨꾩냽 吏꾪뻾?⑸땲??")
+                    progress_callback("인터넷 연결이 복구되었습니다. 작업을 계속합니다.")
         
-        # 紐⑤뱺 ?뺤씤???꾨즺?섎㈃ ?뺤긽 吏꾪뻾
+        # comment cleaned (encoding issue)
         return True
 
     def initialize_browser(self):
-        """釉뚮씪?곗? 珥덇린??- 諛깃렇?쇱슫??紐⑤뱶 ?꾩슜 (媛쒖꽑??踰꾩쟾)"""
+        """Text cleaned due to encoding issue."""
         try:
-            safe_print("?봽 釉뚮씪?곗? 珥덇린?붾? ?쒖옉?⑸땲??.. (諛깃렇?쇱슫??紐⑤뱶)")
-            
+            safe_print("브라우저 초기화를 시작합니다...")
+            driver = create_chrome_driver(log_callback=safe_print)
+            if not driver:
+                safe_print("Chrome 드라이버 생성 실패")
+                return False
+            self.driver = driver
+            try:
+                self.driver.get("https://m.naver.com")
+            except TimeoutException:
+                try:
+                    self.driver.execute_script("window.stop();")
+                except Exception:
+                    pass
+            return True
+             
             driver_path = None
             
-            # 1. 濡쒖뺄 ?쒕씪?대쾭 ?뺤씤 (媛???곗꽑 - 諛고룷 ?섍꼍 ???
+            # comment cleaned (encoding issue)
             import shutil
             
-            # EXE ?ㅽ뻾 ?꾩튂 ?먮뒗 ?꾩옱 ?묒뾽 ?붾젆?좊━ ?뺤씤
+            # comment cleaned (encoding issue)
             base_paths = []
             if getattr(sys, 'frozen', False):
                 base_paths.append(os.path.dirname(sys.executable))
-                if hasattr(sys, '_MEIPASS'):
-                    base_paths.append(sys._MEIPASS)
+                meipass_dir = getattr(sys, "_MEIPASS", None)
+                if meipass_dir:
+                    base_paths.append(meipass_dir)
             base_paths.append(os.getcwd())
             
             for base_path in base_paths:
                 local_driver = os.path.join(base_path, "chromedriver.exe")
                 if os.path.exists(local_driver):
-                    safe_print(f"?뱛 濡쒖뺄 ?쒕씪?대쾭 諛쒓껄: {local_driver}")
+                    safe_print(f" ...")
                     driver_path = local_driver
                     break
             
-            # 2. ChromeDriverManager ?ъ슜 (濡쒖뺄???놁쓣 寃쎌슦)
+            # comment cleaned (encoding issue)
             if not driver_path:
                 try:
                     from webdriver_manager.chrome import ChromeDriverManager
-                    safe_print("燧뉛툘 ChromeDriverManager濡??쒕씪?대쾭 ?ㅼ튂/?뺤씤 以?..")
-                    # cache_valid_range=1濡??ㅼ젙?섏뿬 留ㅻ쾲 泥댄겕?섏? ?딅룄濡?理쒖쟻??
+                    safe_print(" ...")
+                    # comment cleaned (encoding issue)
                     driver_path = ChromeDriverManager().install()
-                    safe_print(f"???쒕씪?대쾭 寃쎈줈 ?뺣낫: {driver_path}")
+                    safe_print(f" ...")
                 except Exception as e:
-                    safe_print(f"?좑툘 ChromeDriverManager ?ㅽ뙣: {str(e)}")
+                    safe_print(f": {str(e)}")
             
-            # 3. ?쒖뒪??PATH ?뺤씤 (理쒗썑???섎떒)
+            # comment cleaned (encoding issue)
             if not driver_path and shutil.which("chromedriver"):
                 driver_path = "chromedriver"
-                safe_print("???쒖뒪??PATH?먯꽌 chromedriver 諛쒓껄")
+                safe_print(" ...")
             
             if not driver_path:
-                raise Exception("ChromeDriver瑜?李얠쓣 ???놁뒿?덈떎.\n?꾨줈洹몃옩 ?대뜑??'chromedriver.exe'瑜??ｌ뼱二쇨굅??\n?명꽣???곌껐???뺤씤?댁＜?몄슂.")
+                raise Exception(
+                    "ChromeDriver를 찾을 수 없습니다.\n"
+                    "프로그램 폴더에 'chromedriver.exe'를 넣어주거나\n"
+                    "인터넷 연결 상태를 확인해주세요."
+                )
 
-            # Service ?ㅼ젙
+            # comment cleaned (encoding issue)
             try:
                 service = Service(driver_path)
             except:
@@ -1322,7 +1337,7 @@ class NaverMobileSearchScraper:
                 else:
                     service = Service(executable_path=driver_path)
 
-            # 肄섏넄 李??④린湲?(Windows ?꾩슜)
+            # comment cleaned (encoding issue)
             if os.name == 'nt':
                 try:
                     startupopt = subprocess.STARTUPINFO()
@@ -1333,24 +1348,24 @@ class NaverMobileSearchScraper:
 
             options = webdriver.ChromeOptions()
             
-            # ?ㅻ뱶由ъ뒪 紐⑤뱶 媛뺤젣 ?쒖꽦??(??긽 諛깃렇?쇱슫??紐⑤뱶)
-            options.add_argument("--headless")  # ?ㅻ뱶由ъ뒪 紐⑤뱶 ?쒖꽦??
-            safe_print("?뵁 諛깃렇?쇱슫??紐⑤뱶: 釉뚮씪?곗? 李쎌씠 ?④꺼吏묐땲??")
+            # comment cleaned (encoding issue)
+            options.add_argument("--headless")  # 드리스 모드 성
+            safe_print(" ...")
             
-            options.add_argument("--window-size=1920,1080")  # ?쒖? FHD ?댁긽?꾨줈 ?ㅼ젙
-            options.add_argument("--start-maximized")  # 釉뚮씪?곗? 理쒕???(?ㅻ뱶由ъ뒪?먯꽌???좏슚)
+            options.add_argument("--window-size=1920,1080")  #  FHD 상로 정
+            options.add_argument("--start-maximized")  # 브라 최(드리스서효)
             
-            # ?곗뒪?ы넲 User-Agent ?ㅼ젙?쇰줈 釉뚮씪?곗? 李??ш린??留욌뒗 諛섏쓳????吏??
+            # comment cleaned (encoding issue)
             options.add_argument(
                 "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-            # 諛섏쓳????吏?먯쓣 ?꾪븳 理쒖쟻???ㅼ젙
-            options.add_argument("--disable-web-security")  # CORS ?댁젣
-            options.add_argument("--allow-running-insecure-content")  # ?쇳빀 肄섑뀗痢??덉슜
-            options.add_argument("--force-device-scale-factor=1")  # ?ㅼ????⑺꽣 怨좎젙
-            options.add_argument("--disable-features=VizDisplayCompositor")  # ?뚮뜑留?理쒖쟻??
+            # comment cleaned (encoding issue)
+            options.add_argument("--disable-web-security")  # CORS 제
+            options.add_argument("--allow-running-insecure-content")  # 합 콘텐용
+            options.add_argument("--force-device-scale-factor=1")  # 터 고정
+            options.add_argument("--disable-features=VizDisplayCompositor")  # 렌더링 최적화
             
-            # ?덉젙???μ긽 ?듭뀡??
+            # comment cleaned (encoding issue)
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage") 
             options.add_argument("--disable-gpu")
@@ -1358,7 +1373,7 @@ class NaverMobileSearchScraper:
             options.add_argument("--disable-plugins")
             options.add_argument("--disable-images")
             
-            # ?깅뒫 理쒖쟻???듭뀡??(?띾룄 ?μ긽 + 以묐났 ?쒓굅)
+            # comment cleaned (encoding issue)
             options.add_argument("--disable-background-networking")
             options.add_argument("--disable-background-timer-throttling")
             options.add_argument("--disable-renderer-backgrounding")
@@ -1372,52 +1387,52 @@ class NaverMobileSearchScraper:
             options.add_argument("--memory-pressure-off")
             options.add_argument("--max_old_space_size=4096")
             
-            # ?쒓? 源⑥쭚 諛⑹? - 紐⑤뱺 濡쒓렇? ?먮윭 硫붿떆吏 ?꾩쟾 李⑤떒
-            options.add_argument("--lang=en-US")  # ?곸뼱濡??ㅼ젙
-            options.add_argument("--disable-logging")  # 紐⑤뱺 濡쒓렇 鍮꾪솢?깊솕
+            # comment cleaned (encoding issue)
+            options.add_argument("--lang=en-US")  # 어정
+            options.add_argument("--disable-logging")  # 모든 로그 비활화
             options.add_argument("--disable-gpu-sandbox")
-            options.add_argument("--log-level=3")  # ?ш컖???ㅻ쪟留?
-            options.add_argument("--silent")  # 議곗슜??紐⑤뱶
-            # 踰덉뿭 UI 諛??뚮뜑留?鍮꾪솢?깊솕
+            options.add_argument("--log-level=3")  # 각류
+            options.add_argument("--silent")  # 조용모드
+            # comment cleaned (encoding issue)
             options.add_argument("--disable-features=TranslateUI,VizDisplayCompositor")
-            options.add_argument("--disable-ipc-flooding-protection")  # IPC ?뚮윭??蹂댄샇 鍮꾪솢?깊솕
+            options.add_argument("--disable-ipc-flooding-protection")  # IPC 러보호 비활화
             
-            # ?깅뒫 理쒖쟻??諛?濡쒓렇 ?꾩쟾 李⑤떒
+            # comment cleaned (encoding issue)
             options.add_experimental_option('useAutomationExtension', False)
             options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
             options.add_experimental_option("detach", True)
             options.add_argument("--disable-blink-features=AutomationControlled")
             
-            # ?ㅽ듃?뚰겕 諛???꾩븘???ㅼ젙 (???곴레??
-            options.add_argument("--network-timeout=15")  # 30珥???15珥?
+            # comment cleaned (encoding issue)
+            options.add_argument("--network-timeout=15")  # 3015
             options.add_argument("--page-load-strategy=eager")
-            options.add_argument("--timeout=15000")  # 15珥???꾩븘??
-            options.add_argument("--dns-prefetch-disable")  # DNS ?꾨━?섏튂 鍮꾪솢?깊솕
+            options.add_argument("--timeout=15000")  # 15아
+            options.add_argument("--dns-prefetch-disable")  # DNS 리치 비활화
             
-            # ?쒕씪?대쾭 ?앹꽦
+            # comment cleaned (encoding issue)
             self.driver = webdriver.Chrome(service=service, options=options)
-            safe_print("??Chrome ?쒕씪?대쾭 ?앹꽦 ?깃났!")
+            safe_print(" ...")
             
-            # WebDriver ??꾩븘???ㅼ젙 (理쒖쟻??
-            self.driver.set_page_load_timeout(15)  # ?섏씠吏 濡쒕뵫 ??꾩븘??15珥덈줈 ?⑥텞
-            self.driver.implicitly_wait(3)  # ?붿떆???湲?3珥덈줈 ?⑥텞
+            # comment cleaned (encoding issue)
+            self.driver.set_page_load_timeout(15)  # 이 로딩 아15초로 축
+            self.driver.implicitly_wait(3)  # 시3초로 축
             
-            safe_print("釉뚮씪?곗?媛 ?ㅽ뻾?섏뿀?듬땲??")
+            safe_print(" ...")
             
-            # ?ㅼ씠踰??묒냽 ?쒕룄
+            # comment cleaned (encoding issue)
             max_retries = 3
             for attempt in range(max_retries):
                 try:
-                    # ?ㅼ씠踰?紐⑤컮??踰꾩쟾?쇰줈 ?묒냽?섎릺 ?곗뒪?ы넲 User-Agent濡?諛섏쓳???쒖떆
+                    # comment cleaned (encoding issue)
                     self.driver.get("https://m.naver.com")
                     
-                    # viewport 諛??섏씠吏 ?ㅽ??쇱쓣 釉뚮씪?곗? 李??ш린???꾩쟾??留욊쾶 理쒖쟻??
+                    # comment cleaned (encoding issue)
                     self.driver.execute_script("""
-                        // 釉뚮씪?곗? 李??ш린 媛?몄삤湲?
+                        // 브라? ?기 ?오?
                         var windowWidth = window.innerWidth;
                         var windowHeight = window.innerHeight;
                         
-                        // viewport 硫뷀? ?쒓렇瑜?釉뚮씪?곗? 李??ш린??留욊쾶 ?ㅼ젙
+                        // viewport 메? ?그?브라? ?기?맞게 ?정
                         var existingMeta = document.querySelector('meta[name="viewport"]');
                         if (existingMeta) {
                             existingMeta.remove();
@@ -1427,7 +1442,7 @@ class NaverMobileSearchScraper:
                         meta.content = 'width=' + windowWidth + ', initial-scale=1.0, maximum-scale=3.0, user-scalable=yes';
                         document.getElementsByTagName('head')[0].appendChild(meta);
                         
-                        // ?섏씠吏 ?꾩껜瑜?釉뚮씪?곗? 李??ш린??留욊쾶 議곗젙
+                        // ?이 ?체?브라? ?기?맞게 조정
                         document.documentElement.style.width = '100%';
                         document.documentElement.style.height = '100%';
                         document.body.style.minWidth = windowWidth + 'px';
@@ -1437,9 +1452,9 @@ class NaverMobileSearchScraper:
                         document.body.style.transformOrigin = 'top left';
                         document.body.style.margin = '0';
                         document.body.style.padding = '0';
-                        document.body.style.fontSize = Math.max(14, windowWidth / 100) + 'px';  // 李??ш린???곕Ⅸ ?고듃 議곗젙
+                        document.body.style.fontSize = Math.max(14, windowWidth / 100) + 'px';  // 기른 트 조정
                         
-                        // 硫붿씤 而⑦뀒?대꼫?ㅼ쓣 釉뚮씪?곗? ?꾩껜 ?ш린濡??뺤옣
+                        // 메인 컨테?너?을 브라? ?체 ?기?장
                         var containers = document.querySelectorAll('.container, .wrap, .content_area, #wrap, .nx_wrap');
                         containers.forEach(function(container) {
                             container.style.maxWidth = '100%';
@@ -1447,7 +1462,7 @@ class NaverMobileSearchScraper:
                             container.style.minWidth = windowWidth + 'px';
                         });
                         
-                        // 寃???곸뿭??釉뚮씪?곗? 李쎌뿉 留욊쾶 ?뺣?
+                        // ?역?브라? 창에 맞게 ?
                         var searchArea = document.querySelector('.TF7QLJYoGthrUnoIpxEj, .api_subject_bx, .search_result');
                         if (searchArea) {
                             searchArea.style.minHeight = (windowHeight - 200) + 'px';
@@ -1456,43 +1471,43 @@ class NaverMobileSearchScraper:
                             searchArea.style.maxWidth = 'none';
                         }
                         
-                        console.log('?섏씠吏媛 釉뚮씪?곗? 李??ш린(' + windowWidth + 'x' + windowHeight + ')??留욊쾶 議곗젙?섏뿀?듬땲??');
+                        console.log('이 브라 기(' + windowWidth + 'x' + windowHeight + ')맞게 조정었니');
                     """)
                     
-                    # ?섏씠吏 濡쒕뵫 ?湲?
+                    # comment cleaned (encoding issue)
                     time.sleep(2)
                     
                     WebDriverWait(self.driver, 10).until(
                         EC.presence_of_element_located((By.TAG_NAME, "body"))
                     )
-                    safe_print("?ㅼ씠踰?紐⑤컮?쇱뿉 ?묒냽?덉뒿?덈떎. (釉뚮씪?곗? 李??ш린??留욊쾶 理쒖쟻?붾맖)")
+                    safe_print(" ...")
                     time.sleep(2)
                     return True
                 except Exception as e:
                     if attempt < max_retries - 1:
-                        safe_print(f"?ㅼ씠踰??묒냽 ?쒕룄 {attempt + 1} ?ㅽ뙣, ?ъ떆??以?..")
+                        safe_print(f" ...")
                         time.sleep(3)
                     else:
-                        safe_print(f"?ㅼ씠踰??묒냽 理쒖쥌 ?ㅽ뙣: {str(e)}")
+                        safe_print(f": {str(e)}")
                         return False
             
             return True
 
         except Exception as e:
-            error_msg = f"釉뚮씪?곗? 珥덇린???ㅻ쪟:\n{str(e)}\n\nChrome 釉뚮씪?곗?媛 ?ㅼ튂?섏뼱 ?덈뒗吏 ?뺤씤?댁＜?몄슂."
-            safe_print(f"??{error_msg}")
+            error_msg = f"브라 초기류:\n{str(e)}\n\nChrome 브라 치어 는 인주요."
+            safe_print(f" ...")
             
-            # GUI ?ㅻ젅?쒖뿉??硫붿떆吏 諛뺤뒪 ?쒖떆 ?쒕룄
+            # comment cleaned (encoding issue)
             try:
                 global _current_window
                 if _current_window:
-                    # 諛⑸쾿 1: 吏곸젒 ?쒖떆 (??대㉧ ?ъ슜?쇰줈 硫붿씤 猷⑦봽?먯꽌 ?ㅽ뻾?섎룄濡??좊룄)
-                    # 硫붿씤 ?ㅻ젅?쒖뿉???ㅽ뻾?섏? ?딆쓣 ?꾪뿕???덉?留? 蹂댄넻 Qt??寃쎄퀬留??섍퀬 ?숈옉?섍굅???щ옒?쒕맖
-                    # ?덉쟾???꾪빐 QMetaObject.invokeMethod媛 ?뺤꽍?댁?留?Python?먯꽌??蹂듭옟??
-                    # QTimer.singleShot(0, ...) ?⑦꽩 ?ъ슜
+                    # comment cleaned (encoding issue)
+                    # comment cleaned (encoding issue)
+                    # comment cleaned (encoding issue)
+                    # comment cleaned (encoding issue)
                     from PyQt6.QtCore import QTimer
                     QTimer.singleShot(0, lambda: QMessageBox.critical(
-                        _current_window, "釉뚮씪?곗? ?ㅻ쪟", error_msg))
+                        _current_window, "브라 류", error_msg))
             except:
                 pass
                 
@@ -1506,9 +1521,9 @@ class NaverMobileSearchScraper:
             try:
                 if progress_callback:
                     if attempt > 0:
-                        progress_callback(f"'{keyword}' 寃???ъ떆??({attempt + 1}/{max_retries})...")
+                        progress_callback(f"{keyword}  ...")
                     else:
-                        progress_callback(f"'{keyword}' 寃???쒖옉...")
+                        progress_callback(f"{keyword}  ...")
                 
                 encoded_keyword = urllib.parse.quote(keyword)
                 search_url = f"https://m.search.naver.com/search.naver?where=m&sm=mtp_hty.top&query={encoded_keyword}"
@@ -1517,97 +1532,97 @@ class NaverMobileSearchScraper:
                     self.driver.get(search_url)
                 
                 if progress_callback:
-                    progress_callback("?섏씠吏 濡쒕뵫 以?..")
+                    progress_callback(" ...")
                 
-                # ?섏씠吏 濡쒕뵫 ?湲?(?덉쟾??理쒖쟻??
-                time.sleep(random.uniform(1.5, 2.5))  # 遊??먯? 諛⑹? + ?곷떦??理쒖쟻??
+                # comment cleaned (encoding issue)
+                time.sleep(random.uniform(1.5, 2.5))  #  방 + 당최적
                 
                 try:
                     if self.driver:
-                        WebDriverWait(self.driver, 5).until(  # 8珥???5珥덈줈 ?⑥텞
+                        WebDriverWait(self.driver, 5).until(  # 85초로 축
                             EC.presence_of_element_located((By.TAG_NAME, "body"))
                         )
                 except TimeoutException:
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"???섏씠吏 濡쒕뵫 ?쒓컙 珥덇낵 - ?ъ떆??以?..")
+                            progress_callback(f" ...")
                         continue
                     else:
                         if progress_callback:
-                            progress_callback("???섏씠吏 濡쒕뵫 ?쒓컙 珥덇낵 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback(" ...")
                         return False
                 
                 time.sleep(1)
                 
                 if progress_callback:
-                    progress_callback("寃???꾨즺")
+                    progress_callback(" ...")
                 
                 return True
                 
             except Exception as e:
                 error_msg = str(e)
                 
-                # 1. invalid session id ?먮뒗 no such window ?ㅻ쪟 媛먯?
+                # comment cleaned (encoding issue)
                 if "invalid session id" in error_msg.lower() or "no such session" in error_msg.lower() or "no such window" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"?봽 ?щ＼ ?쒕씪?대쾭 ?몄뀡/李?臾몄젣 媛먯?. ?ъ떆??以?..")
+                        progress_callback(f" ...")
                     
-                    # ?쒕씪?대쾭 ?ъ떆???쒕룄
+                    # comment cleaned (encoding issue)
                     if self.initialize_browser():
                         if progress_callback:
-                            progress_callback(f"???щ＼ ?쒕씪?대쾭 ?ъ떆???깃났. 寃???ъ떆??..")
+                            progress_callback(f" ...")
                         continue
                     else:
                         if progress_callback:
-                            progress_callback(f"???щ＼ ?쒕씪?대쾭 ?ъ떆???ㅽ뙣")
+                            progress_callback(f" ...")
                         return False
                 
-                # 2. ?뚮뜑????꾩븘???ㅻ쪟 媛먯? 諛?泥섎━
+                # comment cleaned (encoding issue)
                 elif "timeout" in error_msg.lower() and "renderer" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"???뚮뜑????꾩븘??媛먯? (釉뚮씪?곗? ?묐떟 ?놁쓬)")
+                        progress_callback(f" ...")
                     
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"?봽 ?쒕씪?대쾭 ?ъ떆?????ъ떆??..")
+                            progress_callback(f" ...")
                         
-                        # ?뚮뜑????꾩븘?껋쓽 寃쎌슦 ?쒕씪?대쾭 ?ъ떆?묒씠 ?④낵??
+                        # comment cleaned (encoding issue)
                         if self.initialize_browser():
                             if progress_callback:
-                                progress_callback(f"???쒕씪?대쾭 ?ъ떆???꾨즺. 寃???ъ떆??..")
+                                progress_callback(f" ...")
                             continue
                         else:
                             if progress_callback:
-                                progress_callback(f"???쒕씪?대쾭 ?ъ떆???ㅽ뙣")
+                                progress_callback(f" ...")
                     else:
                         if progress_callback:
-                            progress_callback(f"???뚮뜑????꾩븘??理쒖쥌 ?ㅽ뙣 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback(f" ...")
                         return False
                 
-                # 3. ?쇰컲?곸씤 ??꾩븘???ㅻ쪟
+                # comment cleaned (encoding issue)
                 elif "timeout" in error_msg.lower():
                     if progress_callback:
-                        progress_callback(f"????꾩븘???ㅻ쪟 媛먯?")
+                        progress_callback(f" ...")
                     
                     if attempt < max_retries - 1:
                         if progress_callback:
-                            progress_callback(f"?깍툘 ?좎떆 ?湲????ъ떆??..")
-                        time.sleep(5)  # ??꾩븘?껋쓽 寃쎌슦 議곌툑 ???湲?
+                            progress_callback(f" ...")
+                        time.sleep(5)  # 아의 경우 조금 
                         continue
                     else:
                         if progress_callback:
-                            progress_callback(f"????꾩븘??理쒖쥌 ?ㅽ뙣 - ?대떦 ?ㅼ썙???ㅽ궢")
+                            progress_callback(f" ...")
                         return False
                 
-                # 4. 湲고? ?ㅻ쪟
+                # comment cleaned (encoding issue)
                 if attempt < max_retries - 1:
                     if progress_callback:
-                        progress_callback(f"寃???ㅻ쪟 - ?ъ떆??以? {str(e)}")
+                        progress_callback(f": {str(e)}")
                     time.sleep(3)
                     continue
                 else:
                     if progress_callback:
-                        progress_callback(f"寃??理쒖쥌 ?ㅽ뙣: {str(e)}")
+                        progress_callback(f": {str(e)}")
                     return False
         
         return False
@@ -1620,53 +1635,56 @@ class NaverMobileSearchScraper:
         for attempt in range(max_retries):
             try:
                 if not self.driver:
-                    # ?쒕씪?대쾭媛 ?놁쑝硫?珥덇린???쒕룄
+                    # comment cleaned (encoding issue)
                     if not self.initialize_browser():
                         return keywords
+                driver = self.driver
+                if driver is None:
+                    return keywords
                 
                 if progress_callback:
                     if attempt > 0:
-                        progress_callback(f"'{keyword}' ?먮룞?꾩꽦寃?됱뼱 異붿텧 ?ъ떆??({attempt + 1}/{max_retries})...")
+                        progress_callback(f"{keyword}  ...")
                     else:
-                        progress_callback(f"'{keyword}' ?먮룞?꾩꽦寃?됱뼱 異붿텧 ?쒖옉...")
+                        progress_callback(f"{keyword}  ...")
                 
-                # ?ㅼ씠踰?硫붿씤 ?섏씠吏濡??대룞
+                # comment cleaned (encoding issue)
                 try:
-                    self.driver.set_page_load_timeout(15)  # 15珥??쒗븳
-                    self.driver.get("https://m.naver.com")
+                    driver.set_page_load_timeout(15)  # 15한
+                    driver.get("https://m.naver.com")
                 except TimeoutException:
                     if progress_callback:
-                        progress_callback("?좑툘 ?섏씠吏 濡쒕뵫 吏?? 怨꾩냽 吏꾪뻾?⑸땲??..")
+                        progress_callback(" ...")
                     try:
-                        self.driver.execute_script("window.stop();")
+                        driver.execute_script("window.stop();")
                     except:
                         pass
                 except Exception as e:
-                    # ?대룞 以??먮윭 諛쒖깮 ??(no such window ?? ?덉쇅瑜??곸쐞濡??꾪뙆?섏뿬 泥섎━
+                    # comment cleaned (encoding issue)
                     raise e
                 
                 time.sleep(2)
             
-                # ?섏씠吏 濡쒕뵫 ?湲?
+                # comment cleaned (encoding issue)
                 try:
                     from selenium.webdriver.support.ui import WebDriverWait
                     from selenium.webdriver.support import expected_conditions as EC
                     
-                    # ??꾩븘???덉쇅 泥섎━ 異붽?
+                    # comment cleaned (encoding issue)
                     try:
-                        wait = WebDriverWait(self.driver, 10)
+                        wait = WebDriverWait(driver, 10)
                         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
                         if progress_callback:
-                            progress_callback("?ㅼ씠踰?硫붿씤 ?섏씠吏 濡쒕뵫 ?꾨즺")
+                            progress_callback(" ...")
                     except TimeoutException:
                         if progress_callback:
-                            progress_callback("?좑툘 ?섏씠吏 ?붿냼 濡쒕뵫 ?쒓컙 珥덇낵 (臾댁떆?섍퀬 吏꾪뻾)")
+                            progress_callback(" ...")
                             
                 except Exception as e:
                     if progress_callback:
-                        progress_callback(f"?섏씠吏 濡쒕뵫 ?湲?以??ㅻ쪟: {str(e)}")
+                        progress_callback(f": {str(e)}")
             
-                # 寃?됱갹 李얘린
+                # comment cleaned (encoding issue)
                 search_input = None
                 search_selectors = [
                     '#nx_query',
@@ -1677,23 +1695,23 @@ class NaverMobileSearchScraper:
                 
                 for selector in search_selectors:
                     try:
-                        search_input = self.driver.find_element(By.CSS_SELECTOR, selector)
+                        search_input = driver.find_element(By.CSS_SELECTOR, selector)
                         if search_input and search_input.is_enabled():
                             if progress_callback:
-                                progress_callback(f"寃?됱갹 諛쒓껄: {selector}")
+                                progress_callback(f" ...")
                             break
                     except:
                         continue
                 
                 if not search_input:
                     if progress_callback:
-                        progress_callback("??寃?됱갹??李얠쓣 ???놁뒿?덈떎.")
+                        progress_callback(" ...")
                     return keywords
             
-                # 寃?됱갹???ㅼ썙???낅젰
+                # comment cleaned (encoding issue)
                 try:
-                    # JavaScript濡??덉쟾?섍쾶 ?낅젰
-                    self.driver.execute_script("""
+                    # comment cleaned (encoding issue)
+                    driver.execute_script("""
                         var input = arguments[0];
                         var keyword = arguments[1];
                         input.focus();
@@ -1702,18 +1720,18 @@ class NaverMobileSearchScraper:
                         input.dispatchEvent(new Event('keyup', { bubbles: true }));
                     """, search_input, keyword)
                     
-                    # ?먮룞?꾩꽦 濡쒕뵫 ?湲?
+                    # comment cleaned (encoding issue)
                     time.sleep(2)
                     
                     if progress_callback:
-                        progress_callback(f"'{keyword}' ?낅젰 ?꾨즺, ?먮룞?꾩꽦 ?湲?以?..")
+                        progress_callback(f"{keyword}  ...")
                         
                 except Exception as input_error:
                     if progress_callback:
-                        progress_callback(f"?ㅼ썙???낅젰 ?ㅽ뙣: {str(input_error)}")
+                        progress_callback(f" ...")
                         return keywords
             
-                # ?먮룞?꾩꽦 ?ㅼ썙??異붿텧
+                # comment cleaned (encoding issue)
                 autocomplete_selectors = [
                     '#_nx_ac_layer_wrap ._nx_ac_text',
                     '._nx_ac_text',
@@ -1725,29 +1743,29 @@ class NaverMobileSearchScraper:
                 found_count = 0
                 for selector in autocomplete_selectors:
                     try:
-                        elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                        elements = driver.find_elements(By.CSS_SELECTOR, selector)
                         
                         for element in elements:
                             try:
                                 if not element.is_displayed():
                                     continue
                                     
-                                # ?띿뒪??異붿텧
+                                # comment cleaned (encoding issue)
                                 keyword_text = element.get_attribute("textContent") or element.text
                                 
                                 if keyword_text:
                                     keyword_text = keyword_text.strip()
                                     
-                                    # HTML ?쒓렇 ?쒓굅
+                                    # comment cleaned (encoding issue)
                                     if '<' in keyword_text:
                                         import re
                                         keyword_text = re.sub(r'<[^>]+>', '', keyword_text)
                                         keyword_text = keyword_text.strip()
                                     
-                                    # ?띿뒪???뺤젣
+                                    # comment cleaned (encoding issue)
                                         keyword_text = self.clean_duplicate_text(keyword_text)
                                         
-                                    # ?좏슚??寃利?
+                                    # comment cleaned (encoding issue)
                                     if (keyword.lower() in keyword_text.lower() and 
                                         keyword_text not in keywords and
                                         len(keyword_text) <= 50 and
@@ -1755,18 +1773,18 @@ class NaverMobileSearchScraper:
                                             keywords.append(keyword_text)
                                             found_count += 1
                                             if progress_callback:
-                                                progress_callback(f"???먮룞?꾩꽦?ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                                progress_callback(f" ...")
                             except Exception:
                                 continue
                     except Exception:
                         continue
                 
-                # 以묐났 ?쒓굅 諛??뺣젹
+                # comment cleaned (encoding issue)
                 keywords = list(set(keywords))
                 keywords.sort()
                 
                 if progress_callback:
-                    progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?먮룞?꾩꽦?ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                    progress_callback(f"  : {len(keywords)}")
                 
                 return keywords
             
@@ -1774,16 +1792,16 @@ class NaverMobileSearchScraper:
                 error_msg = str(e)
                 if "no such window" in error_msg.lower() or "invalid session id" in error_msg.lower():
                     if progress_callback:
-                        progress_callback("?좑툘 釉뚮씪?곗? 李쎌씠 ?ロ삍嫄곕굹 ?몄뀡??留뚮즺?섏뿀?듬땲?? 蹂듦뎄 ?쒕룄 以?..")
+                        progress_callback(" ...")
                     
                     if attempt < max_retries - 1:
                         if self.initialize_browser():
                             if progress_callback:
-                                progress_callback("??釉뚮씪?곗? 蹂듦뎄 ?깃났. ?ъ떆?꾪빀?덈떎.")
+                                progress_callback(" ...")
                             continue
                 
                 if progress_callback:
-                    progress_callback(f"?먮룞?꾩꽦?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                    progress_callback(f": {str(e)}")
                 
                 if attempt == max_retries - 1:
                     return []
@@ -1798,9 +1816,9 @@ class NaverMobileSearchScraper:
             if not self.driver:
                 return keywords
             
-            # ?곌?寃?됱뼱 ?좏깮?먮뱾 - 2024??理쒖떊 ?ㅼ씠踰?紐⑤컮??
+            # comment cleaned (encoding issue)
             related_selectors = [
-                '#_related_keywords .keyword a',  # 硫붿씤 ?좏깮??
+                '#_related_keywords .keyword a',  # 메인 택
                 '.related_srch .lst a',
                 '.related_keyword a',
                 '.lst_related a',
@@ -1810,7 +1828,7 @@ class NaverMobileSearchScraper:
             ]
             
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?섏씠吏?먯꽌 ?곌?寃?됱뼱 異붿텧 ?쒖옉...")
+                progress_callback(f" ...")
             
             found_count = 0
             
@@ -1818,14 +1836,14 @@ class NaverMobileSearchScraper:
                 try:
                     elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
                     if len(elements) > 0 and progress_callback:
-                        progress_callback(f"?좏깮??'{selector}'?먯꽌 {len(elements)}媛??붿냼 諛쒓껄")
+                        progress_callback(f"  : {len(keywords)}")
                     
                     for element in elements:
                         try:
-                            # ???뺥솗???띿뒪??異붿텧???꾪븳 ?μ긽??濡쒖쭅
+                            # comment cleaned (encoding issue)
                             keyword_text = ""
                             
-                            # 1李? 媛???덉쟾???띿뒪??異붿텧 - element.text 癒쇱? ?쒕룄
+                            # comment cleaned (encoding issue)
                             try:
                                 keyword_text = element.text
                                 if keyword_text:
@@ -1833,7 +1851,7 @@ class NaverMobileSearchScraper:
                             except:
                                 keyword_text = ""
 
-                            # 2李? textContent ?띿꽦?쇰줈 諛깆뾽 異붿텧
+                            # comment cleaned (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = element.get_attribute("textContent")
@@ -1842,7 +1860,7 @@ class NaverMobileSearchScraper:
                                 except:
                                     keyword_text = ""
 
-                            # 3李? innerText ?띿꽦?쇰줈 諛깆뾽 異붿텧
+                            # comment cleaned (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = element.get_attribute("innerText")
@@ -1851,88 +1869,88 @@ class NaverMobileSearchScraper:
                                 except:
                                     keyword_text = ""
 
-                            # 4李? JavaScript濡??뺥솗???띿뒪??異붿텧 (留덉?留??섎떒)
+                            # comment cleaned (encoding issue)
                             if not keyword_text:
                                 try:
                                     keyword_text = self.driver.execute_script("""
                                         var element = arguments[0];
                                         if (!element) return '';
                                         
-                                            // 留곹겕 ?붿냼??吏곸젒?곸씤 ?띿뒪?몃쭔 異붿텧
+                                            // 링크 ?소?직접?인 ?스?만 추출
                                             var textContent = element.textContent || element.innerText || '';
                                             
-                                            // ?욌뮘 怨듬갚 ?쒓굅 諛??곗냽 怨듬갚 ?뺣━
+                                            // ?뒤 공백 ?거 ?속 공백 ?리
                                             return textContent.replace(/\\s+/g, ' ').trim();
                                     """, element)
                                 except:
                                     keyword_text = ""
                             
-                            # HTML ?쒓렇 ?쒓굅 諛??뱀닔臾몄옄 ?뺣━
+                            # comment cleaned (encoding issue)
                             if keyword_text:
                                 import re
-                                # HTML ?쒓렇 ?쒓굅
+                                # comment cleaned (encoding issue)
                                 keyword_text = re.sub(r'<[^>]+>', '', keyword_text)
-                                # ?곗냽??怨듬갚 ?쒓굅
+                                # comment cleaned (encoding issue)
                                 keyword_text = re.sub(r'\s+', ' ', keyword_text)
-                                # ?뱀닔臾몄옄 ?뺣━
-                                keyword_text = re.sub(r'[\u200b-\u200d\ufeff]', '', keyword_text)  # ?쒕줈??臾몄옄 ?쒓굅
-                                # 遺덉셿?꾪븳 ?띿뒪???뺣━ (?앹뿉 ?ㅻ뒗 遺덉셿?꾪븳 ?⑥뼱 ?쒓굅)
+                                # comment cleaned (encoding issue)
+                                keyword_text = re.sub(r'[\u200b-\u200d\ufeff]', '', keyword_text)  # 제로폭 문자 제거
+                                # comment cleaned (encoding issue)
                                 keyword_text = re.sub(r'\s+[가-힣]{1}$', '', keyword_text)
-                                keyword_text = re.sub(r'\s+[a-zA-Z]{1}$', '', keyword_text)  # ?앹뿉 ?곷Ц 1湲?먮쭔 ?덈뒗 寃쎌슦 ?쒓굅
+                                keyword_text = re.sub(r'\s+[a-zA-Z]{1}$', '', keyword_text)  # 끝에 영문 1자만 남는 경우 제거
                                 keyword_text = keyword_text.strip()
                                 
                             if keyword_text:
-                                # ?띿뒪???뺤젣
+                                # comment cleaned (encoding issue)
                                 keyword_text = self.clean_duplicate_text(keyword_text)
                                     
-                                # 異붽? 寃利? 遺덉셿?꾪븳 ?ㅼ썙???꾪꽣留?
-                                # ?섎??덈뒗 ?⑥뼱濡??앸굹?붿? ?뺤씤
+                                # comment cleaned (encoding issue)
+                                # comment cleaned (encoding issue)
                                 if keyword_text and not re.search(r'[가-힣]{1}$|[a-zA-Z]{1}$', keyword_text):
-                                    # ?좏슚???ㅼ썙?쒖씤吏 ?뺤씤 (以묐났 ?쒓굅 諛?湲몄씠 泥댄겕)
+                                    # comment cleaned (encoding issue)
                                     if (keyword_text not in keywords and
                                         len(keyword_text) <= 50 and
                                         len(keyword_text) > 1):
                                         keywords.append(keyword_text)
                                         found_count += 1
                                         if progress_callback:
-                                            progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
-                                elif keyword_text and len(keyword_text) > 3:  # 3湲???댁긽?대㈃ ?덉슜
+                                            progress_callback(f" ...")
+                                elif keyword_text and len(keyword_text) > 3:  # 3상면 용
                                     if (keyword_text not in keywords and 
                                         len(keyword_text) <= 50 and 
                                         len(keyword_text) > 1):
                                         keywords.append(keyword_text)
                                         found_count += 1
                                         if progress_callback:
-                                            progress_callback(f"???곌??ㅼ썙??諛쒓껄 ({found_count}): {keyword_text}")
+                                            progress_callback(f" ...")
                         except Exception as e:
                             continue
                 except Exception as e:
                     continue
             
-            # 以묐났 ?쒓굅 諛??뺣젹
+            # comment cleaned (encoding issue)
             keywords = list(set(keywords))
             keywords.sort()
             
             if progress_callback:
-                progress_callback(f"珥?{len(keywords)}媛쒖쓽 ?곌??ㅼ썙?쒕? 異붿텧?덉뒿?덈떎.")
+                progress_callback(f"  : {len(keywords)}")
             
             return keywords
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?곌??ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback(f": {str(e)}")
             return []
 
     def clean_duplicate_text(self, text):
-        """?띿뒪???뺣━ 諛?以묐났 ?쒓굅 - 媛쒖꽑??踰꾩쟾"""
+        """Text cleaned due to encoding issue."""
         if not text:
             return text
 
         text = text.strip()
-        # ?곗냽??怨듬갚???섎굹濡??듯빀
+        # comment cleaned (encoding issue)
         text = re.sub(r'\s+', ' ', text)
         
-        # ?⑥뼱 ?⑥쐞濡?遺꾨━?섏뿬 以묐났 ?쒓굅
+        # comment cleaned (encoding issue)
         words = text.split()
         unique_words = []
         seen_words = set()
@@ -1943,18 +1961,18 @@ class NaverMobileSearchScraper:
                 unique_words.append(word)
                 seen_words.add(word_lower)
         
-        # 寃곌낵 ?띿뒪???ъ“??
+        # comment cleaned (encoding issue)
         result = ' '.join(unique_words)
         return result
 
     def extract_together_keywords(self, current_keyword, progress_callback=None):
-        """?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧"""
+        """Text cleaned due to encoding issue."""
         keywords = []
         try:
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧 以?..")
+                progress_callback(f" ...")
             
-            # 媛꾨떒??CSS ?좏깮?먮줈 ?붿냼 李얘린
+            # comment cleaned (encoding issue)
             selectors = [
                 'a[data-template-type="alsoSearch"]',
                 '.related_keyword a',
@@ -1979,22 +1997,22 @@ class NaverMobileSearchScraper:
                     continue
             
             if progress_callback:
-                progress_callback(f"?④퍡 留롮씠 李얜뒗 ?ㅼ썙??{len(keywords)}媛?異붿텧")
+                progress_callback(f"  : {len(keywords)}")
         
             return list(set(keywords))
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?④퍡 留롮씠 李얜뒗 ?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback(f": {str(e)}")
             return []
             
     def extract_popular_topics(self, current_keyword, progress_callback=None):
-        """?멸린二쇱젣 ?ㅼ썙??異붿텧"""
+        """Text cleaned due to encoding issue."""
         keywords = []
         try:
             if progress_callback:
-                progress_callback(f"'{current_keyword}' ?멸린二쇱젣 ?ㅼ썙??異붿텧 以?..")
+                progress_callback(f" ...")
             
-            # 媛꾨떒??CSS ?좏깮?먮줈 ?붿냼 李얘린
+            # comment cleaned (encoding issue)
             selectors = [
                 '.fds-comps-keyword-chip-text',
                 '.keyword-chip .text',
@@ -2019,29 +2037,29 @@ class NaverMobileSearchScraper:
                     continue
             
             if progress_callback:
-                progress_callback(f"?멸린二쇱젣 ?ㅼ썙??{len(keywords)}媛?異붿텧")
+                progress_callback(f"  : {len(keywords)}")
             
             return list(set(keywords))
         except Exception as e:
             if progress_callback:
-                progress_callback(f"?멸린二쇱젣 ?ㅼ썙??異붿텧 ?ㅻ쪟: {str(e)}")
+                progress_callback(f": {str(e)}")
             return []
 
     def recursive_keyword_extraction(self, initial_keyword, progress_callback=None, extract_autocomplete=True):
-        """?ш????ㅼ썙??異붿텧 ?꾨줈?몄뒪 - ?꾩쟾 ?ш? 踰꾩쟾"""
+        """Text cleaned due to encoding issue."""
         if not self.driver:
             if progress_callback:
-                progress_callback("釉뚮씪?곗?媛 珥덇린?붾릺吏 ?딆븯?듬땲??")
+                progress_callback(" ...")
             return False
         
         self.base_keyword = initial_keyword
         self.all_related_keywords = []
-        self.processed_autocomplete_keywords = set()  # 泥섎━???먮룞?꾩꽦寃?됱뼱 異붿쟻
+        self.processed_autocomplete_keywords = set()  # 처리동성어 추적
         
         if progress_callback:
-            progress_callback(f"?? '{initial_keyword}' ?꾩쟾 ?ш????ㅼ썙??異붿텧???쒖옉?⑸땲??")
+            progress_callback(f" ...")
 
-        # 1?④퀎: 湲곕낯 ?ㅼ썙?쒕줈 寃??諛?紐⑤뱺 ?ㅼ썙??異붿텧
+        # comment cleaned (encoding issue)
         success = self._extract_all_keyword_types(
             initial_keyword, 
             parent_keyword=initial_keyword, 
@@ -2052,35 +2070,35 @@ class NaverMobileSearchScraper:
         if not success:
             return False
             
-        # 2?④퀎: ?먮룞?꾩꽦寃?됱뼱 ?꾩쟾 ?ш???異붿텧
+        # comment cleaned (encoding issue)
         if extract_autocomplete:
             autocomplete_keywords = self.extract_autocomplete_keywords(initial_keyword, progress_callback)
             
-            # ?먮룞?꾩꽦寃?됱뼱 寃곌낵 ???
+            # comment cleaned (encoding issue)
             for keyword in autocomplete_keywords:
                 self.all_related_keywords.append({
                     'depth': 0,
                     'parent_keyword': initial_keyword,
                     'current_keyword': initial_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?먮룞?꾩꽦',
-                    'source_type': '?먮룞?꾩꽦寃?됱뼱',
+                    'keyword_type': '동성',
+                    'source_type': '동성어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
                 
-            # ?먮낯 ?ㅼ썙???쒖쇅?섍퀬 ?ш? 泥섎━???ㅼ썙?쒕뱾 以鍮?
+            # comment cleaned (encoding issue)
             keywords_for_recursion = []
             for keyword in autocomplete_keywords:
-                # ?먮낯 ?ㅼ썙?쒖? ?뺥솗???쇱튂?섎뒗 寃쎌슦???쒖쇅
+                # comment cleaned (encoding issue)
                 if keyword.lower().strip() != initial_keyword.lower().strip():
                     keywords_for_recursion.append(keyword)
             
             if progress_callback:
-                progress_callback(f"?뱥 ?먮낯 ?ㅼ썙??'{initial_keyword}' ?쒖쇅, {len(keywords_for_recursion)}媛??ㅼ썙?쒕? ?쒖꽌?濡??ш? 泥섎━?⑸땲??")
+                progress_callback(f"재귀 대상 자동완성 키워드 수: {len(keywords_for_recursion)}개")
                 if keywords_for_recursion:
-                    progress_callback(f"?봽 ?ш? 泥섎━ ?쒖꽌: {', '.join(keywords_for_recursion[:5])}{'...' if len(keywords_for_recursion) > 5 else ''}")
+                    progress_callback("자동완성 재귀 추출을 시작합니다.")
             
-            # ?꾩쟾 ?ш????먮룞?꾩꽦寃?됱뼱 異붿텧 ?쒖옉 (?먮낯 ?ㅼ썙???쒖쇅)
+            # comment cleaned (encoding issue)
             if keywords_for_recursion:
                 self._recursive_autocomplete_extraction(
                     keywords_for_recursion, 
@@ -2090,7 +2108,7 @@ class NaverMobileSearchScraper:
                 )
             else:
                 if progress_callback:
-                    progress_callback("?좑툘 ?먮낯 ?ㅼ썙???몄뿉 ?ш? 泥섎━???먮룞?꾩꽦寃?됱뼱媛 ?놁뒿?덈떎.")
+                    progress_callback(" ...")
             
         if progress_callback:
             progress_callback(f"'{initial_keyword}' 키워드 추출 완료: 총 {len(self.all_related_keywords)}개")
@@ -2098,39 +2116,39 @@ class NaverMobileSearchScraper:
         return True
 
     def _extract_all_keyword_types(self, current_keyword, parent_keyword, depth, progress_callback=None):
-        """?꾩옱 ?ㅼ썙?쒖뿉 ???紐⑤뱺 ?좏삎???ㅼ썙??異붿텧 (?곌?寃?됱뼱, ?④퍡留롮씠李얜뒗, ?멸린二쇱젣)"""
+        """Text cleaned due to encoding issue."""
         try:
             if not self.is_running:
                 return False
             
-            # ?쇱떆?뺤? 諛??명꽣???곌껐 ?곹깭 ?뺤씤
+            # comment cleaned (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
                 
-            # ?ㅼ썙??寃??
+            # comment cleaned (encoding issue)
             if not self.search_keyword_mobile(current_keyword, progress_callback):
                 return False
             
-            # ?쇱떆?뺤? ?곹깭 ?ы솗??
+            # comment cleaned (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
             
-            # 紐⑤뱺 ?좏삎???ㅼ썙??異붿텧
+            # comment cleaned (encoding issue)
             related_keywords = self.extract_related_keywords_new(current_keyword, progress_callback)
             
-            # ?쇱떆?뺤? ?곹깭 ?뺤씤
+            # comment cleaned (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
                 
             together_keywords = self.extract_together_keywords(current_keyword, progress_callback)
             
-            # ?쇱떆?뺤? ?곹깭 ?뺤씤
+            # comment cleaned (encoding issue)
             if not self.check_pause_status(progress_callback):
                 return False
             
             popular_keywords = self.extract_popular_topics(current_keyword, progress_callback)
 
-            # 寃곌낵 ???
+            # comment cleaned (encoding issue)
             all_extracted = []
             
             for keyword in related_keywords:
@@ -2139,8 +2157,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?곌?寃?됱뼱',
-                    'source_type': '?곌?寃?됱뼱',
+                    'keyword_type': '어',
+                    'source_type': '어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2152,8 +2170,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?④퍡留롮씠李얜뒗',
-                    'source_type': '?④퍡留롮씠李얜뒗',
+                    'keyword_type': '께많이찾는',
+                    'source_type': '께많이찾는',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2165,8 +2183,8 @@ class NaverMobileSearchScraper:
                     'parent_keyword': parent_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?멸린二쇱젣',
-                    'source_type': '?멸린二쇱젣',
+                    'keyword_type': '기주제',
+                    'source_type': '기주제',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
                 self.all_related_keywords.append(entry)
@@ -2183,15 +2201,15 @@ class NaverMobileSearchScraper:
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"??'{current_keyword}' ?ㅼ썙??異붿텧 以??ㅻ쪟: {str(e)}")
+                progress_callback(f": {str(e)}")
             return False
 
     def _recursive_autocomplete_extraction(self, keywords_to_process, original_keyword, depth, progress_callback=None, max_depth=5):
-        """?먮룞?꾩꽦寃?됱뼱 ?꾩쟾 ?ш???異붿텧"""
+        """Text cleaned due to encoding issue."""
         
         if depth > max_depth:
             if progress_callback:
-                progress_callback(f"?좑툘 理쒕? depth({max_depth}) ?꾨떖濡??ш? 以묐떒")
+                progress_callback(f" ...")
             return
                 
         if not self.is_running:
@@ -2202,19 +2220,21 @@ class NaverMobileSearchScraper:
             if not self.is_running:
                 break
                     
-            # ?대? 泥섎━???ㅼ썙?쒕뒗 ?ㅽ궢
+            # comment cleaned (encoding issue)
             if current_keyword.lower() in self.processed_autocomplete_keywords:
                 if progress_callback:
-                    progress_callback(f"??툘 '{current_keyword}' ?대? 泥섎━??- ?ㅽ궢")
+                    progress_callback(f" ...")
                 continue
                     
-            # 泥섎━???ㅼ썙?쒕줈 異붽?
+            # comment cleaned (encoding issue)
             self.processed_autocomplete_keywords.add(current_keyword.lower())
             
             if progress_callback:
-                progress_callback(f"\n?뵇 [{depth}?④퀎] [{i+1}/{len(keywords_to_process)}] '{current_keyword}' ?ш? 泥섎━ 以?..")
+                progress_callback(
+                    f"[{depth}단계] {i + 1}/{len(keywords_to_process)} 진행 중: '{current_keyword}'"
+                )
             
-            # 1. ?꾩옱 ?ㅼ썙?쒕줈 紐⑤뱺 ?좏삎 ?ㅼ썙??異붿텧 (?곌?寃?됱뼱, ?④퍡留롮씠李얜뒗, ?멸린二쇱젣)
+            # comment cleaned (encoding issue)
             self._extract_all_keyword_types(
                 current_keyword, 
                 parent_keyword=current_keyword, 
@@ -2222,45 +2242,49 @@ class NaverMobileSearchScraper:
                 progress_callback=progress_callback
             )
             
-            # 2. ?꾩옱 ?ㅼ썙?쒖쓽 ?먮룞?꾩꽦寃?됱뼱 異붿텧
+            # comment cleaned (encoding issue)
             new_autocomplete_keywords = self.extract_autocomplete_keywords(current_keyword, progress_callback)
             
-            # ?먮룞?꾩꽦寃?됱뼱 寃곌낵 ???
+            # comment cleaned (encoding issue)
             for keyword in new_autocomplete_keywords:
                 self.all_related_keywords.append({
                     'depth': depth,
                     'parent_keyword': current_keyword,
                     'current_keyword': current_keyword,
                     'related_keyword': keyword,
-                    'keyword_type': '?먮룞?꾩꽦',
-                    'source_type': '?먮룞?꾩꽦寃?됱뼱',
+                    'keyword_type': '동성',
+                    'source_type': '동성어',
                     'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 })
             
-            # 3. ?덈줈???먮룞?꾩꽦寃?됱뼱媛 ?덉쑝硫??ш? ?몄텧
+            # comment cleaned (encoding issue)
             if new_autocomplete_keywords:
-                # 以묐났 ?쒓굅 諛??꾪꽣留?
+                # comment cleaned (encoding issue)
                 filtered_keywords = []
                 for keyword in new_autocomplete_keywords:
-                    # ?꾩옱 泥섎━ 以묒씤 ?ㅼ썙?쒖? ?숈씪??寃쎌슦 ?쒖쇅
+                    # comment cleaned (encoding issue)
                     if keyword.lower().strip() == current_keyword.lower().strip():
                         continue
                     
-                    # ?대? 泥섎━?섏? ?딆? ?ㅼ썙?쒕쭔 異붽?
+                    # comment cleaned (encoding issue)
                     if keyword.lower() not in self.processed_autocomplete_keywords:
-                        # ?먮낯 ?ㅼ썙?쒖? 愿?⑥꽦???덈뒗 ?ㅼ썙?쒕쭔 異붽? (?좏깮?ы빆)
-                        if self.base_keyword.lower() in keyword.lower() or len(filtered_keywords) < 20:  # ?덈Т 留롮? ?ㅼ썙??諛⑹?
+                        # comment cleaned (encoding issue)
+                        if self.base_keyword.lower() in keyword.lower() or len(filtered_keywords) < 20:  # 무 많 워방
                             filtered_keywords.append(keyword)
                 
                 if filtered_keywords:
                     if progress_callback:
-                        progress_callback(f"?봽 '{current_keyword}'?먯꽌 {len(filtered_keywords)}媛????먮룞?꾩꽦寃?됱뼱 諛쒓껄 ??{depth+1}?④퀎 ?ш? 吏꾪뻾")
-                        if len(filtered_keywords) <= 10:  # 10媛??댄븯硫?紐⑤몢 ?쒖떆
-                            progress_callback(f"?뱷 ?ㅼ쓬 ?쒖꽌濡?泥섎━: {', '.join(filtered_keywords)}")
-                        else:  # 10媛?珥덇낵硫?泥섏쓬 10媛쒕쭔 ?쒖떆
-                            progress_callback(f"?뱷 ?ㅼ쓬 ?쒖꽌濡?泥섎━: {', '.join(filtered_keywords[:10])} ... (珥?{len(filtered_keywords)}媛?")
+                        progress_callback(
+                            f"'{current_keyword}'에서 재귀 대상 {len(filtered_keywords)}개 발견"
+                        )
+                        if len(filtered_keywords) <= 10:  # 10하모두 시
+                            progress_callback(f"다음 처리: {', '.join(filtered_keywords)}")
+                        else:  # 10초과처음 10개만 시
+                            progress_callback(
+                                f"다음 처리: {', '.join(filtered_keywords[:10])} ... (총 {len(filtered_keywords)}개)"
+                            )
                     
-                    # ?ш? ?몄텧
+                    # comment cleaned (encoding issue)
                     self._recursive_autocomplete_extraction(
                         filtered_keywords, 
                         original_keyword, 
@@ -2270,20 +2294,20 @@ class NaverMobileSearchScraper:
                     )
                 else:
                     if progress_callback:
-                        progress_callback(f"??'{current_keyword}' - ?덈줈???먮룞?꾩꽦寃?됱뼱 ?놁쓬")
+                        progress_callback(f" ...")
             else:
                 if progress_callback:
-                    progress_callback(f"??'{current_keyword}' - ?먮룞?꾩꽦寃?됱뼱 ?놁쓬")
+                    progress_callback(f" ...")
             
         if progress_callback:
-            progress_callback(f"?뢾 {depth}?④퀎 ?ш? 泥섎━ ?꾨즺!")
+            progress_callback(f" ...")
 
     def save_recursive_results_to_excel(self, save_path=None, progress_callback=None):
         """Save extraction results to file."""
         try:
             if not hasattr(self, 'all_related_keywords') or not self.all_related_keywords:
                 if progress_callback:
-                    progress_callback("????ν븷 ?ㅼ썙?쒓? ?놁뒿?덈떎.")
+                    progress_callback(" ...")
                 return False
             
             if not save_path:
@@ -2295,42 +2319,42 @@ class NaverMobileSearchScraper:
                 base_keyword = getattr(self, 'base_keyword', 'keyword_extraction')
                 save_path = os.path.join(self.save_dir, f"{base_keyword}_{current_time}.xlsx")
             
-            # ?곗씠?고봽?덉엫 ?앹꽦
+            # comment cleaned (encoding issue)
             df = pd.DataFrame({
                 '추출된_키워드': [item['related_keyword'] for item in self.all_related_keywords]
             })
 
-            # 以묐났 ?쒓굅
+            # comment cleaned (encoding issue)
             df = df.drop_duplicates(subset=['추출된_키워드'], keep='first').reset_index(drop=True)
 
-            # ?묒? ???
+            # comment cleaned (encoding issue)
             try:
                 df.to_excel(save_path, index=False, engine='openpyxl')
                 
                 if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
                     if progress_callback:
-                        progress_callback(f"???묒? ?뚯씪 ????꾨즺: {save_path}")
+                        progress_callback(f" ...")
                         progress_callback(f"저장된 키워드 수: {len(df)}")
                     return True
                 else:
-                    raise Exception("?묒? ?뚯씪 ?앹꽦 ?ㅽ뙣")
+                    raise Exception(" 일 성 패")
                 
             except Exception as excel_error:
-                # CSV濡?諛깆뾽 ???
+                # comment cleaned (encoding issue)
                 csv_path = save_path.rsplit('.', 1)[0] + '.csv'
                 df.to_csv(csv_path, index=False, encoding='utf-8-sig')
                     
                 if progress_callback:
-                    progress_callback(f"?좑툘 ?묒? ????ㅽ뙣, CSV濡???? {csv_path}")
+                    progress_callback(f" ...")
                 return True
             
         except Exception as e:
             if progress_callback:
-                progress_callback(f"???뚯씪 ????ㅻ쪟: {str(e)}")
+                progress_callback(f": {str(e)}")
             return False
 
     def close(self):
-        """釉뚮씪?곗? 醫낅즺"""
+        """Text cleaned due to encoding issue."""
         if self.driver:
             try:
                 self.driver.quit()
@@ -2419,9 +2443,9 @@ class Settings:
 
 
 class ParallelKeywordThread(QThread):
-    finished = pyqtSignal(str)              # ?꾨즺 ????λ맂 ?뚯씪 寃쎈줈 ?쒓렇??
-    error = pyqtSignal(str)                 # ?먮윭 ?쒓렇??
-    log = pyqtSignal(str, str)              # 濡쒓렇 ?쒓렇??(?ㅼ썙?? 硫붿떆吏)
+    finished = pyqtSignal(str)              # 료 된 일 경로 그
+    error = pyqtSignal(str)                 # 러 그
+    log = pyqtSignal(str, str)              # 로그 그(워 메시)
     
     def __init__(self, keyword, save_dir, extract_autocomplete=True):
         super().__init__()
@@ -2436,19 +2460,21 @@ class ParallelKeywordThread(QThread):
         try:
             self.log.emit(self.keyword, f"'{self.keyword}' 검색을 시작합니다...")
             
-            # 釉뚮씪?곗? ?앹꽦
-            self.driver = create_chrome_driver()
+            # comment cleaned (encoding issue)
+            self.driver = create_chrome_driver(
+                log_callback=lambda msg: self.log.emit(self.keyword, str(msg))
+            )
             if not self.driver:
                 self.error.emit(f"'{self.keyword}' 브라우저 생성 실패")
                 return
 
-            # 寃?됯린 珥덇린??
+            # comment cleaned (encoding issue)
             self.searcher = NaverMobileSearchScraper(driver=self.driver)
             self.searcher.save_dir = self.save_dir
             self.searcher.is_running = self.is_running
             self.searcher.search_thread = self
             
-            # ?ㅼ썙??異붿텧 ?ㅽ뻾
+            # comment cleaned (encoding issue)
             success = self.searcher.recursive_keyword_extraction(
                 self.keyword, 
                 progress_callback=self._log_wrapper,
@@ -2490,7 +2516,7 @@ class ParallelKeywordThread(QThread):
             self.error.emit(f"'{self.keyword}' 작업 중 오류: {str(e)}")
             
         finally:
-            # 釉뚮씪?곗? 醫낅즺 諛??뺣━
+            # comment cleaned (encoding issue)
             if self.driver:
                 try:
                     self.driver.quit()
@@ -2499,11 +2525,11 @@ class ParallelKeywordThread(QThread):
                 self.driver = None
 
     def _log_wrapper(self, msg):
-        """濡쒓렇 ?섑띁: ?ㅼ썙???앸퀎??異붽?"""
+        """Text cleaned due to encoding issue."""
         self.log.emit(self.keyword, msg)
 
     def stop(self):
-        """?묒뾽 以묐떒"""
+        """Text cleaned due to encoding issue."""
         self.is_running = False
         if self.searcher:
             self.searcher.is_running = False
@@ -2617,54 +2643,113 @@ STYLESHEET = f"""
 
 
 def create_chrome_driver(log_callback=None):
-    """Chrome WebDriver ?앹꽦 諛??ㅼ젙 (?낅┰?곸쑝濡??ㅽ뻾 媛??"""
-    try:
-        if log_callback:
-            log_callback("Chrome ?쒕씪?대쾭 ?ㅼ젙???쒖옉?⑸땲??..")
-        
-        try:
-            driver_path = ChromeDriverManager().install()
-            if log_callback:
-                log_callback(f"Chrome ?쒕씪?대쾭 寃쎈줈: {driver_path}")
-        except Exception as e:
-            if log_callback:
-                log_callback(f"?좑툘 webdriver-manager ?ㅻ쪟 (濡쒖뺄 ?쒕씪?대쾭 ?ъ슜 ?쒕룄): {str(e)}")
-            driver_path = None
-        
-        options = webdriver.ChromeOptions()
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--log-level=3")
-        options.add_argument("--silent")
+    """Chrome WebDriver를 exe 환경에서도 안정적으로 생성한다."""
+    errors = []
 
-        if driver_path:
-            service = Service(driver_path)
+    def _log(msg):
+        if log_callback:
+            try:
+                log_callback(str(msg))
+            except Exception:
+                pass
+
+    def _try_create(service=None):
+        if service is None:
+            driver = webdriver.Chrome(options=options)
         else:
-            service = Service()
-        
-        driver = webdriver.Chrome(service=service, options=options)
+            driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(20)
         driver.implicitly_wait(5)
-        
         driver.get("about:blank")
-        
-        if log_callback:
-            log_callback("??Chrome ?쒕씪?대쾭媛 ?깃났?곸쑝濡?珥덇린?붾릺?덉뒿?덈떎.")
-            
         return driver
 
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-logging")
+    options.add_argument("--log-level=3")
+    options.add_argument("--window-size=1920,1080")
+
+    # 1) 로컬/번들 chromedriver 우선
+    local_candidates = []
+    try:
+        local_candidates.append(os.path.join(get_app_base_dir(), "chromedriver.exe"))
+    except Exception:
+        pass
+    try:
+        local_candidates.append(os.path.join(os.getcwd(), "chromedriver.exe"))
+    except Exception:
+        pass
+    try:
+        local_candidates.append(os.path.join(os.path.dirname(sys.executable), "chromedriver.exe"))
+    except Exception:
+        pass
+    try:
+        meipass_dir = getattr(sys, "_MEIPASS", None)
+        if meipass_dir:
+            local_candidates.append(os.path.join(meipass_dir, "chromedriver.exe"))
+    except Exception:
+        pass
+
+    for candidate in local_candidates:
+        if not candidate or not os.path.exists(candidate):
+            continue
+        try:
+            _log(f"로컬 ChromeDriver 사용: {candidate}")
+            return _try_create(Service(candidate))
+        except Exception as e:
+            errors.append(f"local({candidate}): {e}")
+
+    # 2) webdriver-manager
+    try:
+        _log("webdriver-manager로 ChromeDriver 설치 시도")
+        driver_path = ChromeDriverManager().install()
+        _log(f"설치된 ChromeDriver: {driver_path}")
+        return _try_create(Service(driver_path))
     except Exception as e:
-        if log_callback:
-            log_callback(f"??Chrome ?쒕씪?대쾭 ?앹꽦 ?ㅽ뙣: {str(e)}")
-        raise e
+        errors.append(f"webdriver_manager: {e}")
+
+    # 3) PATH chromedriver
+    try:
+        import shutil
+        path_driver = shutil.which("chromedriver")
+        if path_driver:
+            _log(f"PATH ChromeDriver 사용: {path_driver}")
+            return _try_create(Service(path_driver))
+    except Exception as e:
+        errors.append(f"path: {e}")
+
+    # 4) Selenium Manager 자동 설치(최종 fallback)
+    try:
+        _log("Selenium Manager fallback 시도")
+        return _try_create()
+    except Exception as e:
+        errors.append(f"selenium_manager: {e}")
+
+    chrome_paths = [
+        os.path.join(os.environ.get("PROGRAMFILES", r"C:\Program Files"), "Google", "Chrome", "Application", "chrome.exe"),
+        os.path.join(os.environ.get("PROGRAMFILES(X86)", r"C:\Program Files (x86)"), "Google", "Chrome", "Application", "chrome.exe"),
+        os.path.join(os.environ.get("LOCALAPPDATA", ""), "Google", "Chrome", "Application", "chrome.exe"),
+    ]
+    chrome_installed = any(p and os.path.exists(p) for p in chrome_paths)
+    detail = "\n".join(errors[-5:]) if errors else "unknown"
+    if not chrome_installed:
+        raise RuntimeError(
+            "Chrome 브라우저가 설치되어 있지 않거나 경로를 찾지 못했습니다.\n"
+            "Google Chrome 설치 후 다시 실행해주세요.\n\n"
+            f"{detail}"
+        )
+    raise RuntimeError(f"Chrome WebDriver 생성 실패\n{detail}")
 
 
 class KeywordExtractorMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        # ?꾩씠肄??ㅼ젙
+        # comment cleaned (encoding issue)
         icon_path = get_icon_path()
         if icon_path:
             self.setWindowIcon(QIcon(icon_path))
@@ -2673,56 +2758,56 @@ class KeywordExtractorMainWindow(QMainWindow):
             safe_print("아이콘 파일을 찾을 수 없습니다.")
         
         self.setWindowTitle("네이버 연관키워드 추출기")
-        self.resize(1200, 800) # 湲곕낯 ?ш린 ?ㅼ젙
-        self.showMaximized()   # ?꾨줈洹몃옩 ?ㅽ뻾 ???꾩껜 ?붾㈃?쇰줈 ?쒖옉
+        self.resize(1200, 800) # 기본 기 정
+        self.showMaximized()   # 로그램 행 체 면로 작
         
-        # ?ㅼ젙 諛??쒕씪?대쾭 珥덇린??
+        # comment cleaned (encoding issue)
         self.settings = Settings()
         self.driver = None
-        # self.search_thread = None  # ?⑥씪 ?ㅻ젅?????由ъ뒪???ъ슜
-        self.active_threads = []     # ?? ??? ??
-        self.completed_threads = 0   # ??? ??? ?
-        self.total_threads = 0       # ?? ??? ?
+        # comment cleaned (encoding issue)
+        self.active_threads = []     #   
+        self.completed_threads = 0   #   
+        self.total_threads = 0       #   
         self.stop_requested = False
         
-        # ?щ옒??蹂댄샇 ?ㅼ젙
+        # comment cleaned (encoding issue)
         self.setup_crash_protection()
         
-        # UI 珥덇린??
+        # comment cleaned (encoding issue)
         self.init_ui()
         self.setup_chrome_driver()
         
-        # ?ㅽ????곸슜
+        # comment cleaned (encoding issue)
         self.setStyleSheet(STYLESHEET)
 
     def check_license_info(self):
-        """?쇱씠?좎뒪 ?뺣낫 ?뺤씤"""
-        # 癒몄떊 ID ?뺤씤
+        """Text cleaned due to encoding issue."""
+        # comment cleaned (encoding issue)
         machine_id = get_machine_id()
         
-        # 援ш? ?쒗듃?먯꽌 留뚮즺???뺤씤
+        # comment cleaned (encoding issue)
         expiration_date = check_license_from_sheet(machine_id)
         
         if expiration_date:
             try:
-                # ?좎쭨 鍮꾧탳 (YYYY-MM-DD ?뺤떇 媛??
+                # comment cleaned (encoding issue)
                 exp_date = datetime.strptime(str(expiration_date).strip(), '%Y-%m-%d')
                 today = datetime.now()
                 
                 if exp_date < today:
-                    # 留뚮즺??
+                    # comment cleaned (encoding issue)
                     self.show_license_dialog(machine_id, expired=True)
                 else:
-                    # ?좏슚??
+                    # comment cleaned (encoding issue)
                     self.usage_label.setText(f"사용 기간: {expiration_date}까지")
                     self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
             except:
-                # ?좎쭨 ?뺤떇???꾨땲硫??쇰떒 ?듦낵 (?⑥닚 ?띿뒪???? ?먮뒗 留뚮즺???놁쓬?쇰줈 媛꾩＜
-                # ?ш린?쒕뒗 ?띿뒪??洹몃?濡??쒖떆 (?? "臾댁젣??)
+                # comment cleaned (encoding issue)
+                # comment cleaned (encoding issue)
                 self.usage_label.setText(f"사용 기간: {expiration_date}")
                 self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
         else:
-            # ?깅줉?섏? ?딆쓬
+            # comment cleaned (encoding issue)
             self.show_license_dialog(machine_id)
             
     def show_license_dialog(self, machine_id, expired=False):
@@ -2735,12 +2820,12 @@ class KeywordExtractorMainWindow(QMainWindow):
         sys.exit(0)
 
     def setup_crash_protection(self):
-        """?щ옒??蹂댄샇 ?ㅼ젙"""
+        """Text cleaned due to encoding issue."""
         global _current_window
         _current_window = self
         sys.excepthook = handle_exception
         
-        # ?쇱씠?좎뒪 泥댄겕 ?쒖옉
+        # comment cleaned (encoding issue)
         QTimer.singleShot(100, self.check_license_info)
         
         try:
@@ -2754,10 +2839,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         safe_print("크래시 보호 시스템이 활성화되었습니다.")
 
     def setup_chrome_driver(self):
-        """硫붿씤 ?덈룄?곗슜 Chrome WebDriver ?ㅼ젙 (?꾩슂 ??"""
-        # 蹂묐젹 紐⑤뱶?먯꽌??媛쒕퀎 ?ㅻ젅?쒓? ?쒕씪?대쾭瑜??앹꽦?섎?濡??ш린?쒕뒗 ?앹꽦?섏? ?딄굅??
-        # ?먮뒗 ?⑥씪 ?ㅽ뻾 ?뚯뒪?몃? ?꾪빐 ?④꺼?????덉쓬. 
-        # ?쇰떒 湲곗〈 濡쒖쭅 ?좎?瑜??꾪빐 ?⑥닔 ?몄텧濡?蹂寃쏀븯吏留? ?ㅼ젣濡쒕뒗 start_search?먯꽌 ?앹꽦??
+        """Text cleaned due to encoding issue."""
+        # comment cleaned (encoding issue)
+        # comment cleaned (encoding issue)
+        # comment cleaned (encoding issue)
         pass
 
     def init_ui(self):
@@ -2784,7 +2869,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         main_layout.setContentsMargins(10, 10, 10, 10)
         scroll_area.setWidget(scroll_content)
 
-        # ?ㅻ뜑 而⑦뀒?대꼫 (?쒕ぉ + ?ъ슜 湲곌컙)
+        # comment cleaned (encoding issue)
         header_widget = QWidget()
         header_widget.setStyleSheet(f"""
             QWidget {{
@@ -2801,16 +2886,16 @@ class KeywordExtractorMainWindow(QMainWindow):
         header_layout = QHBoxLayout(header_widget)
         header_layout.setContentsMargins(20, 15, 20, 15)
         
-        # ?쒕ぉ (以묒븰 ?뺣젹???꾪빐 ?묒そ??stretch 異붽?)
+        # comment cleaned (encoding issue)
         title_label = QLabel("네이버 연관키워드 추출기")
         title_label.setStyleSheet(f"font-size: 16px; font-weight: 800; color: {NAVER_GREEN};")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # ?ъ슜 湲곌컙
+        # comment cleaned (encoding issue)
         self.usage_label = QLabel("사용 기간: 확인 중...")
         self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: #555555;")
         
-        # ?쇱そ ?щ갚 (titie??以묒븰?쇰줈 諛湲??꾪빐)
+        # comment cleaned (encoding issue)
         header_layout.addStretch()
         header_layout.addWidget(title_label)
         header_layout.addStretch()
@@ -2818,22 +2903,22 @@ class KeywordExtractorMainWindow(QMainWindow):
         
         main_layout.addWidget(header_widget)
         
-        # ?곷떒 ?뱀뀡 (寃??+ 吏꾪뻾 ?곹솴) - 媛濡?諛곗튂
+        # comment cleaned (encoding issue)
         top_section_layout = QHBoxLayout()
         
-        # 寃???뱀뀡 (?쇱そ)
+        # comment cleaned (encoding issue)
         self.setup_search_section(top_section_layout)
         
-        # 吏꾪뻾 ?곹솴 ?뱀뀡 (?ㅻⅨ履?
+        # comment cleaned (encoding issue)
         self.setup_progress_section(top_section_layout)
         
         main_layout.addLayout(top_section_layout)
         
-        # ????꾩튂 ?뱀뀡 (?섎떒)
+        # comment cleaned (encoding issue)
         self.setup_save_section(main_layout)
         self.main_tabs.addTab(extractor_tab, "연관 키워드 추출")
             
-        # ?곹깭諛?
+        # comment cleaned (encoding issue)
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("준비 완료")
@@ -2843,7 +2928,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         search_group = QGroupBox("키워드 검색")
         search_layout = QVBoxLayout(search_group)
         
-        # 寃???낅젰李?
+        # comment cleaned (encoding issue)
         self.search_input = MultiKeywordTextEdit()
         self.search_input.setPlaceholderText(
             "사용 방법\n"
@@ -2851,16 +2936,16 @@ class KeywordExtractorMainWindow(QMainWindow):
             "2. Enter로 바로 추출 시작, Shift+Enter로 줄바꿈합니다.\n"
             "3. 여러 키워드를 동시에 병렬 처리합니다."
         )
-        # ?믪씠 ?쒗븳 ?쒓굅 諛??뺤옣 ?뺤콉 ?ㅼ젙
+        # comment cleaned (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.search_input.search_requested.connect(self.start_search)
         search_layout.addWidget(self.search_input)
         
-        # ?щ갚 理쒖냼??
+        # comment cleaned (encoding issue)
         search_layout.setContentsMargins(10, 10, 10, 10)
         search_layout.setSpacing(5)
         
-        # 踰꾪듉??
+        # comment cleaned (encoding issue)
         button_layout = QHBoxLayout()
         
         self.start_button = QPushButton("키워드 추출 시작")
@@ -2897,19 +2982,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         path_layout.addWidget(self.save_path_input)
         path_layout.addWidget(self.browse_button)
         
-        # 湲곕낯 寃쎈줈 ?ㅼ젙
+        # comment cleaned (encoding issue)
         saved_dir = self.settings.get_save_dir()
         if saved_dir and os.path.exists(saved_dir):
             self.save_path_input.setText(saved_dir)
         else:
-            # ?ъ슜?먮퀎 諛뷀깢?붾㈃ 寃쎈줈 ?숈쟻 ?앹꽦
+            # comment cleaned (encoding issue)
             desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
             default_dir = os.path.join(desktop_path, "keyword_results")
             
             try:
                 os.makedirs(default_dir, exist_ok=True)
             except Exception:
-                # 諛뷀깢?붾㈃ ?묎렐 ?ㅽ뙣 ????臾몄꽌濡??泥?
+                # comment cleaned (encoding issue)
                 default_dir = os.path.join(os.path.expanduser("~"), "Documents", "keyword_results")
                 os.makedirs(default_dir, exist_ok=True)
                 
@@ -2927,9 +3012,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         """진행 상황 섹션 설정"""
         progress_group = QGroupBox("진행 상황")
         progress_layout = QVBoxLayout(progress_group)
-        progress_layout.setContentsMargins(10, 10, 10, 10) # ?щ갚 ?쇱튂
+        progress_layout.setContentsMargins(10, 10, 10, 10) # 백 치
         
-        # ???꾩젽?쇰줈 蹂寃?
+        # comment cleaned (encoding issue)
         self.progress_tabs = QTabWidget()
         self.progress_tabs.setStyleSheet("""
             QTabWidget::pane { border: 1px solid #CCCCCC; border-radius: 8px; }
@@ -2937,14 +3022,14 @@ class KeywordExtractorMainWindow(QMainWindow):
             QTabBar::tab:selected { background: #E6F0FD; font-weight: bold; color: #1E6ECA; border-bottom: 2px solid #1E6ECA; }
         """)
         
-        # '?꾩껜' ??(?쒖뒪??濡쒓렇??
+        # comment cleaned (encoding issue)
         self.total_log_text = SmartProgressTextEdit(min_height=100, max_height=800)
         self.total_log_text.setReadOnly(True)
         self.total_log_text.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.total_log_text.setPlaceholderText("여기에 전체 진행 로그가 표시됩니다.")
         self.progress_tabs.addTab(self.total_log_text, "전체 로그")
         
-        # ??愿由ъ슜 ?뺤뀛?덈━
+        # comment cleaned (encoding issue)
         self.log_widgets = {"전체": self.total_log_text}
         
         progress_layout.addWidget(self.progress_tabs)
@@ -2989,13 +3074,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         # if not self.driver check removed as threads handle their own drivers
 
         
-        # UI ?곹깭 蹂寃?
+        # comment cleaned (encoding issue)
         self.start_button.setEnabled(False)
         self.pause_button.setEnabled(True)
         self.pause_button.setText("일시정지")
         self.stop_button.setEnabled(True)
         self.search_input.setEnabled(False)
-        # self.progress_text.clear() ??젣??(??珥덇린?붾줈 ?泥?
+        # comment cleaned (encoding issue)
         self.status_bar.showMessage("키워드 추출 중...")
         
         self.update_progress(f"키워드 추출 작업 시작 (총 {len(keywords)}개)")
@@ -3003,27 +3088,27 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.update_progress(f"저장 폴더: {save_dir}")
         self.update_progress("병렬 처리 모드로 실행합니다.")
         
-        # ??珥덇린??(湲곗〈 媛쒕퀎 ???쒓굅, '?꾩껜 濡쒓렇'???좎?)
+        # comment cleaned (encoding issue)
         while self.progress_tabs.count() > 1:
             self.progress_tabs.removeTab(1)
             
         self.log_widgets = {"전체": self.total_log_text}
         self.total_log_text.clear()
         
-        # 寃???ㅻ젅???쒖옉 (蹂묐젹 ?ㅽ뻾)
+        # comment cleaned (encoding issue)
         self.active_threads = []
         self.completed_threads = 0
         self.total_threads = len(keywords)
         self.stop_requested = False
         
-        # 媛??ㅼ썙?쒕퀎 ???앹꽦
+        # comment cleaned (encoding issue)
         for keyword in keywords:
             log_widget = SmartProgressTextEdit(min_height=100, max_height=800)
             log_widget.setReadOnly(True)
             self.progress_tabs.addTab(log_widget, keyword)
             self.log_widgets[keyword] = log_widget
             
-            # ???꾪솚 (泥?踰덉㎏ ?ㅼ썙?쒕줈)
+            # comment cleaned (encoding issue)
             if keywords.index(keyword) == 0:
                 self.progress_tabs.setCurrentIndex(1)
         
@@ -3031,14 +3116,14 @@ class KeywordExtractorMainWindow(QMainWindow):
             thread = ParallelKeywordThread(keyword, save_dir, True)
             thread.finished.connect(self.on_thread_finished)
             thread.error.connect(self.on_thread_error)
-            thread.log.connect(self.update_progress) # ?쒓렇??留ㅽ븨 ?먮룞 泥섎━??
+            thread.log.connect(self.update_progress) # 그매핑 동 처리
             
             self.active_threads.append(thread)
             thread.start()
             self.update_progress(keyword, f"'{keyword}' 작업 시작...")
 
     def on_thread_finished(self, save_path):
-        """?ㅻ젅???묒뾽 ?꾨즺 泥섎━"""
+        """Text cleaned due to encoding issue."""
         if save_path:
             self.update_progress("전체", f"저장 완료: {save_path}")
         self.completed_threads += 1
@@ -3051,7 +3136,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.check_all_threads_finished()
         
     def check_all_threads_finished(self):
-        """紐⑤뱺 ?ㅻ젅?쒓? ?꾨즺?섏뿀?붿? ?뺤씤"""
+        """Text cleaned due to encoding issue."""
         if self.completed_threads >= self.total_threads:
             if self.stop_requested:
                 self.search_finished("중단 요청된 작업이 모두 종료되었습니다.")
@@ -3092,16 +3177,16 @@ class KeywordExtractorMainWindow(QMainWindow):
         QMessageBox.critical(self, "추출 오류", f"연관키워드 추출 중 오류가 발생했습니다:\n{error_msg}")
 
     def update_progress(self, keyword_or_msg, message=None):
-        """吏꾪뻾 ?곹솴 ?낅뜲?댄듃 (?ㅼ썙?쒕퀎 ??遺꾨━ 吏??"""
+        """Text cleaned due to encoding issue."""
         current_time = datetime.now().strftime('%H:%M:%S')
         
-        # ?몄옄 泥섎━ (湲곗〈 ?명솚??+ ?덈줈???쒓렇??
+        # comment cleaned (encoding issue)
         if message is None:
-            # ?⑥씪 ?몄옄 ?몄텧??寃쎌슦 (湲곕낯 ?쒖뒪??硫붿떆吏 ??
+            # comment cleaned (encoding issue)
             target_keyword = "전체"
             msg_content = keyword_or_msg
         else:
-            # (?ㅼ썙?? 硫붿떆吏) ?뺥깭 ?몄텧
+            # comment cleaned (encoding issue)
             target_keyword = keyword_or_msg
             msg_content = message
 
@@ -3109,7 +3194,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         msg_content = sanitize_display_text(msg_content)
         formatted_message = f"[{current_time}] {msg_content}"
         
-        # 1. ?대떦 ?ㅼ썙?쒖쓽 媛쒕퀎 ??뿉 濡쒓렇 異붽?
+        # comment cleaned (encoding issue)
         if target_keyword in self.log_widgets:
             widget = self.log_widgets[target_keyword]
             if hasattr(widget, 'append_with_smart_scroll'):
@@ -3117,7 +3202,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             else:
                 widget.append(formatted_message)
         
-        # 2. '?꾩껜 濡쒓렇' ??뿉??紐⑤뱺 濡쒓렇 異붽? (?좏깮?ы빆, 紐⑤땲?곕쭅 ?몄쓽 ?꾪빐)
+        # comment cleaned (encoding issue)
         if target_keyword != "전체":
             formatted_total_msg = f"[{current_time}] [{target_keyword}] {msg_content}"
             if hasattr(self.total_log_text, 'append_with_smart_scroll'):
@@ -3126,24 +3211,24 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.total_log_text.append(formatted_total_msg)
 
     def pause_resume_search(self):
-        """?쇱떆?뺤?/?ш컻 ?좉?"""
-        # 蹂묐젹 紐⑤뱶?먯꽌??媛쒕퀎 ?ㅻ젅???쇱떆?뺤? 吏?먯씠 蹂듭옟?섎?濡?
-        # ?꾩옱????湲곕뒫??鍮꾪솢?깊솕?섍굅??濡쒓렇留??④? (?먮뒗 異뷀썑 援ы쁽)
-        # ?ш린?쒕뒗 ?⑥닚??踰꾪듉 ?곹깭留??좉??섎뒗 寃껋쑝濡??꾩떆 泥섎━
+        """Text cleaned due to encoding issue."""
+        # comment cleaned (encoding issue)
+        # comment cleaned (encoding issue)
+        # comment cleaned (encoding issue)
         pass
 
     def on_search_paused(self):
-        """?쇱떆?뺤? ??UI ?낅뜲?댄듃"""
+        """Text cleaned due to encoding issue."""
         self.pause_button.setText("재개")
         self.status_bar.showMessage("키워드 추출이 일시정지되었습니다.")
     
     def on_search_resumed(self):
-        """?ш컻 ??UI ?낅뜲?댄듃"""
+        """Text cleaned due to encoding issue."""
         self.pause_button.setText("일시정지")
         self.status_bar.showMessage("키워드 추출 중...")
 
     def reset_ui_state(self):
-        """UI ?곹깭 由ъ뀑"""
+        """Text cleaned due to encoding issue."""
         self.start_button.setEnabled(True)
         self.pause_button.setEnabled(False)
         self.pause_button.setText("일시정지")
@@ -3154,7 +3239,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         """Handle window close event and cleanup."""
         global _crash_save_enabled
         
-        # ?쒖꽦 ?ㅻ젅?쒓? ?덈뒗吏 ?뺤씤
+        # comment cleaned (encoding issue)
         if hasattr(self, 'active_threads') and self.active_threads:
             running_threads = [t for t in self.active_threads if t.isRunning()]
             
@@ -3169,7 +3254,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                 if reply == QMessageBox.StandardButton.Yes:
                     self.update_progress("전체", "프로그램 종료를 위해 작업을 정리하고 있습니다...")
                     
-                    # 紐⑤뱺 ?ㅻ젅??以묐떒
+                    # comment cleaned (encoding issue)
                     for thread in running_threads:
                         thread.stop()
                         thread.wait(1000)
@@ -3182,7 +3267,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         _crash_save_enabled = False
         
         if self.driver:
-            pass  # 硫붿씤 ?쒕씪?대쾭?????댁긽 ?ъ슜?섏? ?딆쓬
+            pass  # 메인 라버상 용 음
         
         event.accept()
 
@@ -3198,7 +3283,7 @@ def main():
     
     app = QApplication(sys.argv)
     
-    # ?좏뵆由ъ??댁뀡 ?꾩씠肄??ㅼ젙
+    # comment cleaned (encoding issue)
     icon_path = get_icon_path()
     if icon_path:
         app.setWindowIcon(QIcon(icon_path))
@@ -3208,31 +3293,31 @@ def main():
     
     app.setApplicationName("네이버 연관키워드 추출기")
     
-    # 1. 癒몄떊 ID ?뺤씤
+    # comment cleaned (encoding issue)
     machine_id = get_machine_id()
     safe_print(f"Machine ID: {machine_id}")
     
-    # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
-    # 2. ?쇱씠?좎뒪 泥댄겕 (?숆린??- ?꾨줈洹몃옩 ?쒖옉 ???꾩닔)
+    # comment cleaned (encoding issue)
+    # comment cleaned (encoding issue)
     expiry_date_str = check_license_from_sheet(machine_id)
     
     if expiry_date_str:
         try:
-            # ?좎쭨 鍮꾧탳 濡쒖쭅 (YYYY-MM-DD ?뺤떇 媛??
+            # comment cleaned (encoding issue)
             expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
             current_date = datetime.now()
             
-            # 留뚮즺?쇱씠 吏??寃쎌슦 (留뚮즺???ㅼ쓬?좊???李⑤떒)
+            # comment cleaned (encoding issue)
             if current_date > expiry_date + pd.Timedelta(days=1):
                 safe_print(f"라이선스 만료: {expiry_date_str}")
                 app_dummy = QApplication.instance() or QApplication(sys.argv)
                 
-                # 留뚮즺 ?ㅼ씠?쇰줈洹??쒖떆
+                # comment cleaned (encoding issue)
                 dialog = ExpiredDialog(expiry_date_str)
                 dialog.exec()
                 sys.exit(0)
             
-            # ?쇱씠?좎뒪 ?좏슚??-> 硫붿씤 ?꾨줈洹몃옩 ?ㅽ뻾
+            # comment cleaned (encoding issue)
             safe_print(f"라이선스 확인 완료: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
@@ -3246,7 +3331,7 @@ def main():
                 raise
                 
         except ValueError:
-            # ?좎쭨 ?뺤떇???섎せ??寃쎌슦?먮룄 ?쇰떒 ?ㅽ뻾? ?쒖폒二쇰릺 寃쎄퀬 (?좎? ?몄쓽)
+            # comment cleaned (encoding issue)
             safe_print(f"라이선스 날짜 형식 확인 필요: {expiry_date_str}")
             window = KeywordExtractorMainWindow()
             window.usage_label.setText(f"사용 기간: {expiry_date_str}")
@@ -3254,7 +3339,7 @@ def main():
             sys.exit(app.exec())
             
     else:
-        # ?쇱씠?좎뒪 ?놁쓬 -> ?ㅼ씠?쇰줈洹??쒖떆 ??醫낅즺
+        # comment cleaned (encoding issue)
         safe_print("미등록 기기 - 실행 차단")
         dialog = UnregisteredDialog(machine_id)
         dialog.exec()
