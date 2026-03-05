@@ -19,6 +19,7 @@ NAVER_DATALAB_SEARCH_URL = "https://openapi.naver.com/v1/datalab/search"
 
 def _required_env(name: str) -> str:
     value = os.getenv(name, "").strip()
+    print(f"[ENV_CHECK] {name}={'SET' if value else 'MISSING'}")
     if not value:
         raise RuntimeError(f"Missing environment variable: {name}")
     return value
