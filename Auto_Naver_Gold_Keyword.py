@@ -5690,7 +5690,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.blog_count_mode_combo.addItem("전체 발행량", "total")
         self.blog_count_mode_combo.setCurrentIndex(0 if self.blog_count_mode == "monthly" else 1)
         self.blog_count_mode_combo.setMinimumWidth(140)
-        self.blog_count_mode_combo.setMinimumHeight(40)
+        self.blog_count_mode_combo.setMinimumHeight(44)
         self.blog_count_mode_combo.currentIndexChanged.connect(self.on_blog_count_mode_changed)
         left_top.addWidget(self.blog_count_mode_combo)
 
@@ -5795,7 +5795,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_category_combo.setObjectName("categoryCenterCombo")
         self.golden_category_combo.setEditable(True)
         self.golden_category_combo.setMinimumWidth(220)
-        self.golden_category_combo.setMinimumHeight(40)
+        self.golden_category_combo.setMinimumHeight(44)
         combo_line_edit = self.golden_category_combo.lineEdit()
         if combo_line_edit is not None:
             combo_line_edit.setReadOnly(True)
