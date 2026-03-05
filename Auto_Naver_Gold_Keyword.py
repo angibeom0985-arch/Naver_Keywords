@@ -5543,26 +5543,29 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.blog_count_mode_combo.addItem("월간 발행량", "monthly")
         self.blog_count_mode_combo.addItem("전체 발행량", "total")
         self.blog_count_mode_combo.setCurrentIndex(0 if self.blog_count_mode == "monthly" else 1)
+        self.blog_count_mode_combo.setMinimumWidth(140)
+        self.blog_count_mode_combo.setMinimumHeight(40)
         self.blog_count_mode_combo.currentIndexChanged.connect(self.on_blog_count_mode_changed)
         left_top.addWidget(self.blog_count_mode_combo)
 
         self.related_batch_size = 10
+
+        self.related_keyword_button = QPushButton("분석 실행")
+        self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
+        left_top.addWidget(self.related_keyword_button)
+
+        self.related_single_button = QPushButton("단일 키워드")
+        self.related_single_button.clicked.connect(self.start_single_keyword_analysis)
+        left_top.addWidget(self.related_single_button)
 
         self.related_upload_button = QPushButton("파일 업로드")
         self.related_upload_button.setObjectName("uploadButton")
         self.related_upload_button.clicked.connect(self.start_related_file_analysis)
         left_top.addWidget(self.related_upload_button)
 
-        self.related_keyword_button = QPushButton("분석 실행")
-        self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
-        self.related_single_button = QPushButton("단일 키워드")
-        self.related_single_button.clicked.connect(self.start_single_keyword_analysis)
         self.related_save_button = QPushButton("저장")
         self.related_save_button.setEnabled(False)
         self.related_save_button.clicked.connect(lambda: self.save_results_for_mode("related"))
-        left_top.addWidget(self.related_keyword_button)
-        left_top.addWidget(self.related_single_button)
-        left_top.addWidget(self.related_save_button)
         left_layout.addLayout(left_top)
 
         self.blog_count_mode_hint = QLabel("")
@@ -5624,6 +5627,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_more_button.setEnabled(False)
         self.related_more_button.setObjectName("moreLinkButton")
         related_more_row.addWidget(self.related_more_button)
+        related_more_row.addSpacing(10)
+        related_more_row.addWidget(self.related_save_button)
         related_more_row.addStretch(1)
         left_layout.addLayout(related_more_row)
         split.addWidget(left_group, 1)
