@@ -5063,8 +5063,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.golden_root_widget.setStyleSheet(self._golden_root_stylesheet(mode))
         if hasattr(self, "related_table"):
             self.related_table.setStyleSheet(self._result_table_stylesheet(mode))
-        if hasattr(self, "related_table_placeholder"):
-            self.related_table_placeholder.setStyleSheet(self._result_table_stylesheet(mode))
+        if hasattr(self, "related_guide_text"):
+            if mode == "dark":
+                self.related_guide_text.setStyleSheet(
+                    "QTextEdit#relatedGuideText { color: #d2deea; background: transparent; border: none; }"
+                )
+            else:
+                self.related_guide_text.setStyleSheet(
+                    "QTextEdit#relatedGuideText { color: #2f4d40; background: transparent; border: none; }"
+                )
             self._populate_related_guide_table()
         if hasattr(self, "category_table"):
             self.category_table.setStyleSheet(self._result_table_stylesheet(mode))
@@ -5344,7 +5351,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.search_input.setPlaceholderText(
             "사용 방법\n"
             "1. 키워드를 한 줄에 하나씩 입력하세요.\n"
-            "2. Enter로 바로 추출 시작, Shift+Enter로 줄바꿈합니다.\n"
+            "2. Enter는 바로 추출 시작, Shift+Enter는 줄바꿈 가능\n"
             "3. 동시 실행 개수를 조절해 여러 키워드를 처리할 수 있습니다."
         )
         # comment removed (encoding issue)
@@ -5575,15 +5582,26 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.related_table = QTableWidget()
         self._init_result_table(self.related_table)
-        self.related_table_placeholder = QTableWidget()
-        self.related_table_placeholder.setObjectName("relatedGuideTable")
-        self._init_result_table(self.related_table_placeholder)
+        self.related_guide_panel = QFrame()
+        self.related_guide_panel.setObjectName("relatedGuideCard")
+        guide_layout = QVBoxLayout(self.related_guide_panel)
+        guide_layout.setContentsMargins(22, 18, 22, 18)
+        guide_layout.setSpacing(10)
+        self.related_guide_title = QLabel("연관 키워드 분석 사용법")
+        self.related_guide_title.setObjectName("relatedGuideTitle")
+        self.related_guide_text = QTextEdit()
+        self.related_guide_text.setObjectName("relatedGuideText")
+        self.related_guide_text.setReadOnly(True)
+        self.related_guide_text.setFrameShape(QFrame.Shape.NoFrame)
+        self.related_guide_text.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        guide_layout.addWidget(self.related_guide_title)
+        guide_layout.addWidget(self.related_guide_text, 1)
         self._populate_related_guide_table()
 
         self.related_table_stack_widget = QWidget()
         self.related_table_stack = QStackedLayout(self.related_table_stack_widget)
         self.related_table_stack.setContentsMargins(0, 0, 0, 0)
-        self.related_table_stack.addWidget(self.related_table_placeholder)
+        self.related_table_stack.addWidget(self.related_guide_panel)
         self.related_table_stack.addWidget(self.related_table)
         self.related_table_stack.setCurrentIndex(0)
         left_layout.addWidget(self.related_table_stack_widget)
@@ -5947,45 +5965,37 @@ class KeywordExtractorMainWindow(QMainWindow):
         self._update_blog_count_column_header()
 
     def _populate_related_guide_table(self):
-        guide_table = getattr(self, "related_table_placeholder", None)
-        if not isinstance(guide_table, QTableWidget):
+        guide_text_widget = getattr(self, "related_guide_text", None)
+        if not isinstance(guide_text_widget, QTextEdit):
             return
 
-        lines = [
-            "연관 키워드 분석 사용법",
-            "1. 실행 전 설정: '월간 발행량 / 전체 발행량' 중 하나를 먼저 선택하세요.",
-            "2. 설정 차이: 월간 발행량은 수집 정밀도가 높지만 시간이 더 걸리고, 전체 발행량은 더 빠르게 분석됩니다.",
-            "3. 버튼 차이: '분석 실행'은 입력창의 여러 키워드를 일괄 분석하고, '단일 키워드'는 1개 키워드만 빠르게 분석합니다.",
-            "4. 분석 시작: 키워드 입력 후 버튼을 누르거나, 여러 키워드는 '파일 업로드'를 사용하세요. (xlsx/csv, A열 기준)",
-            "5. 진행 확인: 하단 진행 막대와 로그 탭에서 단계별 상태를 확인할 수 있습니다.",
-            "6. 결과 표 항목: 키워드 / 월 검색량 / 월 블로그 발행량 / 콘텐츠 포화 지수",
-            "7. 표 정렬: 각 열 제목의 ↕를 클릭하면 오름차순/내림차순으로 정렬됩니다.",
-            "8. 추가 확장: '더 많은 연관 키워드 보기'를 누르면 현재 결과 기반으로 재분석합니다.",
-            "9. 저장: 분석 완료 후 '저장' 버튼으로 현재 결과를 파일로 저장하세요.",
-        ]
-
-        guide_table.setSortingEnabled(False)
-        guide_table.clearContents()
-        guide_table.setRowCount(len(lines))
-        guide_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        guide_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        guide_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-        gray_title = QColor("#5f6368")
-        gray_body = QColor("#6f7680")
-
-        for row, text in enumerate(lines):
-            guide_table.setSpan(row, 0, 1, 4)
-            item = QTableWidgetItem(text)
-            item.setTextAlignment(int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft))
-            item.setForeground(gray_title if row == 0 else gray_body)
-            if row == 0:
-                f = item.font()
-                f.setBold(True)
-                f.setPointSize(max(11, f.pointSize()))
-                item.setFont(f)
-            guide_table.setItem(row, 0, item)
-            guide_table.setRowHeight(row, 38 if row == 0 else 34)
+        guide_text_widget.setPlainText(
+            "[처음 사용자 빠른 시작]\n"
+            "1) 입력칸에 키워드를 한 줄에 하나씩 입력하세요.\n"
+            "   예: 연말정산 환급일\n"
+            "       자동차보험 비교\n"
+            "       다이어트 식단\n\n"
+            "2) 발행량 기준을 먼저 고르세요.\n"
+            "   - 월간 발행량: 최근 경쟁 강도를 더 현실적으로 보고 싶을 때\n"
+            "   - 전체 발행량: 속도를 우선해 빠르게 전체 흐름을 볼 때\n\n"
+            "3) 실행 버튼을 선택하세요.\n"
+            "   - 분석 실행: 입력한 여러 키워드를 순서대로 분석\n"
+            "   - 단일 키워드: 현재 입력된 1개 키워드만 빠르게 분석\n"
+            "   - 파일 업로드: xlsx/csv 파일 A열 키워드를 일괄 분석\n\n"
+            "[분석 중 확인할 것]\n"
+            "4) 상단 진행 상태와 로그를 보면서 현재 단계(수집/검색량/포화지수)를 확인하세요.\n"
+            "5) 분석이 끝나면 표에 키워드, 월 검색량, 발행량, 콘텐츠 포화 지수가 표시됩니다.\n\n"
+            "[결과 읽는 법]\n"
+            "6) 월 검색량: 높을수록 수요가 많은 키워드입니다.\n"
+            "7) 콘텐츠 포화 지수: 낮을수록 경쟁이 덜한 편입니다.\n"
+            "8) 열 제목(↕)을 클릭해 정렬하면 우선순위를 쉽게 정할 수 있습니다.\n\n"
+            "[추가 확장 분석]\n"
+            "9) 더 많은 연관 키워드 보기를 누르면, 조건 키워드 목록 창이 열립니다.\n"
+            "10) 목록에서 원하는 키워드를 선택해 추가 분석하면 기존 결과는 유지되고\n"
+            "    새 결과가 아래에 이어서 추가됩니다.\n\n"
+            "[마무리]\n"
+            "11) 저장 버튼을 눌러 현재 표 결과를 파일로 저장하세요."
+        )
 
     def copy_selected_table_cells(self, table_widget):
         indexes = table_widget.selectedIndexes()
@@ -6085,7 +6095,6 @@ class KeywordExtractorMainWindow(QMainWindow):
         for table in [
             getattr(self, "related_table", None),
             getattr(self, "category_table", None),
-            getattr(self, "related_table_placeholder", None),
         ]:
             if not table:
                 continue
