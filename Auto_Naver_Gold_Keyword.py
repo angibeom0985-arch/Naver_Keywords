@@ -5471,19 +5471,22 @@ class KeywordExtractorMainWindow(QMainWindow):
         # comment removed (encoding issue)
         self.search_input = MultiKeywordTextEdit()
         self.search_input.setPlaceholderText(
-            "사용 방법\n\n"
-            "1. 키워드는 여러 개 입력할 수 있습니다. (한 줄에 하나씩)\n"
-            "   예)\n"
-            "   연말정산\n"
-            "   자동차보험\n"
-            "   갤럭시S26\n\n"
-            "2. 입력 후 바로 시작하려면 Enter를 누르세요.\n"
-            "   줄바꿈이 필요하면 Shift+Enter를 누르세요.\n\n"
-            "3. 동시 실행 개수(아래 숫자)는 1~6까지 조절할 수 있습니다.\n"
-            "   권장값은 3이며, 여러 키워드를 안정적으로 처리할 때 가장 균형이 좋습니다.\n\n"
-            "4. '키워드 추출 시작'을 누르면 순서대로 분석이 진행됩니다.\n"
-            "   진행 상황에서 단계별 처리 상태를 확인할 수 있습니다.\n\n"
-            "5. 결과를 저장하려면 하단의 저장 기능을 사용하세요."
+            "[키워드 검색 사용법]\n\n"
+            "[처음 시작]\n"
+            "1) 키워드를 한 줄에 하나씩 입력하세요.\n"
+            "   예: 연말정산\n"
+            "       자동차보험\n"
+            "       갤럭시S26\n\n"
+            "2) 입력 후 바로 시작하려면 Enter를 누르세요.\n"
+            "   줄바꿈은 Shift+Enter로 입력할 수 있습니다.\n\n"
+            "[실행 설정]\n"
+            "3) 동시 실행 개수(아래 숫자)는 1~6까지 조절할 수 있습니다.\n"
+            "4) 권장값은 3이며, 여러 키워드를 안정적으로 처리할 때 가장 균형이 좋습니다.\n\n"
+            "[진행 확인]\n"
+            "5) '키워드 추출 시작'을 누르면 입력 순서대로 분석이 진행됩니다.\n"
+            "6) 오른쪽 '진행 상황'에서 단계별 처리 상태를 확인하세요.\n\n"
+            "[마무리]\n"
+            "7) 분석이 끝나면 저장 기능으로 결과 파일을 보관하세요."
         )
         # comment removed (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
