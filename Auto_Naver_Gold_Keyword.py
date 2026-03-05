@@ -565,10 +565,15 @@ def check_license_from_sheet(machine_id):
             
             # comment removed (encoding issue)
             if len(df.columns) >= 4:
-                # comment removed (encoding issue)
                 df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.strip()
                 machine_id_text = str(machine_id).strip()
+                machine_id_token = _normalize_machine_id_token(machine_id_text)
+                normalized_col = df.iloc[:, 2].apply(_normalize_machine_id_token)
+
+                # 정확 일치 우선, 실패 시 포맷 정규화 일치 허용
                 target_row = df[df.iloc[:, 2] == machine_id_text]
+                if target_row.empty and machine_id_token:
+                    target_row = df[normalized_col == machine_id_token]
                 
                 if not target_row.empty:
                     expiration_date = str(target_row.iloc[0, 3]).strip()
@@ -584,6 +589,9 @@ def verify_machine_id_guard():
     try:
         # onefile/onedir EXE에서는 소스 파일 직접 읽기가 불안정하므로 런타임 검증을 건너뜀
         if getattr(sys, "frozen", False):
+            return True
+        # 보호 해시가 미설정 상태라면 차단하지 않고 다음 검증 단계로 진행
+        if not MACHINE_ID_GUARD_HASH or MACHINE_ID_GUARD_HASH == "TO_BE_UPDATED":
             return True
         source_text = Path(__file__).read_text(encoding="utf-8-sig")
         tree = ast.parse(source_text)
