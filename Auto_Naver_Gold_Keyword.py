@@ -5611,7 +5611,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         split.setHandleWidth(6)
 
         # Left panel: related keyword analysis
-        left_group = QGroupBox("연관 키워드 분석")
+        left_group = QGroupBox("연관키워드 중 황금키워드 발굴")
         left_group.setObjectName("leftPanel")
         left_group.setMinimumWidth(0)
         left_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -5689,7 +5689,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         guide_layout = QVBoxLayout(self.related_guide_panel)
         guide_layout.setContentsMargins(22, 18, 22, 18)
         guide_layout.setSpacing(10)
-        self.related_guide_title = QLabel("연관 키워드 분석 사용법")
+        self.related_guide_title = QLabel("연관키워드 중 황금키워드 발굴 사용법")
         self.related_guide_title.setObjectName("relatedGuideTitle")
         self.related_guide_text = QTextEdit()
         self.related_guide_text.setObjectName("relatedGuideText")
@@ -6493,7 +6493,7 @@ class KeywordExtractorMainWindow(QMainWindow):
     def start_related_keyword_analysis_more(self):
         keyword = self.last_analysis_keyword.get("related", "").strip() or self.related_keyword_input.text().strip()
         if not keyword:
-            QMessageBox.warning(self, "입력 오류", "먼저 연관 키워드 분석을 실행해 주세요.")
+            QMessageBox.warning(self, "입력 오류", "먼저 연관키워드 중 황금키워드 발굴을 실행해 주세요.")
             return
 
         rows = [r for r in (self.related_keyword_results or []) if str(r.get("keyword", "")).strip()]
@@ -6755,7 +6755,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.category_save_button.setEnabled(True)
             self.category_continue_button.setEnabled(True)
         self.apply_filters_for_mode(analysis_type)
-        mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 황금키워드 추천"
+        mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "카테고리 황금키워드 추천"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
 
     def on_golden_keyword_error(self, error_message):
