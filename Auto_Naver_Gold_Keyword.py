@@ -387,23 +387,11 @@ def load_api_credentials_from_file():
 
 
 def _machine_id_cache_paths():
-    paths = [Path.home() / ".auto_naver_machine_id.txt"]
-    appdata = os.getenv("APPDATA", "").strip()
-    if appdata:
-        paths.append(Path(appdata) / "AutoNaverKeyword" / "machine_id.txt")
-    return paths
+    return []
 
 
 def _load_persisted_machine_id():
-    for path in _machine_id_cache_paths():
-        try:
-            if path.exists():
-                cached = path.read_text(encoding="utf-8-sig").strip()
-                token = _normalize_machine_id_token(cached)
-                if token:
-                    return token
-        except Exception:
-            pass
+    _purge_legacy_machine_id_files()
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
             cached, _ = winreg.QueryValueEx(key, "MachineId")
@@ -420,17 +408,68 @@ def _save_persisted_machine_id(machine_id):
     token = _normalize_machine_id_token(machine_id)
     if not token:
         return
-    for path in _machine_id_cache_paths():
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(token, encoding="utf-8")
-        except Exception:
-            pass
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
             winreg.SetValueEx(key, "MachineId", 0, winreg.REG_SZ, token)
     except Exception:
         pass
+    _purge_legacy_machine_id_files()
+
+
+def _purge_legacy_machine_id_files():
+    """Silently remove machine-id text artifacts to prevent distribution leakage."""
+    names = {"machine_id.txt", ".auto_naver_machine_id.txt"}
+    roots = set()
+    try:
+        roots.add(Path.home())
+    except Exception:
+        pass
+    for env_name in ("APPDATA", "LOCALAPPDATA", "PROGRAMDATA"):
+        env_path = str(os.getenv(env_name, "")).strip()
+        if env_path:
+            roots.add(Path(env_path))
+    try:
+        roots.add(get_app_base_dir())
+    except Exception:
+        pass
+    try:
+        roots.add(get_settings_dir())
+    except Exception:
+        pass
+
+    candidates = set()
+    for root in roots:
+        if not root:
+            continue
+        try:
+            root = root.resolve()
+        except Exception:
+            pass
+        candidates.add(root / "AutoNaverKeyword")
+        candidates.add(root / "Auto_Naver")
+        candidates.add(root / "setting")
+    # app base / setting은 하위 폴더가 바로 대상일 수 있어 직접 포함
+    try:
+        candidates.add(get_app_base_dir())
+    except Exception:
+        pass
+    try:
+        candidates.add(get_settings_dir())
+    except Exception:
+        pass
+
+    for base in candidates:
+        try:
+            if not base.exists():
+                continue
+            for path in base.rglob("*"):
+                if path.is_file() and path.name.lower() in names:
+                    try:
+                        path.unlink()
+                    except Exception:
+                        pass
+        except Exception:
+            continue
 
 
 def _normalize_machine_id_token(raw_value):

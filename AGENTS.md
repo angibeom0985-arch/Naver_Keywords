@@ -16,9 +16,7 @@
 - 기존 레거시 형식(`Gold Keyword-MID-...`)은 호환 조회를 허용하지 않는다.
 - 머신 ID 관련 코드(`get_machine_id`, 라이선스 매칭, 저장/조회 경로, 포맷 검증)를 수정할 때는 작업 전에 반드시 사용자에게 확인 요청을 먼저 한다.
 - 머신 ID 저장/조회 경로는 현재 구현 기준을 유지한다.
-  - 레지스트리: `HKCU\\Software\\AutoNaverKeyword\\MachineId`
-  - 로컬 캐시: `~/.auto_naver_machine_id.txt`
-  - APPDATA 캐시: `%APPDATA%\\AutoNaverKeyword\\machine_id.txt`
+  - 레지스트리: `HKCU\\Software\\AutoNaverKeyword\\MachineId` (단일 저장소)
 - 머신 ID 관련 로직 변경 시 라이선스 검증(`check_license_from_sheet`) 호환성을 함께 유지한다.
   - 기존 유효 구매자 통과
   - 만료 구매자 실패
@@ -27,6 +25,7 @@
 ## 머신 ID 파일 정책
 - `machine_id.txt` 잔여 파일이 dist/패키지 산출물에 포함되지 않도록 배포 전 점검한다.
 - 불필요한 머신 ID 임시 파일/중복 파일은 배포 전 제거한다.
+- 머신 ID는 레지스트리만 사용하며, `machine_id.txt` 및 `.auto_naver_machine_id.txt`는 생성하지 않는다.
 
 ## 프로젝트 구조/운영
 - Python 단일 소스는 루트 `Auto_Naver_Gold_Keyword.py`를 기준으로 관리한다.
