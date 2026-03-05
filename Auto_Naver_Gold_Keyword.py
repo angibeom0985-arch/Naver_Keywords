@@ -5576,36 +5576,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         self._init_result_table(self.category_table)
         right_layout.addWidget(self.category_table)
 
-        for w in [
-            self.golden_category_combo,
-            self.category_limit_spin,
-            self.golden_start_button,
-            self.category_continue_button,
-            self.category_save_button,
-            self.category_table
-        ]:
-            w.setEnabled(False)
-
         self.category_notice_card = QFrame()
         self.category_notice_card.setObjectName("categoryNoticeCard")
-        notice_layout = QVBoxLayout(self.category_notice_card)
-        notice_layout.setContentsMargins(16, 18, 16, 18)
-        notice_layout.setSpacing(10)
-        notice_title = QLabel("업데이트 예정")
-        notice_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        notice_title.setObjectName("categoryNoticeTitle")
-        self.category_notice_text = QLabel(
-            "카테고리 황금키워드 추천 기능은 현재 개선 중입니다.\n"
-            "다음 업데이트에서 새 로직으로 제공됩니다."
-        )
-        self.category_notice_text.setWordWrap(True)
-        self.category_notice_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.category_notice_text.setObjectName("categoryNoticeText")
-        notice_layout.addStretch(1)
-        notice_layout.addWidget(notice_title)
-        notice_layout.addWidget(self.category_notice_text)
-        notice_layout.addStretch(1)
-        right_layout.addWidget(self.category_notice_card)
+        self.category_notice_card.setVisible(False)
         split.addWidget(right_group, 1)
 
         root.addLayout(split)
@@ -6275,7 +6248,17 @@ class KeywordExtractorMainWindow(QMainWindow):
         )
 
     def start_category_golden_keyword_search(self):
-        QMessageBox.information(self, "안내", "카테고리 황금키워드 추천 기능은 업데이트 예정입니다.")
+        category_name = self.golden_category_combo.currentText().strip()
+        if not category_name:
+            QMessageBox.warning(self, "입력 오류", "카테고리를 선택해 주세요.")
+            return
+        self._start_golden_analysis(
+            "category",
+            category_name,
+            category_seeds=self.category_seed_map.get(category_name, []),
+            offset=0,
+            keep_existing=False
+        )
 
     def on_golden_keyword_log(self, message):
         self.status_bar.showMessage(sanitize_display_text(message))
