@@ -74,7 +74,8 @@ from PyQt6.QtWidgets import (
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
     QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QScroller, QStackedLayout, QMenu, QStyledItemDelegate
+    QAbstractItemView, QScroller, QStackedLayout, QMenu, QStyledItemDelegate,
+    QListWidget, QListWidgetItem, QDialogButtonBox
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -1043,6 +1044,69 @@ class InsightChartWidget(QWidget):
                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                 f"{v:.1f}"
             )
+
+
+class RelatedExpandSeedDialog(QDialog):
+    def __init__(self, candidates, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("확장 분석 키워드 선택")
+        self.resize(640, 520)
+        self._candidates = list(candidates or [])
+
+        layout = QVBoxLayout(self)
+        guide = QLabel(
+            "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과 키워드입니다.\n"
+            "추가 분석할 키워드를 선택한 뒤 '선택 키워드 분석'을 눌러 주세요."
+        )
+        guide.setWordWrap(True)
+        layout.addWidget(guide)
+
+        self.list_widget = QListWidget()
+        self.list_widget.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
+        for row in self._candidates:
+            keyword = str(row.get("keyword", "")).replace("+", " ").strip()
+            monthly = int(row.get("monthly_total_search", 0))
+            saturation = float(row.get("content_saturation_index", 0.0))
+            item_text = f"{keyword}  |  월 검색량 {monthly:,}  |  포화지수 {saturation:.2f}%"
+            item = QListWidgetItem(item_text)
+            item.setData(Qt.ItemDataRole.UserRole, keyword)
+            self.list_widget.addItem(item)
+        layout.addWidget(self.list_widget, 1)
+
+        action_row = QHBoxLayout()
+        select_all_btn = QPushButton("전체 선택")
+        clear_btn = QPushButton("선택 해제")
+        select_all_btn.clicked.connect(self.list_widget.selectAll)
+        clear_btn.clicked.connect(self.list_widget.clearSelection)
+        action_row.addWidget(select_all_btn)
+        action_row.addWidget(clear_btn)
+        action_row.addStretch(1)
+        layout.addLayout(action_row)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        ok_btn = buttons.button(QDialogButtonBox.StandardButton.Ok)
+        if ok_btn is not None:
+            ok_btn.setText("선택 키워드 분석")
+        cancel_btn = buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        if cancel_btn is not None:
+            cancel_btn.setText("취소")
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def selected_keywords(self):
+        selected = []
+        seen = set()
+        for item in self.list_widget.selectedItems():
+            keyword = str(item.data(Qt.ItemDataRole.UserRole) or "").strip()
+            key = keyword.replace(" ", "").lower()
+            if not keyword or key in seen:
+                continue
+            seen.add(key)
+            selected.append(keyword)
+        return selected
 
         painter.setPen(QPen(QColor("#adb5bd"), 1))
         painter.drawLine(left, top, left, bottom)
@@ -6261,37 +6325,45 @@ class KeywordExtractorMainWindow(QMainWindow):
             QMessageBox.warning(self, "안내", "표 결과가 없어 확장 분석을 진행할 수 없습니다.")
             return
 
-        sorted_rows = sorted(
-            rows,
-            key=lambda r: int(r.get("monthly_total_search", 0)),
-            reverse=True
-        )
-
-        # 표 결과를 검색량 내림차순으로 모두 순회하되, 1,000 초과 키워드만 재귀 확장 대상으로 사용
-        expand_seeds = []
+        # 새 창에서 조건(월 검색량 1,000 초과 + 포화지수 10% 초과) 충족 키워드를 선택 받아 확장 분석
+        candidates = []
         seen_seed_keys = set()
-        for row in sorted_rows:
+        for row in rows:
             monthly = int(row.get("monthly_total_search", 0))
-            if monthly <= 1000:
+            saturation = float(row.get("content_saturation_index", 0.0))
+            if monthly <= 1000 or saturation <= 10.0:
                 continue
             seed_text = str(row.get("keyword", "")).replace("+", " ").strip()
             seed_key = seed_text.replace(" ", "").lower()
             if not seed_text or seed_key in seen_seed_keys:
                 continue
             seen_seed_keys.add(seed_key)
-            expand_seeds.append(seed_text)
+            candidates.append(row)
 
-        if not expand_seeds:
+        candidates.sort(
+            key=lambda r: (int(r.get("monthly_total_search", 0)), -float(r.get("content_saturation_index", 0.0))),
+            reverse=True
+        )
+
+        if not candidates:
             QMessageBox.information(
                 self,
                 "안내",
-                "현재 표 결과에서 월 검색량 1,000 초과 키워드가 없어\n"
-                "'더 많은 연관 키워드 보기' 재귀 확장을 적용할 수 없습니다."
+                "현재 표 결과에서 조건에 맞는 키워드가 없습니다.\n"
+                "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과"
             )
             return
 
+        picker = RelatedExpandSeedDialog(candidates, self)
+        if picker.exec() != QDialog.DialogCode.Accepted:
+            return
+        expand_seeds = picker.selected_keywords()
+        if not expand_seeds:
+            QMessageBox.information(self, "안내", "선택된 키워드가 없어 확장 분석을 취소했습니다.")
+            return
+
         self.status_bar.showMessage(
-            f"확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과)"
+            f"확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과 + 포화지수 10% 초과)"
         )
         self._start_golden_analysis(
             "related",
