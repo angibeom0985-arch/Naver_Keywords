@@ -1390,6 +1390,8 @@ class MultiKeywordTextEdit(QTextEdit):
         self.max_height = 800
         self.resize_step = 30
         self._placeholder_text = ""
+        self._placeholder_scroll_offset = 0
+        self._placeholder_scroll_max = 0
         
         # comment removed (encoding issue)
         self._cta_text = "키워드 공부하러 가기"
@@ -1438,6 +1440,8 @@ class MultiKeywordTextEdit(QTextEdit):
     def setPlaceholderText(self, text):
         """Description"""
         self._placeholder_text = text
+        self._placeholder_scroll_offset = 0
+        self._placeholder_scroll_max = 0
         self.update()
         
     def paintEvent(self, event):
@@ -1461,7 +1465,7 @@ class MultiKeywordTextEdit(QTextEdit):
             lines = self._placeholder_text.split('\n')
             metrics = painter.fontMetrics()
             line_height = metrics.height()
-            line_spacing = 2.2
+            line_spacing = 1.45
             text_block_height = (len(lines) * line_height * line_spacing)
             
             viewport_rect = viewport.rect()
@@ -1472,9 +1476,11 @@ class MultiKeywordTextEdit(QTextEdit):
             spacing_between = 20
             
             # comment removed (encoding issue)
-            total_content_height = text_block_height + spacing_between + link_h
-            centered_y = (viewport_rect.height() - total_content_height) / 2 + metrics.ascent()
-            start_y = max(36 + metrics.ascent(), centered_y)
+            total_content_height = text_block_height + spacing_between + link_h + 30
+            visible_height = max(1, viewport_rect.height() - 24)
+            self._placeholder_scroll_max = max(0, int(total_content_height - visible_height))
+            self._placeholder_scroll_offset = max(0, min(self._placeholder_scroll_offset, self._placeholder_scroll_max))
+            start_y = 24 + metrics.ascent() - self._placeholder_scroll_offset
             
             current_y = start_y
             
@@ -1498,14 +1504,14 @@ class MultiKeywordTextEdit(QTextEdit):
             link_metrics = painter.fontMetrics()
             link_width = link_metrics.horizontalAdvance(self._cta_text)
             link_x = (viewport_rect.width() - link_width) / 2
-            bottom_margin = 26
-            link_top = min(current_y, viewport_rect.height() - (link_metrics.height() + bottom_margin))
-            link_top = max(link_top, 12)
-
-            painter.drawText(int(link_x), int(link_top + link_metrics.ascent()), self._cta_text)
-            
-            # comment removed (encoding issue)
-            self._link_rect = QRect(int(link_x), int(link_top), int(link_width), int(link_metrics.height() + 10))
+            link_top = current_y
+            link_bottom = link_top + link_metrics.height() + 10
+            if link_bottom >= 0 and link_top <= viewport_rect.height():
+                painter.drawText(int(link_x), int(link_top + link_metrics.ascent()), self._cta_text)
+                # comment removed (encoding issue)
+                self._link_rect = QRect(int(link_x), int(link_top), int(link_width), int(link_metrics.height() + 10))
+            else:
+                self._link_rect = None
 
     def mouseMoveEvent(self, event):
         """Handle mouse move for link hover."""
@@ -1541,6 +1547,24 @@ class MultiKeywordTextEdit(QTextEdit):
 
     def wheelEvent(self, event):
         """Description"""
+        if (
+            not self.toPlainText().strip()
+            and not self.hasFocus()
+            and not (event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+            and self._placeholder_scroll_max > 0
+        ):
+            delta = event.angleDelta().y()
+            step = 42
+            if delta < 0:
+                self._placeholder_scroll_offset = min(
+                    self._placeholder_scroll_max, self._placeholder_scroll_offset + step
+                )
+            elif delta > 0:
+                self._placeholder_scroll_offset = max(0, self._placeholder_scroll_offset - step)
+            self.update()
+            event.accept()
+            return
+
         # comment removed (encoding issue)
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             # comment removed (encoding issue)
