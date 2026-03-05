@@ -5863,6 +5863,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         ratio_row.addWidget(self.age_ratio_chart, 1)
         insight_layout.addLayout(ratio_row)
         root.addWidget(self.insight_group)
+        root.setStretch(0, 14)
+        root.setStretch(1, 1)
+        self._set_insight_collapsed(True)
         root_widget.setStyleSheet("""
             QGroupBox { font-size: 14px; font-weight: 700; }
             QGroupBox::title {
@@ -6094,6 +6097,29 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         root_widget.setStyleSheet(self._golden_root_stylesheet("light"))
         parent_layout.addWidget(root_widget)
+
+    def _set_insight_collapsed(self, collapsed: bool):
+        self.insight_collapsed = bool(collapsed)
+        charts = (
+            getattr(self, "month_ratio_chart", None),
+            getattr(self, "weekday_ratio_chart", None),
+            getattr(self, "age_ratio_chart", None),
+        )
+        for chart in charts:
+            if chart is not None:
+                chart.setVisible(not self.insight_collapsed)
+
+        if self.insight_collapsed:
+            self.insight_group.setMinimumHeight(72)
+            self.insight_group.setMaximumHeight(92)
+            if hasattr(self, "insight_title_label"):
+                self.insight_title_label.setVisible(False)
+                self.insight_title_label.setText("")
+        else:
+            self.insight_group.setMinimumHeight(220)
+            self.insight_group.setMaximumHeight(16777215)
+            if hasattr(self, "insight_title_label"):
+                self.insight_title_label.setVisible(True)
 
     def _init_result_table(self, table_widget):
         table_widget.setColumnCount(4)
@@ -6694,9 +6720,11 @@ class KeywordExtractorMainWindow(QMainWindow):
 
     def on_keyword_insight(self, insight):
         if not insight:
+            self._set_insight_collapsed(True)
             self.insight_title_label.setText("인사이트 데이터를 불러오지 못했습니다.")
             return
 
+        self._set_insight_collapsed(False)
         self.insight_title_label.setText("인사이트")
         month_ratio = insight.get("month_ratio", [])
         weekday_ratio = insight.get("weekday_ratio", [])
