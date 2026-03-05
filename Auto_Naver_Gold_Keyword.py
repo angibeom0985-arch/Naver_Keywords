@@ -954,12 +954,12 @@ class SmartProgressTextEdit(ResizableTextEdit):
             scrollbar.setValue(scrollbar.maximum())
     
     def show_search_dialog(self):
-        """로그 검색 다이얼로그 표시"""
+        """기록 검색 다이얼로그 표시"""
         from PyQt6.QtWidgets import QInputDialog
         
         text, ok = QInputDialog.getText(
             self, 
-            "로그 검색",
+            "기록 검색",
             "찾을 텍스트를 입력하세요:",
             text=self.last_search_text
         )
@@ -969,7 +969,7 @@ class SmartProgressTextEdit(ResizableTextEdit):
             self.search_in_text(text)
     
     def search_in_text(self, search_text):
-        """로그 텍스트 내 검색."""
+        """기록 텍스트 내 검색."""
         if not search_text:
             return
         
@@ -5543,8 +5543,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         progress_group = QGroupBox("진행 상황")
         progress_group.setObjectName("extractProgressGroup")
         progress_layout = QVBoxLayout(progress_group)
-        progress_layout.setContentsMargins(10, 2, 10, 10)
-        progress_layout.setSpacing(0)
+        progress_layout.setContentsMargins(10, 12, 10, 10)
+        progress_layout.setSpacing(6)
         
         # comment removed (encoding issue)
         self.progress_tabs = QTabWidget()
@@ -5559,8 +5559,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.total_log_text = SmartProgressTextEdit(min_height=100, max_height=800)
         self.total_log_text.setReadOnly(True)
         self.total_log_text.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.total_log_text.setPlaceholderText("여기에 전체 진행 로그가 표시됩니다.")
-        self.progress_tabs.addTab(self.total_log_text, "전체 로그")
+        self.total_log_text.setPlaceholderText("여기에 전체 진행 기록이 표시됩니다.")
+        self.progress_tabs.addTab(self.total_log_text, "전체 기록")
         
         # comment removed (encoding issue)
         self.log_widgets = {"전체": self.total_log_text}
@@ -6121,7 +6121,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             "   - 단일 키워드: 현재 입력된 1개 키워드만 빠르게 분석\n"
             "   - 파일 업로드: xlsx/csv 파일 A열 키워드를 일괄 분석\n\n"
             "[분석 중 확인할 것]\n"
-            "4) 상단 진행 상태와 로그를 보면서 현재 단계(수집/검색량/포화지수)를 확인하세요.\n"
+            "4) 상단 진행 상태와 기록을 보면서 현재 단계(수집/검색량/포화지수)를 확인하세요.\n"
             "5) 분석이 끝나면 표에 키워드, 월 검색량, 발행량, 콘텐츠 포화 지수가 표시됩니다.\n\n"
             "[결과 읽는 법]\n"
             "6) 월 검색량: 높을수록 수요가 많은 키워드입니다.\n"
