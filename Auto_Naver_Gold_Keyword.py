@@ -74,7 +74,7 @@ from PyQt6.QtWidgets import (
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
     QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QScroller, QStackedLayout
+    QAbstractItemView, QScroller, QStackedLayout, QMenu, QStyledItemDelegate
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -946,6 +946,27 @@ class SortableNumericItem(QTableWidgetItem):
         if isinstance(other, SortableNumericItem):
             return self._numeric_value < other._numeric_value
         return super().__lt__(other)
+
+
+class ReadOnlyCellDelegate(QStyledItemDelegate):
+    """Allow text drag/select inside table cells without enabling data edits."""
+    def createEditor(self, parent, option, index):
+        editor = QLineEdit(parent)
+        editor.setReadOnly(True)
+        editor.setFrame(False)
+        editor.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
+        return editor
+
+    def setEditorData(self, editor, index):
+        editor.setText(str(index.data() or ""))
+        editor.deselect()
+
+    def setModelData(self, editor, model, index):
+        # read-only editor: keep original model value
+        return
+
+    def updateEditorGeometry(self, editor, option, index):
+        editor.setGeometry(option.rect.adjusted(2, 0, -2, 0))
 
 
 class InsightChartWidget(QWidget):
@@ -5837,12 +5858,20 @@ class KeywordExtractorMainWindow(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         table_widget.setMinimumHeight(300)
         table_widget.setAlternatingRowColors(True)
-        table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        table_widget.setEditTriggers(
+            QTableWidget.EditTrigger.SelectedClicked
+            | QTableWidget.EditTrigger.DoubleClicked
+            | QTableWidget.EditTrigger.EditKeyPressed
+        )
         table_widget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-        # 드래그로 연속 구간을 쉽게 선택할 수 있도록 행 단위 선택을 사용
-        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
         table_widget.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         table_widget.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+        table_widget.setItemDelegate(ReadOnlyCellDelegate(table_widget))
+        table_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        table_widget.customContextMenuRequested.connect(
+            lambda pos, tw=table_widget: self._show_table_context_menu(tw, pos)
+        )
         table_widget._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), table_widget)
         table_widget._copy_shortcut.activated.connect(
             lambda tw=table_widget: self.copy_selected_table_cells(tw)
@@ -5909,6 +5938,30 @@ class KeywordExtractorMainWindow(QMainWindow):
         clipboard = QApplication.clipboard()
         if clipboard is not None:
             clipboard.setText("\n".join(lines))
+
+    def _show_table_context_menu(self, table_widget, pos):
+        index = table_widget.indexAt(pos)
+        if index.isValid():
+            table_widget.setCurrentCell(index.row(), index.column())
+
+        menu = QMenu(table_widget)
+        copy_cell_action = menu.addAction("이 셀 복사")
+        copy_selected_action = menu.addAction("선택 영역 복사")
+        if not index.isValid():
+            copy_cell_action.setEnabled(False)
+
+        selected_action = menu.exec(table_widget.viewport().mapToGlobal(pos))
+        if selected_action is None:
+            return
+        clipboard = QApplication.clipboard()
+        if clipboard is None:
+            return
+
+        if selected_action == copy_cell_action and index.isValid():
+            clipboard.setText(str(index.data() or ""))
+            return
+        if selected_action == copy_selected_action:
+            self.copy_selected_table_cells(table_widget)
 
     def _tick_related_spinner(self):
         if not hasattr(self, "related_spinner"):
