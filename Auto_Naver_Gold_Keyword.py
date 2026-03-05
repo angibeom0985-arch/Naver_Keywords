@@ -5721,7 +5721,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         split.addWidget(left_group)
 
         # Right panel: category golden keyword recommendation (read-only for now)
-        right_group = QGroupBox("카테고리 황금키워드 추천")
+        right_group = QGroupBox("사용자 주제 중 황금키워드 추천")
         right_group.setObjectName("rightPanel")
         right_group.setMinimumWidth(0)
         right_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -5795,7 +5795,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         category_guide_layout = QVBoxLayout(self.category_guide_panel)
         category_guide_layout.setContentsMargins(22, 18, 22, 18)
         category_guide_layout.setSpacing(10)
-        self.category_guide_title = QLabel("카테고리 황금키워드 추천 사용법")
+        self.category_guide_title = QLabel("사용자 주제 중 황금키워드 추천 사용법")
         self.category_guide_title.setObjectName("relatedGuideTitle")
         self.category_guide_text = QTextEdit()
         self.category_guide_text.setObjectName("relatedGuideText")
@@ -6136,7 +6136,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not isinstance(guide_text_widget, QTextEdit):
             return
         guide_text_widget.setPlainText(
-            "[카테고리 추천 기능이란?]\n"
+            "[사용자 주제 추천 기능이란?]\n"
             "선택한 주제의 대표 키워드를 기반으로, 검색량과 경쟁도를 함께 계산해\n"
             "활용 가능한 키워드 후보를 빠르게 찾는 기능입니다.\n\n"
             "[사용 순서]\n"
@@ -6565,7 +6565,7 @@ class KeywordExtractorMainWindow(QMainWindow):
     def start_category_golden_keyword_search_more(self):
         category_name = self.last_analysis_keyword.get("category", "").strip() or self.golden_category_combo.currentText().strip()
         if not category_name:
-            QMessageBox.warning(self, "입력 오류", "먼저 카테고리 추천 실행을 해주세요.")
+            QMessageBox.warning(self, "입력 오류", "먼저 사용자 주제 추천 실행을 해주세요.")
             return
 
         rows = [r for r in (self.category_keyword_results or []) if str(r.get("keyword", "")).strip()]
@@ -6755,7 +6755,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.category_save_button.setEnabled(True)
             self.category_continue_button.setEnabled(True)
         self.apply_filters_for_mode(analysis_type)
-        mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "카테고리 황금키워드 추천"
+        mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "사용자 주제 중 황금키워드 추천"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
 
     def on_golden_keyword_error(self, error_message):
