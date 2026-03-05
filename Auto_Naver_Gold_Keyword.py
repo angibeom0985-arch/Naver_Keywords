@@ -114,10 +114,10 @@ SELENIUM_HEADLESS = False
 # comment removed (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "2fdc588465f59c4c0946079ef89fdb342fd7a6deab964abb4eea39cf24967dd3"
+MACHINE_ID_GUARD_HASH = "e7ec64c3e4c1dfda4acf517fe86f19eb49c7444cab589a212b920457e1706474"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
-MACHINE_ID_PREFIX = "Gold-Keyword-"
+MACHINE_ID_PREFIX = "Gold Keyword-"
 
 
 class ApiUsageReporter:
@@ -481,9 +481,12 @@ def _normalize_machine_id_token(raw_value):
             value = value[len(prefix):].strip()
             break
     if value.startswith("MID-"):
-        value = value[4:].strip()
+        core = value[4:].strip()
+        if re.fullmatch(r"[0-9A-Fa-f]{32}", core):
+            return f"MID-{core.upper()}"
+        return None
     if re.fullmatch(r"[0-9A-Fa-f]{32}", value):
-        return value.upper()
+        return f"MID-{value.upper()}"
     return None
 
 
@@ -548,7 +551,7 @@ def get_machine_id():
         parts.append(f"FALLBACK:{fallback}")
 
     raw = "|".join(parts)
-    stable_id = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
+    stable_id = "MID-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
     _save_persisted_machine_id(stable_id)
     return f"{MACHINE_ID_PREFIX}{stable_id}"
 
