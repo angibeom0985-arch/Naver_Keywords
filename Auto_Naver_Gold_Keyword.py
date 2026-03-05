@@ -2776,6 +2776,7 @@ class Settings:
             "remember_api_keys": False,
             "theme_mode": "light",
             "blog_count_mode": "monthly",
+            "max_parallel_threads": 3,
             "searchad_access_key": "",
             "searchad_secret_key": "",
             "searchad_customer_id": "",
@@ -2858,6 +2859,21 @@ class Settings:
 
     def set_blog_count_mode(self, mode):
         self.settings["blog_count_mode"] = "total" if str(mode).strip().lower() == "total" else "monthly"
+        self.save_settings()
+
+    def get_max_parallel_threads(self):
+        try:
+            value = int(self.settings.get("max_parallel_threads", 3))
+        except Exception:
+            value = 3
+        return max(1, min(6, value))
+
+    def set_max_parallel_threads(self, value):
+        try:
+            parsed = int(value)
+        except Exception:
+            parsed = 3
+        self.settings["max_parallel_threads"] = max(1, min(6, parsed))
         self.save_settings()
 
 
@@ -4743,7 +4759,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         # comment removed (encoding issue)
         self.active_threads = []
         self.pending_thread_queue = []
-        self.max_parallel_threads = 2
+        self.max_parallel_threads = self.settings.get_max_parallel_threads()
         self.completed_threads = 0
         self.total_threads = 0
         self.stop_requested = False
@@ -5242,7 +5258,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             "사용 방법\n"
             "1. 키워드를 한 줄에 하나씩 입력하세요.\n"
             "2. Enter로 바로 추출 시작, Shift+Enter로 줄바꿈합니다.\n"
-            "3. 여러 키워드를 동시에 병렬 처리합니다."
+            "3. 동시 실행 개수를 조절해 여러 키워드를 처리할 수 있습니다."
         )
         # comment removed (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -5255,6 +5271,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         
         # comment removed (encoding issue)
         button_layout = QHBoxLayout()
+
+        self.parallel_threads_label = QLabel("동시 실행")
+        self.parallel_threads_spin = QSpinBox()
+        self.parallel_threads_spin.setRange(1, 6)
+        self.parallel_threads_spin.setValue(self.max_parallel_threads)
+        self.parallel_threads_spin.setFixedWidth(72)
+        self.parallel_threads_spin.valueChanged.connect(self.on_max_parallel_threads_changed)
         
         self.start_button = QPushButton("키워드 추출 시작")
         self.start_button.clicked.connect(self.start_search)
@@ -5267,9 +5290,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.stop_button.clicked.connect(self.stop_search)
         self.stop_button.setEnabled(False)
         
+        button_layout.addWidget(self.parallel_threads_label)
+        button_layout.addWidget(self.parallel_threads_spin)
+        button_layout.addSpacing(8)
         button_layout.addWidget(self.start_button)
         button_layout.addWidget(self.pause_button)
         button_layout.addWidget(self.stop_button)
+        button_layout.addStretch(1)
         search_layout.addLayout(button_layout)
         
         main_layout.addWidget(search_group)
@@ -6454,6 +6481,15 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.update_progress("전체", f"키워드 {len(top_keywords)}개 저장: {save_path}")
         QMessageBox.information(self, "저장 완료", f"저장 위치:\n{save_path}")
+
+    def on_max_parallel_threads_changed(self, value):
+        try:
+            parsed = int(value)
+        except Exception:
+            parsed = 3
+        self.max_parallel_threads = max(1, min(6, parsed))
+        self.settings.set_max_parallel_threads(self.max_parallel_threads)
+        self.status_bar.showMessage(f"동시 실행 개수: {self.max_parallel_threads}")
 
     def start_search(self):
         """검색 시작"""
