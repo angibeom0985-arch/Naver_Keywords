@@ -5075,6 +5075,16 @@ class KeywordExtractorMainWindow(QMainWindow):
             self._populate_related_guide_table()
         if hasattr(self, "category_table"):
             self.category_table.setStyleSheet(self._result_table_stylesheet(mode))
+        if hasattr(self, "category_guide_text"):
+            if mode == "dark":
+                self.category_guide_text.setStyleSheet(
+                    "QTextEdit#relatedGuideText { color: #d2deea; background: transparent; border: none; }"
+                )
+            else:
+                self.category_guide_text.setStyleSheet(
+                    "QTextEdit#relatedGuideText { color: #2f4d40; background: transparent; border: none; }"
+                )
+            self._populate_category_guide_text()
         if hasattr(self, "related_spinner"):
             self.related_spinner.set_mode(mode)
 
@@ -5701,7 +5711,29 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.category_table = QTableWidget()
         self._init_result_table(self.category_table)
-        right_layout.addWidget(self.category_table)
+        self.category_guide_panel = QFrame()
+        self.category_guide_panel.setObjectName("relatedGuideCard")
+        category_guide_layout = QVBoxLayout(self.category_guide_panel)
+        category_guide_layout.setContentsMargins(22, 18, 22, 18)
+        category_guide_layout.setSpacing(10)
+        self.category_guide_title = QLabel("카테고리 황금키워드 추천 사용법")
+        self.category_guide_title.setObjectName("relatedGuideTitle")
+        self.category_guide_text = QTextEdit()
+        self.category_guide_text.setObjectName("relatedGuideText")
+        self.category_guide_text.setReadOnly(True)
+        self.category_guide_text.setFrameShape(QFrame.Shape.NoFrame)
+        self.category_guide_text.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        category_guide_layout.addWidget(self.category_guide_title)
+        category_guide_layout.addWidget(self.category_guide_text, 1)
+        self._populate_category_guide_text()
+
+        self.category_table_stack_widget = QWidget()
+        self.category_table_stack = QStackedLayout(self.category_table_stack_widget)
+        self.category_table_stack.setContentsMargins(0, 0, 0, 0)
+        self.category_table_stack.addWidget(self.category_guide_panel)
+        self.category_table_stack.addWidget(self.category_table)
+        self.category_table_stack.setCurrentIndex(0)
+        right_layout.addWidget(self.category_table_stack_widget)
 
         self.category_notice_card = QFrame()
         self.category_notice_card.setObjectName("categoryNoticeCard")
@@ -6018,6 +6050,30 @@ class KeywordExtractorMainWindow(QMainWindow):
             "11) 저장 버튼을 눌러 현재 표 결과를 파일로 저장하세요."
         )
 
+    def _populate_category_guide_text(self):
+        guide_text_widget = getattr(self, "category_guide_text", None)
+        if not isinstance(guide_text_widget, QTextEdit):
+            return
+        guide_text_widget.setPlainText(
+            "[카테고리 추천 기능이란?]\n"
+            "선택한 주제의 대표 키워드를 기반으로, 검색량과 경쟁도를 함께 계산해\n"
+            "활용 가능한 키워드 후보를 빠르게 찾는 기능입니다.\n\n"
+            "[사용 순서]\n"
+            "1) 주제 선택: 상단 드롭다운에서 원하는 카테고리를 고르세요.\n"
+            "2) 추천 개수: 한 번에 받을 결과 개수를 정하세요. (많을수록 시간 증가)\n"
+            "3) 추천 실행: 첫 결과를 분석해 표에 표시합니다.\n\n"
+            "[결과 해석]\n"
+            "4) 월 검색량: 높을수록 수요가 높은 키워드입니다.\n"
+            "5) 콘텐츠 포화 지수: 낮을수록 경쟁이 덜한 키워드입니다.\n"
+            "6) 열 제목(↕)을 클릭하면 원하는 기준으로 정렬할 수 있습니다.\n\n"
+            "[이어서 실행 활용]\n"
+            "7) 이어서 실행을 누르면 조건 키워드 선택 창이 열립니다.\n"
+            "8) 조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과\n"
+            "9) 선택한 키워드로 추가 분석하며, 기존 결과는 유지되고 아래에 누적됩니다.\n\n"
+            "[마무리]\n"
+            "10) 저장 버튼으로 현재 카테고리 결과를 파일로 저장하세요."
+        )
+
     def copy_selected_table_cells(self, table_widget):
         indexes = table_widget.selectedIndexes()
         if not indexes:
@@ -6094,6 +6150,11 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not hasattr(self, "related_table_stack"):
             return
         self.related_table_stack.setCurrentIndex(0 if visible else 1)
+
+    def _set_category_table_guide_visible(self, visible):
+        if not hasattr(self, "category_table_stack"):
+            return
+        self.category_table_stack.setCurrentIndex(0 if visible else 1)
 
     def _get_blog_count_mode(self):
         if hasattr(self, "blog_count_mode_combo"):
@@ -6206,6 +6267,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.category_keyword_results = []
                 self.category_table.setRowCount(0)
                 self.category_save_button.setEnabled(False)
+                self._set_category_table_guide_visible(True)
             self.golden_start_button.setEnabled(False)
             self.category_continue_button.setEnabled(False)
         self.status_bar.showMessage("키워드 분석 중...")
@@ -6600,6 +6662,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                 )
                 self.related_single_mode = False
             else:
+                self._set_category_table_guide_visible(True)
                 self.category_continue_button.setEnabled(True)
             return
 
@@ -6641,6 +6704,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         table = self.related_table if mode == "related" else self.category_table
         if mode == "related":
             self._set_related_table_guide_visible(len(results) == 0)
+        else:
+            self._set_category_table_guide_visible(len(results) == 0)
         table.setSortingEnabled(False)
         table.setRowCount(len(results))
         for idx, row in enumerate(results, start=1):
