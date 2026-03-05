@@ -5646,6 +5646,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_category_combo.addItems(list(self.category_seed_map.keys()))
         self.golden_category_combo.setObjectName("categoryCenterCombo")
         self.golden_category_combo.setEditable(True)
+        self.golden_category_combo.setMinimumWidth(220)
+        self.golden_category_combo.setMinimumHeight(40)
         combo_line_edit = self.golden_category_combo.lineEdit()
         if combo_line_edit is not None:
             combo_line_edit.setReadOnly(True)
@@ -5656,7 +5658,8 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         right_limit_card = QFrame()
         right_limit_card.setObjectName("metricBlue")
-        right_limit_card.setMinimumWidth(210)
+        right_limit_card.setMinimumWidth(260)
+        right_limit_card.setMinimumHeight(44)
         right_limit_layout = QHBoxLayout(right_limit_card)
         right_limit_layout.setContentsMargins(8, 6, 8, 6)
         right_limit_layout.setSpacing(8)
@@ -5667,7 +5670,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.category_limit_spin.setValue(10)
         self.category_limit_spin.setSuffix("개")
         self.category_limit_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.category_limit_spin.setMinimumWidth(90)
+        self.category_limit_spin.setMinimumWidth(120)
+        self.category_limit_spin.setMinimumHeight(38)
         right_limit_layout.addWidget(self.category_limit_spin)
         right_top.addWidget(right_limit_card)
 
@@ -5678,7 +5682,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.category_continue_button = QPushButton("이어서 실행")
         self.category_continue_button.setObjectName("categoryActionButton")
         self.category_continue_button.setMinimumWidth(130)
-        self.category_continue_button.clicked.connect(lambda: self._expand_analysis_scope("category"))
+        self.category_continue_button.clicked.connect(self.start_category_golden_keyword_search_more)
         self.category_continue_button.setEnabled(False)
         self.category_save_button = QPushButton("저장")
         self.category_save_button.setObjectName("categoryActionButton")
@@ -6198,9 +6202,10 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.weekday_ratio_chart.set_data([], [])
             self.age_ratio_chart.set_data([], [])
         else:
-            self.category_keyword_results = []
-            self.category_table.setRowCount(0)
-            self.category_save_button.setEnabled(False)
+            if not keep_existing:
+                self.category_keyword_results = []
+                self.category_table.setRowCount(0)
+                self.category_save_button.setEnabled(False)
             self.golden_start_button.setEnabled(False)
             self.category_continue_button.setEnabled(False)
         self.status_bar.showMessage("키워드 분석 중...")
@@ -6414,6 +6419,64 @@ class KeywordExtractorMainWindow(QMainWindow):
             keep_existing=False
         )
 
+    def start_category_golden_keyword_search_more(self):
+        category_name = self.last_analysis_keyword.get("category", "").strip() or self.golden_category_combo.currentText().strip()
+        if not category_name:
+            QMessageBox.warning(self, "입력 오류", "먼저 카테고리 추천 실행을 해주세요.")
+            return
+
+        rows = [r for r in (self.category_keyword_results or []) if str(r.get("keyword", "")).strip()]
+        if not rows:
+            QMessageBox.warning(self, "안내", "현재 카테고리 표 결과가 없어 이어서 실행할 수 없습니다.")
+            return
+
+        candidates = []
+        seen_seed_keys = set()
+        for row in rows:
+            monthly = int(row.get("monthly_total_search", 0))
+            saturation = float(row.get("content_saturation_index", 0.0))
+            if monthly <= 1000 or saturation <= 10.0:
+                continue
+            seed_text = str(row.get("keyword", "")).replace("+", " ").strip()
+            seed_key = seed_text.replace(" ", "").lower()
+            if not seed_text or seed_key in seen_seed_keys:
+                continue
+            seen_seed_keys.add(seed_key)
+            candidates.append(row)
+
+        candidates.sort(
+            key=lambda r: (int(r.get("monthly_total_search", 0)), -float(r.get("content_saturation_index", 0.0))),
+            reverse=True
+        )
+
+        if not candidates:
+            QMessageBox.information(
+                self,
+                "안내",
+                "현재 카테고리 결과에서 조건에 맞는 키워드가 없습니다.\n"
+                "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과"
+            )
+            return
+
+        picker = RelatedExpandSeedDialog(candidates, self)
+        if picker.exec() != QDialog.DialogCode.Accepted:
+            return
+        expand_seeds = picker.selected_keywords()
+        if not expand_seeds:
+            QMessageBox.information(self, "안내", "선택된 키워드가 없어 이어서 실행을 취소했습니다.")
+            return
+
+        self.status_bar.showMessage(
+            f"카테고리 확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과 + 포화지수 10% 초과)"
+        )
+        self._start_golden_analysis(
+            "category",
+            category_name,
+            category_seeds=expand_seeds,
+            offset=0,
+            keep_existing=True
+        )
+
     def on_golden_keyword_log(self, message):
         self.status_bar.showMessage(sanitize_display_text(message))
         text = sanitize_display_text(message)
@@ -6505,7 +6568,22 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.related_keyword_results = incoming
             current_rows = self.related_keyword_results
         else:
-            self.category_keyword_results = results or []
+            incoming = results or []
+            if keep_existing and self.category_keyword_results:
+                existing_keys = {
+                    str(r.get("keyword", "")).replace("+", " ").strip().lower()
+                    for r in self.category_keyword_results
+                }
+                for row in incoming:
+                    key = str(row.get("keyword", "")).replace("+", " ").strip().lower()
+                    if key and key not in existing_keys:
+                        row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                        self.category_keyword_results.append(row)
+                        existing_keys.add(key)
+            else:
+                for row in incoming:
+                    row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                self.category_keyword_results = incoming
             current_rows = self.category_keyword_results
 
         if not current_rows:
@@ -6530,8 +6608,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.related_more_button.setEnabled(not self.related_single_mode)
             self.related_single_mode = False
         else:
-            self.category_save_button.setEnabled(False)
-            self.category_continue_button.setEnabled(False)
+            self.category_save_button.setEnabled(True)
+            self.category_continue_button.setEnabled(True)
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 황금키워드 추천"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
