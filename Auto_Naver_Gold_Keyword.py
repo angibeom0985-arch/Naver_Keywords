@@ -5717,7 +5717,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.blog_count_mode_combo.addItem("전체 발행량", "total")
         self.blog_count_mode_combo.setCurrentIndex(0 if self.blog_count_mode == "monthly" else 1)
         self.blog_count_mode_combo.setMinimumWidth(140)
-        self.blog_count_mode_combo.setMinimumHeight(44)
+        self.blog_count_mode_combo.setFixedHeight(44)
         self.blog_count_mode_combo.currentIndexChanged.connect(self.on_blog_count_mode_changed)
         left_top.addWidget(self.blog_count_mode_combo)
 
