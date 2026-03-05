@@ -5035,15 +5035,22 @@ class KeywordExtractorMainWindow(QMainWindow):
         nav_layout.setContentsMargins(10, 6, 10, 4)
         nav_layout.setSpacing(8)
         left_slot = QWidget()
-        left_slot.setFixedWidth(240)
+        left_slot.setFixedWidth(260)
         left_slot_layout = QHBoxLayout(left_slot)
         left_slot_layout.setContentsMargins(0, 0, 0, 0)
-        left_slot_layout.setSpacing(0)
-        self.theme_toggle_button = QPushButton(self._theme_button_text("light"))
-        self.theme_toggle_button.setObjectName("themeToggleButton")
-        self.theme_toggle_button.setFixedWidth(240)
-        self.theme_toggle_button.clicked.connect(self.toggle_theme_mode)
-        left_slot_layout.addWidget(self.theme_toggle_button)
+        left_slot_layout.setSpacing(8)
+        self.theme_light_button = QPushButton("라이트")
+        self.theme_light_button.setObjectName("themeLightButton")
+        self.theme_light_button.setCheckable(True)
+        self.theme_light_button.setFixedWidth(124)
+        self.theme_light_button.clicked.connect(lambda: self.apply_theme("light"))
+        self.theme_dark_button = QPushButton("다크")
+        self.theme_dark_button.setObjectName("themeDarkButton")
+        self.theme_dark_button.setCheckable(True)
+        self.theme_dark_button.setFixedWidth(124)
+        self.theme_dark_button.clicked.connect(lambda: self.apply_theme("dark"))
+        left_slot_layout.addWidget(self.theme_light_button)
+        left_slot_layout.addWidget(self.theme_dark_button)
         self.section_related_button = QPushButton("연관 키워드 추출")
         self.section_related_button.setCheckable(True)
         self.section_gold_button = QPushButton("황금 키워드 분석")
@@ -5121,20 +5128,15 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.section_related_button.setChecked(index == 0)
         self.section_gold_button.setChecked(index == 1)
 
-    def _theme_button_text(self, mode):
-        return "테마: 다크" if mode == "dark" else "테마: 라이트"
-
-    def toggle_theme_mode(self):
-        next_mode = "dark" if getattr(self, "current_theme_mode", "light") == "light" else "light"
-        self.apply_theme(next_mode)
-
     def apply_theme(self, mode, save=True):
         mode = "dark" if str(mode).strip().lower() == "dark" else "light"
         self.current_theme_mode = mode
         self.setStyleSheet(DARK_STYLESHEET if mode == "dark" else STYLESHEET)
 
-        if hasattr(self, "theme_toggle_button"):
-            self.theme_toggle_button.setText(self._theme_button_text(mode))
+        if hasattr(self, "theme_light_button"):
+            self.theme_light_button.setChecked(mode == "light")
+        if hasattr(self, "theme_dark_button"):
+            self.theme_dark_button.setChecked(mode == "dark")
         if hasattr(self, "nav_widget"):
             self.nav_widget.setStyleSheet(self._nav_stylesheet(mode))
         if hasattr(self, "main_tabs"):
