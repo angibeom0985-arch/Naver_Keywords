@@ -2893,9 +2893,12 @@ class NaverMobileSearchScraper:
             df = pd.DataFrame({
                 '추출된_키워드': [item['related_keyword'] for item in self.all_related_keywords]
             })
+            raw_count = len(df)
 
             # comment removed (encoding issue)
             df = df.drop_duplicates(subset=['추출된_키워드'], keep='first').reset_index(drop=True)
+            dedup_count = len(df)
+            removed_count = max(0, raw_count - dedup_count)
 
             # comment removed (encoding issue)
             try:
@@ -2904,7 +2907,10 @@ class NaverMobileSearchScraper:
                 if os.path.exists(save_path) and os.path.getsize(save_path) > 0:
                     if progress_callback:
                         progress_callback("progress update")
-                        progress_callback(f"저장된 키워드 수: {len(df)}")
+                        progress_callback(
+                            f"중복 제거 후 저장된 키워드 수: {dedup_count}개 "
+                            f"(중복 제거: {removed_count}개, 수집 원본: {raw_count}개)"
+                        )
                     return True
                 else:
                     raise Exception("저장 파일 생성 실패")
