@@ -5325,11 +5325,11 @@ class KeywordExtractorMainWindow(QMainWindow):
                 QTabWidget#progressTabs QTabBar::tab {
                     background: #242b33;
                     color: #d9e3ec;
-                    padding: 6px 12px;
-                    min-width: 170px;
-                    max-width: 220px;
+                    padding: 6px 10px;
+                    min-width: 120px;
+                    max-width: 170px;
                     min-height: 44px;
-                    font-size: 15px;
+                    font-size: 13px;
                     font-weight: 700;
                     border: 1px solid #3a4652;
                     border-top-left-radius: 8px;
@@ -5359,11 +5359,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QTabWidget#progressTabs QTabBar::tab {
                 background: #f0f0f0;
-                padding: 6px 12px;
-                min-width: 170px;
-                max-width: 220px;
+                padding: 6px 10px;
+                min-width: 120px;
+                max-width: 170px;
                 min-height: 44px;
-                font-size: 15px;
+                font-size: 13px;
                 font-weight: 700;
                 border: 1px solid #d0d0d0;
                 border-top-left-radius: 8px;
@@ -5471,9 +5471,9 @@ class KeywordExtractorMainWindow(QMainWindow):
             "사용 방법\n\n"
             "1. 키워드는 여러 개 입력할 수 있습니다. (한 줄에 하나씩)\n"
             "   예)\n"
-            "   연말정산 환급일\n"
-            "   자동차보험 비교\n"
-            "   다이어트 식단\n\n"
+            "   연말정산\n"
+            "   자동차보험\n"
+            "   갤럭시S26\n\n"
             "2. 입력 후 바로 시작하려면 Enter를 누르세요.\n"
             "   줄바꿈이 필요하면 Shift+Enter를 누르세요.\n\n"
             "3. 동시 실행 개수(아래 숫자)는 1~6까지 조절할 수 있습니다.\n"
@@ -5506,16 +5506,21 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.parallel_threads_spin.setMinimumWidth(96)
         self.parallel_threads_spin.setMinimumHeight(42)
         self.parallel_threads_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        spin_font = self.parallel_threads_spin.font()
-        spin_font.setPointSize(max(14, spin_font.pointSize()))
-        spin_font.setBold(False)
-        self.parallel_threads_spin.setFont(spin_font)
         self.parallel_threads_spin.valueChanged.connect(self.on_max_parallel_threads_changed)
         
         self.start_button = QPushButton("키워드 추출 시작")
         self.start_button.setMinimumHeight(44)
         self.start_button.setMinimumWidth(170)
         self.start_button.clicked.connect(self.start_search)
+
+        # '키워드 추출 시작' 폰트 톤에 맞춰 동시 실행 라벨/숫자를 통일
+        base_font = self.start_button.font()
+        label_font = QFont(base_font)
+        label_font.setBold(False)
+        self.parallel_threads_label.setFont(label_font)
+        spin_font = QFont(base_font)
+        spin_font.setBold(False)
+        self.parallel_threads_spin.setFont(spin_font)
         
         self.pause_button = QPushButton("일시정지")
         self.pause_button.setMinimumHeight(44)
@@ -6115,8 +6120,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QSpinBox#parallelThreadsSpin {
                 qproperty-alignment: 'AlignCenter';
-                font-size: 14px;
-                font-weight: 600;
+                font-size: 13px;
+                font-weight: 700;
                 padding-left: 8px;
                 padding-right: 24px;
             }
