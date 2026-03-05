@@ -5822,7 +5822,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_category_combo.setObjectName("categoryCenterCombo")
         self.golden_category_combo.setEditable(True)
         self.golden_category_combo.setMinimumWidth(220)
-        self.golden_category_combo.setMinimumHeight(44)
+        self.golden_category_combo.setFixedHeight(44)
         combo_line_edit = self.golden_category_combo.lineEdit()
         if combo_line_edit is not None:
             combo_line_edit.setReadOnly(True)
