@@ -4742,6 +4742,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.driver = None
         # comment removed (encoding issue)
         self.active_threads = []
+        self.pending_thread_queue = []
+        self.max_parallel_threads = 2
         self.completed_threads = 0
         self.total_threads = 0
         self.stop_requested = False
@@ -6492,7 +6494,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.update_progress(f"키워드 추출 작업 시작 (총 {len(keywords)}개)")
         self.update_progress(f"입력 키워드: {', '.join(keywords)}")
         self.update_progress(f"저장 폴더: {save_dir}")
-        self.update_progress("병렬 처리 모드로 실행합니다.")
+        self.update_progress(
+            f"병렬 처리 모드로 실행합니다. (동시 실행 {self.max_parallel_threads}개)"
+        )
         
         # comment removed (encoding issue)
         while self.progress_tabs.count() > 1:
@@ -6503,6 +6507,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         
         # comment removed (encoding issue)
         self.active_threads = []
+        self.pending_thread_queue = []
         self.completed_threads = 0
         self.total_threads = len(keywords)
         self.stop_requested = False
@@ -6518,30 +6523,46 @@ class KeywordExtractorMainWindow(QMainWindow):
             if keywords.index(keyword) == 0:
                 self.progress_tabs.setCurrentIndex(1)
         
-        for i, keyword in enumerate(keywords):
+        for keyword in keywords:
             thread = ParallelKeywordThread(keyword, save_dir, True)
             thread.finished.connect(self.on_thread_finished)
             thread.error.connect(self.on_thread_error)
             thread.log.connect(self.update_progress)
-            
+            self.pending_thread_queue.append(thread)
+
+        self._launch_pending_threads()
+
+    def _launch_pending_threads(self):
+        while (
+            not self.stop_requested
+            and self.pending_thread_queue
+            and len(self.active_threads) < self.max_parallel_threads
+        ):
+            thread = self.pending_thread_queue.pop(0)
             self.active_threads.append(thread)
             thread.start()
-            self.update_progress(keyword, f"'{keyword}' 작업 시작...")
-            if i < len(keywords) - 1:
-                # 브라우저 동시 초기화 과부하/차단을 줄이기 위한 짧은 간격
-                time.sleep(0.35)
+            self.update_progress(thread.keyword, f"'{thread.keyword}' 작업 시작...")
+            time.sleep(0.25)
 
     def on_thread_finished(self, save_path):
         """Description"""
+        sender_thread = self.sender()
+        if sender_thread in self.active_threads:
+            self.active_threads.remove(sender_thread)
         if save_path:
             self.update_progress("전체", f"저장 완료: {save_path}")
         self.completed_threads += 1
+        self._launch_pending_threads()
         self.check_all_threads_finished()
 
     def on_thread_error(self, error_msg):
         """스레드 에러 처리"""
+        sender_thread = self.sender()
+        if sender_thread in self.active_threads:
+            self.active_threads.remove(sender_thread)
         self.update_progress("전체", error_msg)
         self.completed_threads += 1
+        self._launch_pending_threads()
         self.check_all_threads_finished()
         
     def check_all_threads_finished(self):
@@ -6559,13 +6580,14 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.status_bar.showMessage("완료")
         QMessageBox.information(self, "완료", message)
         self.active_threads = []
+        self.pending_thread_queue = []
         self.total_threads = 0
         self.completed_threads = 0
         self.stop_requested = False
 
     def stop_search(self):
         """검색 중단"""
-        if not self.active_threads:
+        if not self.active_threads and not self.pending_thread_queue:
             return
             
         self.update_progress("전체", "작업 중단을 요청했습니다...")
@@ -6574,10 +6596,17 @@ class KeywordExtractorMainWindow(QMainWindow):
         for thread in self.active_threads:
             if thread and thread.isRunning():
                 thread.stop()
+
+        # 아직 시작하지 않은 작업은 즉시 취소 처리
+        skipped = len(self.pending_thread_queue)
+        if skipped:
+            self.completed_threads += skipped
+            self.pending_thread_queue = []
                 
         self.stop_button.setEnabled(False)
         self.pause_button.setEnabled(False)
         self.update_progress("전체", "중단 신호를 전송했습니다. 실행 중인 스레드가 순차 종료됩니다.")
+        self.check_all_threads_finished()
 
     def search_error(self, error_msg):
         """검색 오류 처리"""
