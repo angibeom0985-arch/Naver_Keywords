@@ -5441,10 +5441,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         # comment removed (encoding issue)
         self.search_input = MultiKeywordTextEdit()
         self.search_input.setPlaceholderText(
-            "사용 방법\n"
+            "사용 방법\n\n"
             "1. 키워드는 여러 개 입력할 수 있습니다. (한 줄에 하나씩)\n"
-            "2. Enter는 바로 추출 시작, Shift+Enter는 줄바꿈 가능\n"
-            "3. 동시 실행은 3개가 가장 안정적입니다. (권장: 3)"
+            "   예)\n"
+            "   연말정산 환급일\n"
+            "   자동차보험 비교\n"
+            "   다이어트 식단\n\n"
+            "2. 입력 후 바로 시작하려면 Enter를 누르세요.\n"
+            "   줄바꿈이 필요하면 Shift+Enter를 누르세요.\n\n"
+            "3. 동시 실행 개수(아래 숫자)는 1~6까지 조절할 수 있습니다.\n"
+            "   권장값은 3이며, 여러 키워드를 안정적으로 처리할 때 가장 균형이 좋습니다.\n\n"
+            "4. '키워드 추출 시작'을 누르면 순서대로 분석이 진행됩니다.\n"
+            "   진행 상황에서 단계별 처리 상태를 확인할 수 있습니다.\n\n"
+            "5. 결과를 저장하려면 하단의 저장 기능을 사용하세요."
         )
         # comment removed (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -5464,13 +5473,15 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.parallel_threads_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.parallel_threads_label.setMinimumWidth(72)
         self.parallel_threads_spin = QSpinBox()
+        self.parallel_threads_spin.setObjectName("parallelThreadsSpin")
         self.parallel_threads_spin.setRange(1, 6)
         self.parallel_threads_spin.setValue(self.max_parallel_threads)
         self.parallel_threads_spin.setMinimumWidth(96)
         self.parallel_threads_spin.setMinimumHeight(42)
+        self.parallel_threads_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
         spin_font = self.parallel_threads_spin.font()
-        spin_font.setPointSize(max(15, spin_font.pointSize()))
-        spin_font.setBold(True)
+        spin_font.setPointSize(max(14, spin_font.pointSize()))
+        spin_font.setBold(False)
         self.parallel_threads_spin.setFont(spin_font)
         self.parallel_threads_spin.valueChanged.connect(self.on_max_parallel_threads_changed)
         
@@ -6068,6 +6079,13 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QSpinBox#categoryCenterSpin {
                 qproperty-alignment: 'AlignCenter';
+                padding-left: 8px;
+                padding-right: 24px;
+            }
+            QSpinBox#parallelThreadsSpin {
+                qproperty-alignment: 'AlignCenter';
+                font-size: 14px;
+                font-weight: 600;
                 padding-left: 8px;
                 padding-right: 24px;
             }
