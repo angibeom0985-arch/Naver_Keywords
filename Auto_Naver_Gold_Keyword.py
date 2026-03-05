@@ -6056,7 +6056,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QLabel#relatedGuideTitle {
                 color: #1f5136;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 800;
             }
             QLabel#relatedGuideText {
