@@ -13,7 +13,7 @@
 ## 머신 ID 보호 (현재 프로젝트 기준)
 - 머신 ID는 `1인1PC` 및 사용 기간 검증의 핵심이다.
 - 머신 ID 형식은 `Gold-Keyword-` + 대문자 32자리 hex를 사용한다.
-- 기존 레거시 형식(`Gold Keyword-MID-...`)은 조회/호환만 허용하고 신규 생성은 금지한다.
+- 기존 레거시 형식(`Gold Keyword-MID-...`)은 호환 조회를 허용하지 않는다.
 - 머신 ID 저장/조회 경로는 현재 구현 기준을 유지한다.
   - 레지스트리: `HKCU\\Software\\AutoNaverKeyword\\MachineId`
   - 로컬 캐시: `~/.auto_naver_machine_id.txt`

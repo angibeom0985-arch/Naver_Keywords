@@ -529,12 +529,7 @@ def check_license_from_sheet(machine_id):
                 # comment removed (encoding issue)
                 df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.strip()
                 machine_id_text = str(machine_id).strip()
-                candidates = [machine_id_text]
-                if machine_id_text.startswith("Gold-Keyword-"):
-                    token = machine_id_text.replace("Gold-Keyword-", "", 1).strip()
-                    if token:
-                        candidates.append(f"Gold Keyword-MID-{token}")
-                target_row = df[df.iloc[:, 2].isin(candidates)]
+                target_row = df[df.iloc[:, 2] == machine_id_text]
                 
                 if not target_row.empty:
                     expiration_date = str(target_row.iloc[0, 3]).strip()
