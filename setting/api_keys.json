@@ -1,0 +1,13 @@
+﻿{
+  "searchad_access_key": "01000000000e64e897c68f6e79f36bca6a49962aa41145858136b2e00f482bc1677f3a1446",
+  "searchad_secret_key": "AQAAAABfmxB5yE7SY0Bij8RNJKkZ4af7UA++fTEhxfgv/FKteQ==",
+  "searchad_customer_id": "3010221",
+  "naver_client_id": "GSiFqhyeZrtRo1PAR0RF",
+  "naver_client_secret": "1TV2afJdhU",
+  "proxy_url": "https://naver-keywords.onrender.com",
+  "proxy_token": "9pV7!kM2",
+  "keyword_collect_webhook_url": "https://naver-keywords.onrender.com/collect-keywords",
+  "keyword_collect_webhook_token": "9pV7!kM2",
+  "usage_webhook_url": "https://script.google.com/macros/s/AKfycbz3WZH9J1uRwXzzsFLlyH3gZkwI7eFrO_fSxDdOa7bLk0TU0_WXZaa3XC1marNnRBebVw/exec?token=david_usage_2026_01",
+  "usage_webhook_token": "david_usage_2026_01"
+}

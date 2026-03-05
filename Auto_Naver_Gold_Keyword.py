@@ -144,7 +144,7 @@ class ApiUsageReporter:
 
         # 로컬 누적 저장
         try:
-            usage_file = get_app_base_dir() / "api_usage_local.json"
+            usage_file = get_settings_dir() / "api_usage_local.json"
             payload_local = {
                 "machine_id": machine_id,
                 "local_total": local_total,
@@ -259,6 +259,12 @@ class SpiralSpinner(QWidget):
 def get_icon_path():
     """Description"""
     try:
+        # setting 폴더를 최우선으로 확인 (py/exe 공통)
+        settings_dir = get_settings_dir()
+        setting_icon = os.path.join(str(settings_dir), "auto_naver.ico")
+        if os.path.exists(setting_icon):
+            return setting_icon
+
         # comment removed (encoding issue)
         meipass = getattr(sys, "_MEIPASS", None)
         if meipass:
@@ -303,6 +309,14 @@ def get_app_base_dir():
     return Path(__file__).resolve().parent
 
 
+def get_settings_dir():
+    base_dir = get_app_base_dir()
+    setting_dir = base_dir / "setting"
+    if setting_dir.exists() and setting_dir.is_dir():
+        return setting_dir
+    return base_dir
+
+
 def sanitize_display_text(text):
     if text is None:
         return ""
@@ -337,7 +351,7 @@ def load_api_credentials_from_file():
         "naver_client_id",
         "naver_client_secret",
     ]
-    api_file = get_app_base_dir() / "api_keys.json"
+    api_file = get_settings_dir() / "api_keys.json"
     embedded = get_embedded_api_credentials()
     credentials = {key: str(embedded.get(key, "")).strip() for key in required_keys}
     credentials["usage_webhook_url"] = str(embedded.get("usage_webhook_url", "")).strip()
@@ -2061,6 +2075,12 @@ class NaverMobileSearchScraper:
                 # comment removed (encoding issue)
                 keywords = list(set(keywords))
                 keywords.sort()
+                if not keywords:
+                    fallback_keywords = self._fetch_autocomplete_api_keywords(keyword)
+                    if fallback_keywords:
+                        keywords = sorted(list(set(fallback_keywords)))
+                        if progress_callback:
+                            progress_callback(f"'{keyword}' 자동완성 API 보강 수집: {len(keywords)}개")
                 
                 if progress_callback:
                     progress_callback("progress update")
@@ -2086,6 +2106,77 @@ class NaverMobileSearchScraper:
                     return []
         
         return keywords
+
+    def _fetch_autocomplete_api_keywords(self, keyword):
+        """Fallback autocomplete collection using Naver AC endpoint."""
+        seed = str(keyword or "").strip()
+        if not seed:
+            return []
+        try:
+            params = {
+                "q": seed,
+                "con": "0",
+                "frm": "nv",
+                "ans": "2",
+                "r_format": "json",
+                "r_enc": "UTF-8",
+                "r_unicode": "0",
+                "t_koreng": "1",
+                "run": "2",
+                "rev": "4",
+            }
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                ),
+                "Referer": "https://m.naver.com/",
+            }
+            response = requests.get(
+                "https://ac.search.naver.com/nx/ac",
+                params=params,
+                headers=headers,
+                timeout=8,
+            )
+            if response.status_code != 200:
+                return []
+            data = response.json() if response.content else {}
+        except Exception:
+            return []
+
+        raw_keywords = []
+        try:
+            items = data.get("items", [])
+            if isinstance(items, list):
+                for group in items:
+                    if not isinstance(group, list):
+                        continue
+                    for item in group:
+                        if isinstance(item, list) and item:
+                            text = str(item[0] or "").strip()
+                        else:
+                            text = str(item or "").strip()
+                        if text:
+                            raw_keywords.append(text)
+        except Exception:
+            return []
+
+        cleaned = []
+        seen = set()
+        seed_key = seed.replace(" ", "").lower()
+        for raw in raw_keywords:
+            text = self.clean_duplicate_text(raw)
+            if not text or len(text) <= 1 or len(text) > 50:
+                continue
+            key = text.replace(" ", "").lower()
+            if key in seen:
+                continue
+            if seed_key and seed_key not in key:
+                continue
+            seen.add(key)
+            cleaned.append(text)
+        return cleaned
 
     def extract_related_keywords_new(self, current_keyword, progress_callback=None):
         """Extract related keywords from current page."""
@@ -2388,6 +2479,39 @@ class NaverMobileSearchScraper:
             else:
                 if progress_callback:
                     progress_callback("progress update")
+
+        if not self.all_related_keywords:
+            fallback_keywords = self._fetch_autocomplete_api_keywords(initial_keyword)
+            if fallback_keywords:
+                for keyword in fallback_keywords:
+                    self.all_related_keywords.append({
+                        'depth': 0,
+                        'parent_keyword': initial_keyword,
+                        'current_keyword': initial_keyword,
+                        'related_keyword': keyword,
+                        'keyword_type': '자동완성(API)',
+                        'source_type': '자동완성(API)',
+                        'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    })
+                if progress_callback:
+                    progress_callback(
+                        f"'{initial_keyword}' API 보강 수집 완료: {len(fallback_keywords)}개"
+                    )
+            else:
+                # 최종 보정: 외부 수집 실패 시에도 입력 키워드를 기준 결과로 남긴다.
+                self.all_related_keywords.append({
+                    'depth': 0,
+                    'parent_keyword': initial_keyword,
+                    'current_keyword': initial_keyword,
+                    'related_keyword': initial_keyword,
+                    'keyword_type': '기본키워드',
+                    'source_type': '입력키워드',
+                    'extracted_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                })
+                if progress_callback:
+                    progress_callback(
+                        f"'{initial_keyword}' 외부 수집 결과가 없어 입력 키워드를 기준값으로 저장합니다."
+                    )
             
         if progress_callback:
             progress_callback(f"'{initial_keyword}' 키워드 추출 완료: 총 {len(self.all_related_keywords)}개")
@@ -2475,6 +2599,10 @@ class NaverMobileSearchScraper:
                     f"'{current_keyword}' (depth={depth}): "
                     f"연관 {len(related_keywords)} + 함께 {len(together_keywords)} + 인기 {len(popular_keywords)} = 총 {total_extracted}개"
                 )
+                if total_extracted == 0:
+                    progress_callback(
+                        f"'{current_keyword}' 페이지에서 추출 키워드가 없어 자동완성/API 보강 수집을 시도합니다."
+                    )
             
             return True
             
@@ -4628,6 +4756,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.blog_count_mode = self.settings.get_blog_count_mode()
         self.related_single_mode = False
         self.related_progress_total = 0
+        self.progress_phase_index = {}
         self.related_spinner_timer = QTimer(self)
         self.related_spinner_timer.setInterval(120)
         self.related_spinner_timer.timeout.connect(self._tick_related_spinner)
@@ -6398,6 +6527,9 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.active_threads.append(thread)
             thread.start()
             self.update_progress(keyword, f"'{keyword}' 작업 시작...")
+            if i < len(keywords) - 1:
+                # 브라우저 동시 초기화 과부하/차단을 줄이기 위한 짧은 간격
+                time.sleep(0.35)
 
     def on_thread_finished(self, save_path):
         """Description"""
@@ -6468,7 +6600,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             msg_content = message
 
         target_keyword = sanitize_display_text(target_keyword)
-        msg_content = sanitize_display_text(msg_content)
+        raw_msg = str(msg_content or "").strip().lower()
+        if raw_msg in ("progress update", "진행 상태 업데이트", "log update"):
+            msg_content = self._next_progress_message(target_keyword)
+        else:
+            msg_content = sanitize_display_text(msg_content)
         formatted_message = f"[{current_time}] {msg_content}"
         
         # comment removed (encoding issue)
@@ -6486,6 +6622,20 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.total_log_text.append_with_smart_scroll(formatted_total_msg)
             else:
                 self.total_log_text.append(formatted_total_msg)
+
+    def _next_progress_message(self, keyword):
+        key = sanitize_display_text(keyword or "전체")
+        current_idx = int(self.progress_phase_index.get(key, 0))
+        phases = [
+            "작업 진행 중: 네이버 검색 페이지 로딩 중",
+            "작업 진행 중: 연관 키워드 후보 수집 중",
+            "작업 진행 중: 자동완성 키워드 확인 중",
+            "작업 진행 중: 중복 제거 및 후보 정리 중",
+            "작업 진행 중: 다음 확장 키워드 탐색 준비 중",
+        ]
+        message = phases[current_idx % len(phases)]
+        self.progress_phase_index[key] = (current_idx + 1) % len(phases)
+        return message
 
     def pause_resume_search(self):
         """Description"""
