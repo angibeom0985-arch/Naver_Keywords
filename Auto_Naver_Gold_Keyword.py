@@ -5568,6 +5568,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         # comment removed (encoding issue)
         self.progress_tabs = QTabWidget()
         self.progress_tabs.setObjectName("progressTabs")
+        self.progress_tabs.setTabPosition(QTabWidget.TabPosition.South)
         progress_tab_bar = self.progress_tabs.tabBar()
         if progress_tab_bar is not None:
             progress_tab_bar.setExpanding(False)
