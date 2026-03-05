@@ -1042,16 +1042,28 @@ class ReadOnlyCellDelegate(QStyledItemDelegate):
 
 class HalfSplitSplitter(QSplitter):
     """Keep 2 panes at 50:50 on every resize."""
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self.splitterMoved.connect(self._enforce_half_split)
+
+    def _enforce_half_split(self, *_args):
         if self.count() != 2:
             return
         if self.orientation() == Qt.Orientation.Horizontal:
             total = max(2, self.width())
         else:
             total = max(2, self.height())
-        left = total // 2
-        self.setSizes([left, total - left])
+        first = total // 2
+        self.setSizes([first, total - first])
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 초기 표시 직후에도 반드시 50:50 적용
+        QTimer.singleShot(0, self._enforce_half_split)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._enforce_half_split()
 
 
 class InsightChartWidget(QWidget):
