@@ -75,7 +75,7 @@ from PyQt6.QtWidgets import (
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
     QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
     QAbstractItemView, QScroller, QStackedLayout, QMenu, QStyledItemDelegate,
-    QListWidget, QListWidgetItem, QDialogButtonBox
+    QListWidget, QListWidgetItem, QDialogButtonBox, QSplitter
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
@@ -114,7 +114,7 @@ SELENIUM_HEADLESS = False
 # comment removed (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "6eee84919286e4697450944586319f35d72ee8f1ebb2dadbffac89d32e9ab251"
+MACHINE_ID_GUARD_HASH = "TO_BE_UPDATED"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
 MACHINE_ID_PREFIX = "Gold Keyword-"
@@ -1030,6 +1030,20 @@ class ReadOnlyCellDelegate(QStyledItemDelegate):
     def updateEditorGeometry(self, editor, option, index):
         if isinstance(editor, QLineEdit):
             editor.setGeometry(option.rect.adjusted(2, 0, -2, 0))
+
+
+class HalfSplitSplitter(QSplitter):
+    """Keep 2 panes at 50:50 on every resize."""
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self.count() != 2:
+            return
+        if self.orientation() == Qt.Orientation.Horizontal:
+            total = max(2, self.width())
+        else:
+            total = max(2, self.height())
+        left = total // 2
+        self.setSizes([left, total - left])
 
 
 class InsightChartWidget(QWidget):
@@ -5592,12 +5606,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             "기타 서비스": ["생활서비스", "세무상담", "노무상담", "이사견적", "보험상담", "법무사"],
         }
 
-        split = QHBoxLayout()
-        split.setSpacing(10)
+        split = HalfSplitSplitter(Qt.Orientation.Horizontal)
+        split.setChildrenCollapsible(False)
+        split.setHandleWidth(6)
 
         # Left panel: related keyword analysis
         left_group = QGroupBox("연관 키워드 분석")
         left_group.setObjectName("leftPanel")
+        left_group.setMinimumWidth(0)
+        left_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         left_layout = QVBoxLayout(left_group)
         left_layout.setSpacing(8)
         left_layout.setContentsMargins(10, 10, 10, 10)
@@ -5701,11 +5718,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         related_more_row.addWidget(self.related_save_button)
         related_more_row.addStretch(1)
         left_layout.addLayout(related_more_row)
-        split.addWidget(left_group, 1)
+        split.addWidget(left_group)
 
         # Right panel: category golden keyword recommendation (read-only for now)
         right_group = QGroupBox("카테고리 황금키워드 추천")
         right_group.setObjectName("rightPanel")
+        right_group.setMinimumWidth(0)
+        right_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         right_layout = QVBoxLayout(right_group)
         right_layout.setSpacing(8)
         right_layout.setContentsMargins(10, 10, 10, 10)
@@ -5798,9 +5817,11 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.category_notice_card = QFrame()
         self.category_notice_card.setObjectName("categoryNoticeCard")
         self.category_notice_card.setVisible(False)
-        split.addWidget(right_group, 1)
-
-        root.addLayout(split)
+        split.addWidget(right_group)
+        split.setStretchFactor(0, 1)
+        split.setStretchFactor(1, 1)
+        split.setSizes([1000, 1000])
+        root.addWidget(split)
 
         self.insight_group = QGroupBox("인사이트")
         insight_layout = QVBoxLayout(self.insight_group)
