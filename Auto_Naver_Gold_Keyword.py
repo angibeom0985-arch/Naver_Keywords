@@ -5529,6 +5529,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             combo_line_edit.setReadOnly(True)
             combo_line_edit.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.golden_category_combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.golden_category_combo.currentTextChanged.connect(self.on_category_selection_changed)
         right_top.addWidget(self.golden_category_combo, 1)
 
         right_limit_card = QFrame()
@@ -6327,7 +6328,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
-        self.golden_start_button.setEnabled(False)
+        self.golden_start_button.setEnabled(True)
         if analysis_type == "related":
             self._hide_related_loading()
         self.current_analysis_mode = ""
@@ -6386,7 +6387,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
-        self.golden_start_button.setEnabled(False)
+        self.golden_start_button.setEnabled(True)
         self._hide_related_loading()
         self.current_analysis_mode = ""
         self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
@@ -6473,6 +6474,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.max_parallel_threads = max(1, min(6, parsed))
         self.settings.set_max_parallel_threads(self.max_parallel_threads)
         self.status_bar.showMessage(f"동시 실행 개수: {self.max_parallel_threads}")
+
+    def on_category_selection_changed(self, text):
+        selected = str(text or "").strip()
+        if not selected:
+            self.golden_start_button.setEnabled(False)
+            return
+        self.analysis_offset["category"] = 0
+        self.analysis_keep_existing["category"] = False
+        self.last_analysis_keyword["category"] = selected
+        self.category_continue_button.setEnabled(False)
+        self.category_save_button.setEnabled(False)
+        self.golden_start_button.setEnabled(True)
+        self.status_bar.showMessage(f"카테고리 변경: {selected} (추천 실행 가능)")
 
     def start_search(self):
         """검색 시작"""
