@@ -1,0 +1,23 @@
+        self.related_upload_button.clicked.connect(self.start_related_file_analysis)
+        left_top.addWidget(self.related_upload_button)
+
+        self.related_keyword_button = QPushButton("분석 실행")
+        self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
+        self.related_save_button = QPushButton("저장")
+        self.related_save_button.setEnabled(False)
+        self.related_save_button.clicked.connect(lambda: self.save_results_for_mode("related"))
+        left_top.addWidget(self.related_keyword_button)
+        left_top.addWidget(self.related_save_button)
+        left_layout.addLayout(left_top)
+
+        self.related_sort_hint = QLabel("")
+        self.related_sort_hint.setObjectName("sortHint")
+        self.related_sort_hint.setVisible(False)
+        left_layout.addWidget(self.related_sort_hint)
+        self.related_summary_label = QLabel("총 후보 0")
+        self.related_summary_label.setObjectName("summaryHint")
+        left_layout.addWidget(self.related_summary_label)
+
+        self.related_loading_widget = QWidget()
+        related_loading_layout = QHBoxLayout(self.related_loading_widget)
+        related_loading_layout.setContentsMargins(4, 2, 4, 2)

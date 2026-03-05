@@ -1,0 +1,2910 @@
+{
+  "keywords": [
+    "홈택스",
+    "손택스",
+    "국세청"
+  ],
+  "current_keyword_index": 1,
+  "extracted_keywords": [
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 고객센터",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 근로장려금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 로그인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 자동차세",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 종합소득세",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 현금영수증",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:20:19"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "국세청 손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 고객센터",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 고객센터 번호",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 근로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 원천징수 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 종합소득세",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 현금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:20:26"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "국세청 손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 고객센터",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 고객센터 번호",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 근로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 원천징수 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 종합소득세",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 현금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 근로장려금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 소득조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 종합소득세 환급금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금 언제",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스",
+      "related_keyword": "손택스 환급금 조회 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:20:33"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 고객센터",
+      "related_keyword": "손택스 고객센터 번호터 번호",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:20:49"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 금액 확인액 확인",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:21:18"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:21:18"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:21:18"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로소득 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:21:18"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 조회세 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:22:39"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:22:39"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:22:39"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급일환급일",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:22:39"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "종합소득세 환급 조회 손택스손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:22:39"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 등록증 등록",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:04"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 발급증 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:04"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 조회증 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:04"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세 환급 신청",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종소세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종합소득세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "종소세 환급 조회 손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:23:31"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 기간금 기간",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 언제금 언제",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 입금금 입금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 종합소득세 환급금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:24:00"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:17"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:17"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:17"
+    },
+    {
+      "depth": 1,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:24:17"
+    },
+    {
+      "depth": 2,
+      "parent_keyword": "손택스 고객센터",
+      "related_keyword": "손택스 고객센터 번호",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:25:02"
+    },
+    {
+      "depth": 2,
+      "parent_keyword": "손택스 고객센터",
+      "related_keyword": "손택스 고객센터 번호터 번호",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:25:06"
+    },
+    {
+      "depth": 2,
+      "parent_keyword": "손택스 고객센터",
+      "related_keyword": "손택스 고객센터 번호터 번호",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:25:10"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 금액",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 금액 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 기준",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 반기",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 신청방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 자동신청",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 정기",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:26:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 금액 확인액 확인",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:26:29"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:26:29"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:26:29"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 금액 확인액 확인",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:26:36"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로장려금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:26:36"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:26:36"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금",
+      "related_keyword": "손택스 근로소득 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:26:36"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로소득 조회득 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:30:39"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:30:39"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금 확인",
+      "related_keyword": "2025.05.12.1. 손택스 근로장려금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:31:22"
+    },
+    {
+      "depth": 3,
+      "parent_keyword": "손택스 근로장려금 확인",
+      "related_keyword": "손택스 앱으로 들어가서 로그인합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:31:22"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인",
+      "related_keyword": "손택스 로그인 실패",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:32:00"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인",
+      "related_keyword": "손택스 로그인 튕김",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:32:00"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "2024.11.25.손택스 사용 시 자주 발생하는 오류와 해결 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:33:02"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "2025.02.09.손택스 간편인증 로그인 오류 해결 방법!",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:33:02"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "손택스 앱 삭제 후 재설치 (캐시 문제 해결) …",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:33:02"
+    },
+    {
+      "depth": 4,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "앱 캐시 삭제: 설정 → 애플리케이션 → 손택스 → 저장공간 → 캐시 삭제",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:33:02"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 신고 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 신고내역",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 취소",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:35:19"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 조회세 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:35:23"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:35:23"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:35:23"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급일환급일",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:35:23"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "종합소득세 환급 조회 손택스손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:35:23"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 조회세 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:35:27"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:35:27"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:35:27"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "손택스 종합소득세 환급일환급일",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:35:27"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세",
+      "related_keyword": "종합소득세 환급 조회 손택스손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:35:27"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 신고 확인",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:36:09"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 신고 확인",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:36:09"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:36:59"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "손택스 종합소득세합소득세",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:36:59"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "종합소득세 환급 조회 손택스손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:36:59"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:37:08"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:37:08"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "자세한 절차는 홈택스 또는 손택스 앱의 '자주묻는Q&A' 섹션을 참고하세요 3 4",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:37:08"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 취소",
+      "related_keyword": "취소 방법: 홈택스 또는 손택스(모바일)를 통해 세금신고 삭제요청을 할 수 있습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:37:41"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 확인",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:38:13"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 확인",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:38:13"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:38:30"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "종합소득세 환급 조회 손택스손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:38:30"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 종합소득세 환급을 받는 절차와 일정은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:38:40"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "※ 손택스에서는 세액 확인이 제한되므로, 정확한 환급금 조회는 PC 홈택스를 권장합니다 1",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:39:13"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "손택스(모바일)에서 종합소득세 환급금을 조회하려면 다음 절차를 따르세요:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:39:13"
+    },
+    {
+      "depth": 6,
+      "parent_keyword": "손택스 종합소득세 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:39:28"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 등록",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 등록 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 발급",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 발급 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 번호 등록",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 신청",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 취소",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:40:48"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 등록증 등록",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:40:52"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 발급증 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:40:52"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 조회증 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:40:52"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 등록증 등록",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:40:55"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 발급증 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:40:55"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증",
+      "related_keyword": "손택스 현금영수증 조회증 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:40:55"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증 발급증 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:41:21"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:41:21"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 등록하고 발급하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:41:31"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 등록증 등록",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:42:22"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 방법급 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:42:22"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:42:22"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 발급하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:42:26"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급 방법",
+      "related_keyword": "손택스 현금영수증 발급증 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:42:42"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 발급 방법",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 발급하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:42:51"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 번호 등록",
+      "related_keyword": "2024.12.30.2. 모바일 앱(손택스)을 통한 등록",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:43:25"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 번호 등록",
+      "related_keyword": "손택스(홈택스)에서 현금영수증 번호를 등록하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:43:25"
+    },
+    {
+      "depth": 7,
+      "parent_keyword": "손택스 현금영수증 신청",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 신청하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:43:57"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급 계좌",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급 기간",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 입금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 지급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급신청",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:46:11"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세 환급 신청",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종소세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종합소득세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "종소세 환급 조회 손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:46:15"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세 환급 신청",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 월세환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종소세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 종합소득세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급",
+      "related_keyword": "종소세 환급 조회 손택스",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:46:19"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 기간금 기간",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 언제금 언제",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 입금금 입금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 종합소득세 환급금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:47:53"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "만약 입금되지 않았다면 손택스 고객센터에 문의하여 문제 해결을 요청하세요.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:48:26"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "손택스를 통해 국세 환급금을 조회하고 입금받는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:48:26"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "스마트폰에서 ‘손택스’ 앱을 설치합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:48:26"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:48:42"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:48:42"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:48:42"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:48:42"
+    },
+    {
+      "depth": 8,
+      "parent_keyword": "손택스 환급금 확인",
+      "related_keyword": "손택스 앱을 통해 종합소득세 환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:50:01"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 계좌",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 날짜",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 신청 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 신청 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 입금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회 0원",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 지급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:51:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 기간금 기간",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 언제금 언제",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 입금금 입금",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:51:51"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 기간금 기간",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 언제금 언제",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 입금금 입금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:51:58"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금",
+      "related_keyword": "손택스 종합소득세 환급금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:51:59"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 신청 방법",
+      "related_keyword": "손택스(모바일 앱)를 통해 미환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:53:39"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 신청 조회",
+      "related_keyword": "손택스(모바일 앱)에서 환급금 신청 내역을 조회하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:54:12"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "손택스를 통해 국세 환급금을 조회하고 입금받는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:54:44"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:55:00"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:55:00"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:55:00"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:55:00"
+    },
+    {
+      "depth": 9,
+      "parent_keyword": "손택스 환급금 확인",
+      "related_keyword": "손택스 앱을 통해 종합소득세 환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:56:46"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 -",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 0원",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 5월",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 기간",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 마이너스",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 삼쩜삼",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 토스",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 하는법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 08:57:23"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:57:26"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:57:26"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:57:26"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 08:57:26"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:57:30"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 연말정산 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:57:30"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회금 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:57:30"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회",
+      "related_keyword": "손택스 환급금 조회 방법회 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 08:57:30"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회 -",
+      "related_keyword": "손택스 앱을 통해 종합소득세 환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 08:58:11"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회 마이너스",
+      "related_keyword": ". 환급 방법: 홈택스나 손택스(모바일)를 통해 환급금을 조회하고 신청할 수 있습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:00:28"
+    },
+    {
+      "depth": 10,
+      "parent_keyword": "손택스 환급금 조회 하는법",
+      "related_keyword": "손택스 앱을 통해 종합소득세 환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:02:13"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 고객센터",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 로그인 안 됨",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 로그인 오류",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 세금환급",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 앱",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 연말정산",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 종합소득세",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 환급금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 손택스 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:02:53"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "손택스 세금계산서 발급서 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 09:03:00"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "손택스 세금계산서 발급서 발급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 09:03:06"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스",
+      "related_keyword": "국세청 홈택스 [손택스] National Tax Service, Korea 무료 공공앱",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:03:10"
+    },
+    {
+      "depth": 11,
+      "parent_keyword": "국세청 손택스 앱",
+      "related_keyword": "국세청 홈택스 [손택스] National Tax Service, Korea 무료 공공앱",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:05:52"
+    },
+    {
+      "depth": 13,
+      "parent_keyword": "손택스 원천징수 조회",
+      "related_keyword": "손택스 원천징수영수증수영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 09:09:38"
+    },
+    {
+      "depth": 13,
+      "parent_keyword": "손택스 원천징수 조회",
+      "related_keyword": "손택스 원천징수영수증수영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 09:09:41"
+    },
+    {
+      "depth": 13,
+      "parent_keyword": "손택스 원천징수 조회",
+      "related_keyword": "2023.09.26.손택스 모바일 원천징수영수증 조회 지급명세서 확인 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:09:51"
+    },
+    {
+      "depth": 13,
+      "parent_keyword": "손택스 원천징수 조회",
+      "related_keyword": "로그인을 선택하면 손택스 통합 로그인 화면이 나타납니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:09:51"
+    },
+    {
+      "depth": 13,
+      "parent_keyword": "손택스 원천징수 조회",
+      "related_keyword": "손택스에서 원천징수 내역을 조회하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:09:51"
+    },
+    {
+      "depth": 14,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로소득 조회득 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 09:10:31"
+    },
+    {
+      "depth": 14,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 09:10:31"
+    },
+    {
+      "depth": 14,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로소득 조회득 조회",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 09:10:35"
+    },
+    {
+      "depth": 14,
+      "parent_keyword": "손택스 근로장려금 조회",
+      "related_keyword": "손택스 근로장려금로장려금",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 09:10:35"
+    },
+    {
+      "depth": 15,
+      "parent_keyword": "손택스 소득조회",
+      "related_keyword": "ARS, 손택스(모바일) 신고 관련",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:11:56"
+    },
+    {
+      "depth": 15,
+      "parent_keyword": "손택스 소득조회",
+      "related_keyword": "손택스(모바일)에서 신고 시 입력한 환급 계좌 번호 조회 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:11:56"
+    },
+    {
+      "depth": 15,
+      "parent_keyword": "손택스 소득조회",
+      "related_keyword": "손택스(모바일)에서 신고 접수 확인",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:11:56"
+    },
+    {
+      "depth": 15,
+      "parent_keyword": "손택스 소득조회",
+      "related_keyword": "손택스(모바일)에서 지방소득세 신고 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:11:56"
+    },
+    {
+      "depth": 16,
+      "parent_keyword": "손택스 종합소득세 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급금 조회 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:12:34"
+    },
+    {
+      "depth": 16,
+      "parent_keyword": "손택스 종합소득세 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 09:12:38"
+    },
+    {
+      "depth": 16,
+      "parent_keyword": "손택스 종합소득세 환급금 조회",
+      "related_keyword": "손택스 종합소득세 환급세 환급",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 09:12:41"
+    },
+    {
+      "depth": 16,
+      "parent_keyword": "손택스 종합소득세 환급금 조회 방법",
+      "related_keyword": "손택스(모바일 앱)에서 종합소득세 환급금을 조회하려면 다음 절차를 따르세요:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:13:23"
+    },
+    {
+      "depth": 17,
+      "parent_keyword": "손택스 환급금 언제",
+      "related_keyword": "손택스 환급금 언제 들어오나요",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:14:01"
+    },
+    {
+      "depth": 17,
+      "parent_keyword": "손택스 환급금 언제",
+      "related_keyword": "손택스 환급금 언제 받나요",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:14:01"
+    },
+    {
+      "depth": 17,
+      "parent_keyword": "손택스 환급금 언제",
+      "related_keyword": "손택스 환급금 언제 주나요",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:14:01"
+    },
+    {
+      "depth": 23,
+      "parent_keyword": "손택스 근로소득 조회",
+      "related_keyword": "2023.11.15.모바일 손택스 본인소득내역 확인 하는 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:20:37"
+    },
+    {
+      "depth": 23,
+      "parent_keyword": "손택스 근로소득 조회",
+      "related_keyword": "메인화면에서 손택스 로그인 후 우측 상단 전체메뉴를 클릭해 줍니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:20:37"
+    },
+    {
+      "depth": 23,
+      "parent_keyword": "손택스 근로소득 조회",
+      "related_keyword": "손택스(모바일 앱)에서 근로소득을 조회하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:20:37"
+    },
+    {
+      "depth": 23,
+      "parent_keyword": "손택스 근로소득 조회",
+      "related_keyword": "스마트폰에 모바일 손택스를 설치 후 실행시켜 줍니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:20:37"
+    },
+    {
+      "depth": 32,
+      "parent_keyword": "손택스 월세 환급 신청",
+      "related_keyword": "손택스 월세 환급 신청 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:27:42"
+    },
+    {
+      "depth": 32,
+      "parent_keyword": "손택스 월세 환급 신청 방법",
+      "related_keyword": "손택스 앱 설치하기 - 안드로이드: 구글 플레이스토어 > [손택스] 검색",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:28:44"
+    },
+    {
+      "depth": 32,
+      "parent_keyword": "손택스 월세 환급 신청 방법",
+      "related_keyword": "신청서 작성: 손택스에서 환급 신청서를 작성해야 해요.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:28:44"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급",
+      "related_keyword": "손택스 월세환급 결과",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:29:22"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급",
+      "related_keyword": "손택스 월세환급 모바일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:29:22"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급",
+      "related_keyword": "손택스 월세환급 언제",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:29:22"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급",
+      "related_keyword": "손택스 월세환급 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:29:22"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급 모바일",
+      "related_keyword": "손택스 앱 설치하기 - 안드로이드: 구글 플레이스토어 > [손택스] 검색",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:30:57"
+    },
+    {
+      "depth": 33,
+      "parent_keyword": "손택스 월세환급 모바일",
+      "related_keyword": "신청 결과는 손택스 앱에서 확인할 수 있으며, 환급금은 지정한 계좌로 입금됩니다 3",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:30:57"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급",
+      "related_keyword": "손택스 종소세 환급 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:32:40"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급",
+      "related_keyword": "손택스 종소세 환급금 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:32:40"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급",
+      "related_keyword": "손택스 종소세 환급내역",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:32:40"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급",
+      "related_keyword": "손택스 종소세 환급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:32:40"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급 조회",
+      "related_keyword": "손택스(모바일 홈택스)에서 종합소득세 환급액을 확인하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:33:44"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급금 조회",
+      "related_keyword": "2023.04.30.손택스 종합소득세 환급금 조회 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:34:17"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급금 조회",
+      "related_keyword": "손택스 앱 을 실행 후 신고납부 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:34:17"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급금 조회",
+      "related_keyword": "손택스(모바일 홈택스)에서 종합소득세 환급액을 확인하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:34:17"
+    },
+    {
+      "depth": 34,
+      "parent_keyword": "손택스 종소세 환급내역",
+      "related_keyword": "손택스(모바일 홈택스)에서 종합소득세 환급액을 확인하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:34:48"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 기간",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 마이너스",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 신청",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 언제",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급금",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스 종합소득세 환급일",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:36:01"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 종합소득세 환급을 받는 절차와 일정은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:36:20"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "※ 손택스에서는 세액 확인이 제한되므로, 정확한 환급금 조회는 PC 홈택스를 권장합니다 1",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:39:44"
+    },
+    {
+      "depth": 35,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "손택스(모바일)에서 종합소득세 환급금을 조회하려면 다음 절차를 따르세요:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:39:44"
+    },
+    {
+      "depth": 43,
+      "parent_keyword": "손택스 근로장려금 금액",
+      "related_keyword": "손택스 근로장려금 금액 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 09:47:31"
+    },
+    {
+      "depth": 50,
+      "parent_keyword": "손택스 근로장려금 확인",
+      "related_keyword": "2025.05.12.1. 손택스 근로장려금 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:56:47"
+    },
+    {
+      "depth": 50,
+      "parent_keyword": "손택스 근로장려금 확인",
+      "related_keyword": "손택스 앱으로 들어가서 로그인합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 09:56:47"
+    },
+    {
+      "depth": 54,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "2024.11.25.손택스 사용 시 자주 발생하는 오류와 해결 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:00:16"
+    },
+    {
+      "depth": 54,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "2025.02.09.손택스 간편인증 로그인 오류 해결 방법!",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:00:16"
+    },
+    {
+      "depth": 54,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "손택스 앱 삭제 후 재설치 (캐시 문제 해결) …",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:00:16"
+    },
+    {
+      "depth": 54,
+      "parent_keyword": "손택스 로그인 실패",
+      "related_keyword": "앱 캐시 삭제: 설정 → 애플리케이션 → 손택스 → 저장공간 → 캐시 삭제",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:00:16"
+    },
+    {
+      "depth": 60,
+      "parent_keyword": "손택스 종합소득세 신고 확인",
+      "related_keyword": "손택스 종합소득세 신고 확인 하는 법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:05:12"
+    },
+    {
+      "depth": 60,
+      "parent_keyword": "손택스 종합소득세 신고 확인",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:05:43"
+    },
+    {
+      "depth": 60,
+      "parent_keyword": "손택스 종합소득세 신고 확인",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:05:43"
+    },
+    {
+      "depth": 62,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "손택스 종합소득세합소득세",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 10:08:04"
+    },
+    {
+      "depth": 62,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "손택스 종합소득세합소득세",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 10:08:08"
+    },
+    {
+      "depth": 62,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:08:20"
+    },
+    {
+      "depth": 62,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:08:20"
+    },
+    {
+      "depth": 62,
+      "parent_keyword": "손택스 종합소득세 조회",
+      "related_keyword": "자세한 절차는 홈택스 또는 손택스 앱의 '자주묻는Q&A' 섹션을 참고하세요 3 4",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:08:20"
+    },
+    {
+      "depth": 63,
+      "parent_keyword": "손택스 종합소득세 취소",
+      "related_keyword": "취소 방법: 홈택스 또는 손택스(모바일)를 통해 세금신고 삭제요청을 할 수 있습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:09:27"
+    },
+    {
+      "depth": 64,
+      "parent_keyword": "손택스 종합소득세 확인",
+      "related_keyword": "2024.05.15.내 휴대폰에서 손택스로 종합소득세 숨은 돈 확인하는 법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:10:35"
+    },
+    {
+      "depth": 64,
+      "parent_keyword": "손택스 종합소득세 확인",
+      "related_keyword": "먼저 내 스마트폰에 손택스앱을 설치 후 실행한 후 오른쪽 위 전체 메뉴를 클릭합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:10:35"
+    },
+    {
+      "depth": 65,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "※ 손택스에서는 세액 확인이 제한되므로, 정확한 환급금 조회는 PC 홈택스를 권장합니다 1",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:11:45"
+    },
+    {
+      "depth": 65,
+      "parent_keyword": "손택스 종합소득세 환급 조회",
+      "related_keyword": "손택스(모바일)에서 종합소득세 환급금을 조회하려면 다음 절차를 따르세요:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:11:45"
+    },
+    {
+      "depth": 66,
+      "parent_keyword": "손택스 종합소득세 환급일",
+      "related_keyword": "손택스 종합소득세 환급일 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:12:21"
+    },
+    {
+      "depth": 66,
+      "parent_keyword": "손택스 종합소득세 환급일",
+      "related_keyword": "손택스 종합소득세 환급일자",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:12:21"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증 등록 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:20:56"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증 등록 전",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:20:56"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증 등록 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:20:56"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증 등록 하는법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:20:56"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 10:21:01"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 10:21:04"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 등록하고 발급하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:21:17"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록 조회",
+      "related_keyword": "2024.04.11.손택스에서 현금영수증 등록하는 방법",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:22:55"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록 조회",
+      "related_keyword": "2025.03.20.모바일 손택스 앱을 통한 조회",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:22:55"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록 조회",
+      "related_keyword": "손택스 앱에 접속합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:22:55"
+    },
+    {
+      "depth": 75,
+      "parent_keyword": "손택스 현금영수증 등록 조회",
+      "related_keyword": "손택스 앱을 실행하고 로그인합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:22:55"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 방법",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 신청",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 조회",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 취소",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 확인",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급내역",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급수단",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:25:13"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 방법급 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 10:25:20"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "연관검색어",
+      "extracted_at": "2025-07-11 10:25:20"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증 발급 방법급 방법",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 10:25:26"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스 현금영수증금영수증",
+      "keyword_type": "연관검색어",
+      "source_type": "자동완성의_연관검색어",
+      "extracted_at": "2025-07-11 10:25:26"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 발급하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:25:30"
+    },
+    {
+      "depth": 77,
+      "parent_keyword": "손택스 현금영수증 발급 방법",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 발급하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:25:58"
+    },
+    {
+      "depth": 78,
+      "parent_keyword": "손택스 현금영수증 발급 방법",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 발급하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:30:05"
+    },
+    {
+      "depth": 79,
+      "parent_keyword": "손택스 현금영수증 번호 등록",
+      "related_keyword": "2024.12.30.2. 모바일 앱(손택스)을 통한 등록",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:31:18"
+    },
+    {
+      "depth": 79,
+      "parent_keyword": "손택스 현금영수증 번호 등록",
+      "related_keyword": "손택스(홈택스)에서 현금영수증 번호를 등록하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:31:18"
+    },
+    {
+      "depth": 80,
+      "parent_keyword": "손택스 현금영수증 신청",
+      "related_keyword": "손택스(모바일 홈택스)를 통해 현금영수증을 신청하려면 다음 절차를 따릅니다:",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:32:28"
+    },
+    {
+      "depth": 81,
+      "parent_keyword": "손택스 현금영수증 조회",
+      "related_keyword": "손택스 현금영수증 조회 발급",
+      "keyword_type": "자동완성",
+      "source_type": "자동완성검색어",
+      "extracted_at": "2025-07-11 10:33:05"
+    },
+    {
+      "depth": 94,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "만약 입금되지 않았다면 손택스 고객센터에 문의하여 문제 해결을 요청하세요.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:46:05"
+    },
+    {
+      "depth": 94,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "손택스를 통해 국세 환급금을 조회하고 입금받는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:46:05"
+    },
+    {
+      "depth": 94,
+      "parent_keyword": "손택스 환급금 입금",
+      "related_keyword": "스마트폰에서 ‘손택스’ 앱을 설치합니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:46:05"
+    },
+    {
+      "depth": 96,
+      "parent_keyword": "손택스 환급금 확인",
+      "related_keyword": "손택스 앱을 통해 종합소득세 환급금을 조회하고 신청하는 방법은 다음과 같습니다.",
+      "keyword_type": "함께많이찾는",
+      "source_type": "자동완성의_함께많이찾는",
+      "extracted_at": "2025-07-11 10:48:24"
+    }
+  ],
+  "processed_keywords": [],
+  "extract_autocomplete": true,
+  "timestamp": "2025-07-11T10:53:05.294345",
+  "excel_backup_file": "C:\\Users\\삼성\\OneDrive\\Desktop\\auto_keyword\\keyword_results\\손택스_백업.xlsx"
+}

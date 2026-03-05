@@ -1,6 +1,7 @@
 ﻿import os
 import sys
 import json
+import math
 import ast
 import random
 import socket
@@ -74,12 +75,12 @@ from PyQt6.QtWidgets import (
     QScrollArea, QFrame, QGridLayout, QGroupBox, QComboBox, 
     QCheckBox, QFileDialog, QProgressBar, QStatusBar, QSizePolicy,
     QTabWidget, QTabBar, QSpinBox, QDoubleSpinBox, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QScroller, QStackedLayout
+    QAbstractItemView, QScroller, QStackedLayout, QMenu, QListWidget, QListWidgetItem
 )
 from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
 from PyQt6.QtGui import (
     QPixmap, QKeySequence, QFont, QTransform, QIcon, QShortcut,
-    QPainter, QColor, QDesktopServices, QCursor, QPen
+    QPainter, QColor, QDesktopServices, QCursor, QPen, QAction
 )
 
 import pandas as pd
@@ -174,6 +175,72 @@ class ApiUsageReporter:
 
 
 API_USAGE_REPORTER = ApiUsageReporter()
+
+
+class GlobalKeywordReporter:
+    def __init__(self):
+        self._lock = threading.Lock()
+        self.machine_id = ""
+        self.webhook_url = ""
+        self.webhook_token = ""
+
+    def configure(self, machine_id="", webhook_url="", webhook_token=""):
+        with self._lock:
+            if machine_id:
+                self.machine_id = str(machine_id).strip()
+            self.webhook_url = str(webhook_url or "").strip()
+            self.webhook_token = str(webhook_token or "").strip()
+
+    def report_rows(self, analysis_type, rows, seed_keyword="", category_name="", source_label="analysis"):
+        if not rows:
+            return
+        with self._lock:
+            webhook_url = self.webhook_url
+            webhook_token = self.webhook_token
+            machine_id = self.machine_id
+        if not webhook_url:
+            return
+
+        compact_rows = []
+        for row in rows[:300]:
+            keyword = str(row.get("keyword", "")).replace("+", " ").strip()
+            if not keyword:
+                continue
+            compact_rows.append({
+                "keyword": keyword,
+                "monthly_total_search": int(row.get("monthly_total_search", 0)),
+                "blog_document_count": int(row.get("blog_document_count", 0)),
+                "content_saturation_index": float(row.get("content_saturation_index", 0.0)),
+                "section_position": str(row.get("section_position", "")),
+            })
+        if not compact_rows:
+            return
+
+        body = {
+            "event_type": "keyword_rows",
+            "machine_id": machine_id,
+            "analysis_type": str(analysis_type or "").strip(),
+            "seed_keyword": str(seed_keyword or "").strip(),
+            "category_name": str(category_name or "").strip(),
+            "source_label": str(source_label or "analysis"),
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "row_count": len(compact_rows),
+            "rows": compact_rows,
+        }
+        headers = {"Content-Type": "application/json"}
+        if webhook_token:
+            headers["X-Keyword-Token"] = webhook_token
+
+        def _post():
+            try:
+                requests.post(webhook_url, headers=headers, json=body, timeout=4.0)
+            except Exception:
+                pass
+
+        threading.Thread(target=_post, daemon=True).start()
+
+
+GLOBAL_KEYWORD_REPORTER = GlobalKeywordReporter()
 
 def activate_korean_input_method():
     """Best-effort: switch current input language to Korean on Windows."""
@@ -326,6 +393,8 @@ def get_embedded_api_credentials():
         "naver_client_secret": "1TV2afJdhU",
         "usage_webhook_url": "https://script.google.com/macros/s/AKfycbz3WZH9J1uRwXzzsFLlyH3gZkwI7eFrO_fSxDdOa7bLk0TU0_WXZaa3XC1marNnRBebVw/exec?token=david_usage_2026_01",
         "usage_webhook_token": "david_usage_2026_01",
+        "keyword_collect_webhook_url": "",
+        "keyword_collect_webhook_token": "",
     }
 
 
@@ -342,6 +411,8 @@ def load_api_credentials_from_file():
     credentials = {key: str(embedded.get(key, "")).strip() for key in required_keys}
     credentials["usage_webhook_url"] = str(embedded.get("usage_webhook_url", "")).strip()
     credentials["usage_webhook_token"] = str(embedded.get("usage_webhook_token", "")).strip()
+    credentials["keyword_collect_webhook_url"] = str(embedded.get("keyword_collect_webhook_url", "")).strip()
+    credentials["keyword_collect_webhook_token"] = str(embedded.get("keyword_collect_webhook_token", "")).strip()
 
     if api_file.exists():
         try:
@@ -354,7 +425,12 @@ def load_api_credentials_from_file():
                 value = str(data.get(key, "")).strip()
                 if value:
                     credentials[key] = value
-            for key in ["usage_webhook_url", "usage_webhook_token"]:
+            for key in [
+                "usage_webhook_url",
+                "usage_webhook_token",
+                "keyword_collect_webhook_url",
+                "keyword_collect_webhook_token",
+            ]:
                 value = str(data.get(key, "")).strip()
                 if value:
                     credentials[key] = value
@@ -764,6 +840,84 @@ class ExpiredDialog(QDialog):
     def open_kakao(self):
         url = QUrl("https://open.kakao.com/me/david0985")
         QDesktopServices.openUrl(url)
+
+
+class RelatedExpandSelectDialog(QDialog):
+    def __init__(self, candidates, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("추가 분석 키워드 선택")
+        self.resize(680, 520)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 14, 14, 14)
+        layout.setSpacing(10)
+
+        guide = QLabel(
+            "안내\n"
+            "- 아래 목록은 현재 결과 중 '월 검색량 1,000 초과' 및 '콘텐츠 포화 지수 10% 이상' 조건을 만족한 키워드입니다.\n"
+            "- 추가 분석할 키워드를 체크한 뒤 '선택한 키워드 분석'을 누르세요.\n"
+            "- 기존 결과는 유지되며, 추가 분석 결과가 아래에 이어서 표시됩니다."
+        )
+        guide.setWordWrap(True)
+        layout.addWidget(guide)
+
+        quick_row = QHBoxLayout()
+        select_all_button = QPushButton("전체 선택")
+        clear_all_button = QPushButton("전체 해제")
+        select_all_button.clicked.connect(self.select_all)
+        clear_all_button.clicked.connect(self.clear_all)
+        quick_row.addWidget(select_all_button)
+        quick_row.addWidget(clear_all_button)
+        quick_row.addStretch(1)
+        layout.addLayout(quick_row)
+
+        self.list_widget = QListWidget()
+        for row in candidates:
+            keyword = str(row.get("keyword", "")).replace("+", " ").strip()
+            monthly = int(row.get("monthly_total_search", 0))
+            saturation = float(row.get("content_saturation_index", 0.0))
+            text = f"{keyword} | 월 검색량 {monthly:,} | 콘텐츠 포화 지수 {saturation:.2f}%"
+            item = QListWidgetItem(text)
+            item.setData(Qt.ItemDataRole.UserRole, keyword)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked)
+            self.list_widget.addItem(item)
+        layout.addWidget(self.list_widget, 1)
+
+        action_row = QHBoxLayout()
+        action_row.addStretch(1)
+        cancel_button = QPushButton("취소")
+        ok_button = QPushButton("선택한 키워드 분석")
+        cancel_button.clicked.connect(self.reject)
+        ok_button.clicked.connect(self.accept)
+        action_row.addWidget(cancel_button)
+        action_row.addWidget(ok_button)
+        layout.addLayout(action_row)
+
+    def select_all(self):
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if item is not None:
+                item.setCheckState(Qt.CheckState.Checked)
+
+    def clear_all(self):
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if item is not None:
+                item.setCheckState(Qt.CheckState.Unchecked)
+
+    def selected_keywords(self):
+        selected = []
+        for i in range(self.list_widget.count()):
+            item = self.list_widget.item(i)
+            if item is None:
+                continue
+            if item.checkState() != Qt.CheckState.Checked:
+                continue
+            keyword = str(item.data(Qt.ItemDataRole.UserRole) or "").strip()
+            if keyword:
+                selected.append(keyword)
+        return selected
 
 
 class ResizableTextEdit(QTextEdit):
@@ -1391,6 +1545,7 @@ class NaverMobileSearchScraper:
         self.base_keyword = ""
         self.processed_keywords = set()
         self.search_thread: QThread | None = None
+        self._progress_context = "작업 준비 중"
         
         # comment removed (encoding issue)
         self.session.headers.update({
@@ -1403,9 +1558,22 @@ class NaverMobileSearchScraper:
             'Upgrade-Insecure-Requests': '1',
         })
 
+    def set_progress_context(self, context):
+        """Set current progress context used to replace generic progress tokens."""
+        text = sanitize_display_text(context)
+        if text:
+            self._progress_context = text
+
+    def resolve_progress_message(self, msg):
+        """Replace generic progress messages with current context."""
+        if msg == "progress update":
+            return self._progress_context
+        return msg
+
     def search_keyword(self, keyword, progress_callback=None):
         """Description"""
         try:
+            self.set_progress_context(f"'{keyword}' 검색 요청 중")
             if progress_callback:
                 progress_callback("progress update")
             
@@ -1433,6 +1601,7 @@ class NaverMobileSearchScraper:
         keywords = []
         
         try:
+            self.set_progress_context(f"'{keyword}' 연관검색어 HTML 파싱 중")
             if not BEAUTIFULSOUP_AVAILABLE:
                 if progress_callback:
                     progress_callback("progress update")
@@ -1502,6 +1671,7 @@ class NaverMobileSearchScraper:
         
         if self.search_thread:
             if bool(getattr(self.search_thread, "is_paused", False)):
+                self.set_progress_context("일시정지 상태 - 재개 대기 중")
                 if progress_callback:
                     progress_callback("progress update")
                 
@@ -1512,9 +1682,11 @@ class NaverMobileSearchScraper:
                     return False
                 
                 if progress_callback:
+                    self.set_progress_context("일시정지 해제 - 작업 재개")
                     progress_callback("progress update")
         
         if not self.check_internet_connection():
+            self.set_progress_context("인터넷 연결 끊김 - 복구 대기 중")
             if progress_callback:
                 progress_callback("progress update")
             
@@ -1781,6 +1953,7 @@ class NaverMobileSearchScraper:
 
     def search_keyword_mobile(self, keyword, progress_callback=None):
         """Search keyword on Naver mobile."""
+        self.set_progress_context(f"'{keyword}' 모바일 검색 실행 중")
         max_retries = 3
         
         for attempt in range(max_retries):
@@ -1895,6 +2068,7 @@ class NaverMobileSearchScraper:
 
     def extract_autocomplete_keywords(self, keyword, progress_callback=None):
         """Extract autocomplete keywords."""
+        self.set_progress_context(f"'{keyword}' 자동완성 키워드 추출 중")
         keywords = []
         max_retries = 2
         
@@ -2089,6 +2263,7 @@ class NaverMobileSearchScraper:
 
     def extract_related_keywords_new(self, current_keyword, progress_callback=None):
         """Extract related keywords from current page."""
+        self.set_progress_context(f"'{current_keyword}' 연관검색어(모바일) 추출 중")
         keywords = []
         
         try:
@@ -2246,6 +2421,7 @@ class NaverMobileSearchScraper:
 
     def extract_together_keywords(self, current_keyword, progress_callback=None):
         """Description"""
+        self.set_progress_context(f"'{current_keyword}' 함께 많이 찾는 키워드 추출 중")
         keywords = []
         try:
             if progress_callback:
@@ -2286,6 +2462,7 @@ class NaverMobileSearchScraper:
             
     def extract_popular_topics(self, current_keyword, progress_callback=None):
         """Description"""
+        self.set_progress_context(f"'{current_keyword}' 인기주제 추출 중")
         keywords = []
         try:
             if progress_callback:
@@ -2326,6 +2503,7 @@ class NaverMobileSearchScraper:
 
     def recursive_keyword_extraction(self, initial_keyword, progress_callback=None, extract_autocomplete=True):
         """Description"""
+        self.set_progress_context(f"'{initial_keyword}' 재귀 키워드 추출 준비 중")
         if not self.driver:
             if progress_callback:
                 progress_callback("progress update")
@@ -2399,6 +2577,7 @@ class NaverMobileSearchScraper:
         try:
             if not self.is_running:
                 return False
+            self.set_progress_context(f"'{current_keyword}' depth {depth} 키워드 타입별 추출 중")
             
             # comment removed (encoding issue)
             if not self.check_pause_status(progress_callback):
@@ -2485,6 +2664,7 @@ class NaverMobileSearchScraper:
 
     def _recursive_autocomplete_extraction(self, keywords_to_process, original_keyword, depth, progress_callback=None, max_depth=5):
         """Description"""
+        self.set_progress_context(f"'{original_keyword}' 자동완성 재귀 depth {depth} 처리 중")
         
         if depth > max_depth:
             if progress_callback:
@@ -2577,6 +2757,7 @@ class NaverMobileSearchScraper:
 
     def save_recursive_results_to_excel(self, save_path=None, progress_callback=None):
         """Save extraction results to file."""
+        self.set_progress_context("엑셀 파일 저장 준비 중")
         try:
             if not hasattr(self, 'all_related_keywords') or not self.all_related_keywords:
                 if progress_callback:
@@ -4329,7 +4510,10 @@ class ParallelKeywordThread(QThread):
 
     def _log_wrapper(self, msg):
         """Description"""
-        self.log.emit(self.keyword, msg)
+        resolved = msg
+        if self.searcher:
+            resolved = self.searcher.resolve_progress_message(msg)
+        self.log.emit(self.keyword, resolved)
 
     def stop(self):
         """Description"""
@@ -4402,6 +4586,25 @@ STYLESHEET = f"""
         border-radius: 8px;
         background-color: {WHITE_COLOR};
         color: #333333 !important;
+    }}
+    QComboBox#blogCountModeCombo {{
+        min-width: 146px;
+        font-size: 15px;
+        font-weight: 800;
+        border: 2px solid {NAVER_GREEN};
+        border-radius: 9px;
+        background-color: #ecfff4;
+        color: #15563b !important;
+        padding-left: 12px;
+        padding-right: 30px;
+    }}
+    QComboBox#blogCountModeCombo:hover {{
+        background-color: #e2f9ec;
+        border-color: {NAVER_GREEN_DARK};
+    }}
+    QComboBox#blogCountModeCombo::drop-down {{
+        border: none;
+        width: 24px;
     }}
     QLineEdit:read-only {{
         background-color: {NAVER_GREEN_LIGHT};
@@ -4502,6 +4705,25 @@ DARK_STYLESHEET = """
         border-radius: 8px;
         background-color: #171d24;
         color: #e6edf3 !important;
+    }
+    QComboBox#blogCountModeCombo {
+        min-width: 146px;
+        font-size: 15px;
+        font-weight: 800;
+        border: 2px solid #00a83a;
+        border-radius: 9px;
+        background-color: #1f3a2f;
+        color: #d8f7e8 !important;
+        padding-left: 12px;
+        padding-right: 30px;
+    }
+    QComboBox#blogCountModeCombo:hover {
+        border-color: #04c14a;
+        background-color: #254336;
+    }
+    QComboBox#blogCountModeCombo::drop-down {
+        border: none;
+        width: 24px;
     }
     QLineEdit:read-only {
         background-color: #1f2a24;
@@ -4631,6 +4853,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_spinner_timer = QTimer(self)
         self.related_spinner_timer.setInterval(120)
         self.related_spinner_timer.timeout.connect(self._tick_related_spinner)
+        self.hybrid_cache_path = os.path.join(os.getcwd(), "keyword_results", "category_hybrid_cache.json")
+        self.hybrid_keyword_cache = self._load_hybrid_keyword_cache()
         
         # comment removed (encoding issue)
         self.setup_crash_protection()
@@ -4719,15 +4943,27 @@ class KeywordExtractorMainWindow(QMainWindow):
         nav_layout.setContentsMargins(10, 6, 10, 4)
         nav_layout.setSpacing(8)
         left_slot = QWidget()
-        left_slot.setFixedWidth(240)
+        left_slot.setFixedWidth(500)
         left_slot_layout = QHBoxLayout(left_slot)
         left_slot_layout.setContentsMargins(0, 0, 0, 0)
-        left_slot_layout.setSpacing(0)
-        self.theme_toggle_button = QPushButton(self._theme_button_text("light"))
-        self.theme_toggle_button.setObjectName("themeToggleButton")
-        self.theme_toggle_button.setFixedWidth(240)
-        self.theme_toggle_button.clicked.connect(self.toggle_theme_mode)
-        left_slot_layout.addWidget(self.theme_toggle_button)
+        left_slot_layout.setSpacing(6)
+        self.theme_light_button = QPushButton("라이트")
+        self.theme_light_button.setObjectName("themeChoiceButton")
+        self.theme_light_button.setCheckable(True)
+        self.theme_light_button.setAutoExclusive(True)
+        self.theme_light_button.clicked.connect(lambda: self.apply_theme("light"))
+        self.theme_dark_button = QPushButton("다크")
+        self.theme_dark_button.setObjectName("themeChoiceButton")
+        self.theme_dark_button.setCheckable(True)
+        self.theme_dark_button.setAutoExclusive(True)
+        self.theme_dark_button.clicked.connect(lambda: self.apply_theme("dark"))
+        left_slot_layout.addWidget(self.theme_light_button)
+        left_slot_layout.addWidget(self.theme_dark_button)
+        self.theme_current_label = QLabel("현재: 라이트")
+        self.theme_current_label.setObjectName("themeCurrentLabel")
+        self.theme_current_label.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.theme_current_label.setFixedWidth(96)
+        left_slot_layout.addWidget(self.theme_current_label)
         self.section_related_button = QPushButton("연관 키워드 추출")
         self.section_related_button.setCheckable(True)
         self.section_gold_button = QPushButton("황금 키워드 분석")
@@ -4806,7 +5042,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.section_gold_button.setChecked(index == 1)
 
     def _theme_button_text(self, mode):
-        return "테마: 다크" if mode == "dark" else "테마: 라이트"
+        current = "다크" if mode == "dark" else "라이트"
+        return f"테마: 라이트 / 다크 (현재: {current})"
 
     def toggle_theme_mode(self):
         next_mode = "dark" if getattr(self, "current_theme_mode", "light") == "light" else "light"
@@ -4817,8 +5054,12 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.current_theme_mode = mode
         self.setStyleSheet(DARK_STYLESHEET if mode == "dark" else STYLESHEET)
 
-        if hasattr(self, "theme_toggle_button"):
-            self.theme_toggle_button.setText(self._theme_button_text(mode))
+        if hasattr(self, "theme_light_button"):
+            self.theme_light_button.setChecked(mode == "light")
+        if hasattr(self, "theme_dark_button"):
+            self.theme_dark_button.setChecked(mode == "dark")
+        if hasattr(self, "theme_current_label"):
+            self.theme_current_label.setText(f"현재: {'다크' if mode == 'dark' else '라이트'}")
         if hasattr(self, "nav_widget"):
             self.nav_widget.setStyleSheet(self._nav_stylesheet(mode))
         if hasattr(self, "main_tabs"):
@@ -4829,8 +5070,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.golden_root_widget.setStyleSheet(self._golden_root_stylesheet(mode))
         if hasattr(self, "related_table"):
             self.related_table.setStyleSheet(self._result_table_stylesheet(mode))
-        if hasattr(self, "related_table_placeholder"):
-            self.related_table_placeholder.setStyleSheet(self._result_table_stylesheet(mode))
+        if hasattr(self, "related_guide_widget"):
             self._populate_related_guide_table()
         if hasattr(self, "category_table"):
             self.category_table.setStyleSheet(self._result_table_stylesheet(mode))
@@ -4862,6 +5102,20 @@ class KeywordExtractorMainWindow(QMainWindow):
                 QPushButton:hover:!checked {
                     background: #28483a;
                 }
+                QPushButton#themeChoiceButton {
+                    min-width: 0px;
+                    min-height: 34px;
+                    padding: 5px 10px;
+                    font-size: 13px;
+                    border-radius: 8px;
+                }
+                QLabel#themeCurrentLabel {
+                    color: #a9c8b9;
+                    font-size: 12px;
+                    font-weight: 700;
+                    min-height: 34px;
+                    padding: 0px 4px;
+                }
             """
         return """
             QPushButton {
@@ -4882,6 +5136,20 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QPushButton:hover:!checked {
                 background: #dff0e7;
+            }
+            QPushButton#themeChoiceButton {
+                min-width: 0px;
+                min-height: 34px;
+                padding: 5px 10px;
+                font-size: 13px;
+                border-radius: 8px;
+            }
+            QLabel#themeCurrentLabel {
+                color: #3b6b56;
+                font-size: 12px;
+                font-weight: 700;
+                min-height: 34px;
+                padding: 0px 4px;
             }
         """
 
@@ -5028,6 +5296,16 @@ class KeywordExtractorMainWindow(QMainWindow):
                     background: #171b20;
                     color: #e3ecf5;
                     alternate-background-color: #1f252d;
+                    selection-background-color: transparent;
+                    selection-color: #e3ecf5;
+                }
+                QTableWidget::item:selected {
+                    background: transparent;
+                    border: 1px solid #4a7aa4;
+                    color: #e3ecf5;
+                }
+                QTableWidget::item:selected:active {
+                    background: transparent;
                 }
                 QHeaderView::section {
                     background-color: #23303c;
@@ -5045,6 +5323,16 @@ class KeywordExtractorMainWindow(QMainWindow):
                 border-radius: 8px;
                 background: #ffffff;
                 alternate-background-color: #f6fbf8;
+                selection-background-color: transparent;
+                selection-color: #1f5136;
+            }
+            QTableWidget::item:selected {
+                background: transparent;
+                border: 1px solid #7cc8a0;
+                color: #1f5136;
+            }
+            QTableWidget::item:selected:active {
+                background: transparent;
             }
             QHeaderView::section {
                 background-color: #e8f5f0;
@@ -5279,6 +5567,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.blog_count_mode_combo.addItem("월간 발행량", "monthly")
         self.blog_count_mode_combo.addItem("전체 발행량", "total")
         self.blog_count_mode_combo.setCurrentIndex(0 if self.blog_count_mode == "monthly" else 1)
+        self.blog_count_mode_combo.setToolTip(
+            "월간 발행량: 최근 1개월 기준으로 경쟁도를 봅니다.\n"
+            "전체 발행량: 전체 누적 기준으로 빠르게 경쟁도를 봅니다."
+        )
         self.blog_count_mode_combo.currentIndexChanged.connect(self.on_blog_count_mode_changed)
         left_top.addWidget(self.blog_count_mode_combo)
 
@@ -5286,19 +5578,25 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.related_upload_button = QPushButton("파일 업로드")
         self.related_upload_button.setObjectName("uploadButton")
+        self.related_upload_button.setToolTip("여러 키워드를 한 번에 분석할 때 사용합니다. (xlsx/csv, A열 기준)")
         self.related_upload_button.clicked.connect(self.start_related_file_analysis)
         left_top.addWidget(self.related_upload_button)
 
         self.related_keyword_button = QPushButton("분석 실행")
+        self.related_keyword_button.setObjectName("relatedActionButton")
+        self.related_keyword_button.setToolTip("입력한 키워드를 일반 모드로 분석합니다.")
         self.related_keyword_button.clicked.connect(self.start_related_keyword_analysis)
         self.related_single_button = QPushButton("단일 키워드")
+        self.related_single_button.setObjectName("relatedActionButton")
+        self.related_single_button.setToolTip("키워드 1개를 빠르게 확인할 때 사용합니다.")
         self.related_single_button.clicked.connect(self.start_single_keyword_analysis)
         self.related_save_button = QPushButton("저장")
+        self.related_save_button.setObjectName("relatedActionButton")
+        self.related_save_button.setToolTip("현재 표 결과를 파일로 저장합니다.")
         self.related_save_button.setEnabled(False)
         self.related_save_button.clicked.connect(lambda: self.save_results_for_mode("related"))
         left_top.addWidget(self.related_keyword_button)
         left_top.addWidget(self.related_single_button)
-        left_top.addWidget(self.related_save_button)
         left_layout.addLayout(left_top)
 
         self.blog_count_mode_hint = QLabel("")
@@ -5330,15 +5628,24 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.related_table = QTableWidget()
         self._init_result_table(self.related_table)
-        self.related_table_placeholder = QTableWidget()
-        self.related_table_placeholder.setObjectName("relatedGuideTable")
-        self._init_result_table(self.related_table_placeholder)
+        self.related_guide_widget = QFrame()
+        self.related_guide_widget.setObjectName("relatedGuidePanel")
+        related_guide_layout = QVBoxLayout(self.related_guide_widget)
+        related_guide_layout.setContentsMargins(20, 16, 20, 16)
+        related_guide_layout.setSpacing(10)
+        self.related_guide_text = QLabel("")
+        self.related_guide_text.setObjectName("relatedGuideContent")
+        self.related_guide_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.related_guide_text.setWordWrap(True)
+        self.related_guide_text.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        related_guide_layout.addWidget(self.related_guide_text)
+        related_guide_layout.addStretch(1)
         self._populate_related_guide_table()
 
         self.related_table_stack_widget = QWidget()
         self.related_table_stack = QStackedLayout(self.related_table_stack_widget)
         self.related_table_stack.setContentsMargins(0, 0, 0, 0)
-        self.related_table_stack.addWidget(self.related_table_placeholder)
+        self.related_table_stack.addWidget(self.related_guide_widget)
         self.related_table_stack.addWidget(self.related_table)
         self.related_table_stack.setCurrentIndex(0)
         left_layout.addWidget(self.related_table_stack_widget)
@@ -5349,7 +5656,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_more_button.setEnabled(False)
         self.related_more_button.setObjectName("moreLinkButton")
         related_more_row.addWidget(self.related_more_button)
-        related_more_row.addStretch(1)
+        related_more_row.addWidget(self.related_save_button)
         left_layout.addLayout(related_more_row)
         split.addWidget(left_group, 1)
 
@@ -5418,16 +5725,6 @@ class KeywordExtractorMainWindow(QMainWindow):
         self._init_result_table(self.category_table)
         right_layout.addWidget(self.category_table)
 
-        for w in [
-            self.golden_category_combo,
-            self.category_limit_spin,
-            self.golden_start_button,
-            self.category_continue_button,
-            self.category_save_button,
-            self.category_table
-        ]:
-            w.setEnabled(False)
-
         self.category_notice_card = QFrame()
         self.category_notice_card.setObjectName("categoryNoticeCard")
         notice_layout = QVBoxLayout(self.category_notice_card)
@@ -5448,6 +5745,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         notice_layout.addWidget(self.category_notice_text)
         notice_layout.addStretch(1)
         right_layout.addWidget(self.category_notice_card)
+        self.category_notice_card.setVisible(False)
         split.addWidget(right_group, 1)
 
         root.addLayout(split)
@@ -5516,10 +5814,13 @@ class KeywordExtractorMainWindow(QMainWindow):
                 padding-left: 2px;
             }
             QLabel#summaryHint {
-                color: #4f6b5b;
+                color: #2f5f4a;
                 font-size: 12px;
                 font-weight: 700;
-                padding-left: 2px;
+                padding: 8px 10px;
+                border: 1px solid #cfe8d7;
+                border-radius: 8px;
+                background: #f4fbf7;
             }
             QFrame#categoryNoticeCard {
                 background: #fef9eb;
@@ -5554,20 +5855,25 @@ class KeywordExtractorMainWindow(QMainWindow):
                 border: 1px dashed #bfe5ce;
                 border-radius: 8px;
             }
-            QLabel#relatedGuideTitle {
-                color: #1f5136;
+            QFrame#relatedGuidePanel {
+                border: 1px solid #cfe8d7;
+                border-radius: 8px;
+                background: #ffffff;
+            }
+            QLabel#relatedGuideContent {
+                color: #1f3f55;
                 font-size: 15px;
-                font-weight: 800;
-            }
-            QLabel#relatedGuideText {
-                color: #4b6b5b;
-                font-size: 13px;
                 font-weight: 600;
-                line-height: 1.45;
+                line-height: 1.6;
             }
-            QPushButton { font-size: 13px; font-weight: 700; min-height: 34px; border-radius: 8px; }
+            QPushButton { font-size: 14px; font-weight: 700; min-height: 42px; border-radius: 9px; }
+            QPushButton#relatedActionButton {
+                min-width: 118px;
+                min-height: 42px;
+                padding: 8px 16px;
+            }
             QPushButton#categoryActionButton {
-                min-height: 36px;
+                min-height: 42px;
                 padding: 6px 14px;
                 text-align: center;
             }
@@ -5575,7 +5881,9 @@ class KeywordExtractorMainWindow(QMainWindow):
                 background: #ecf3ff;
                 color: #1f4f8a !important;
                 border: 1px solid #c6d9f5;
-                padding: 6px 12px;
+                min-width: 118px;
+                min-height: 42px;
+                padding: 8px 16px;
             }
             QPushButton#uploadButton:hover {
                 background: #e2eeff;
@@ -5600,8 +5908,8 @@ class KeywordExtractorMainWindow(QMainWindow):
                 color: #666666 !important;
             }
             QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
-                min-height: 34px;
-                font-size: 13px;
+                min-height: 42px;
+                font-size: 14px;
                 background: #ffffff;
                 border: 1px solid #cfd8d3;
                 border-radius: 7px;
@@ -5707,58 +6015,54 @@ class KeywordExtractorMainWindow(QMainWindow):
         table_widget.setAlternatingRowColors(True)
         table_widget.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         table_widget.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-        # 드래그로 연속 구간을 쉽게 선택할 수 있도록 행 단위 선택을 사용
-        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        # 엑셀처럼 셀 단위 선택/복사가 되도록 항목 단위 선택을 사용
+        table_widget.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
         table_widget.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         table_widget.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         table_widget._copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), table_widget)
         table_widget._copy_shortcut.activated.connect(
             lambda tw=table_widget: self.copy_selected_table_cells(tw)
         )
+        table_widget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        table_widget.customContextMenuRequested.connect(
+            lambda pos, tw=table_widget: self._show_table_context_menu(tw, pos)
+        )
         table_widget.setSortingEnabled(True)
         table_widget.setStyleSheet(self._result_table_stylesheet(getattr(self, "current_theme_mode", "light")))
         self._update_blog_count_column_header()
 
     def _populate_related_guide_table(self):
-        guide_table = getattr(self, "related_table_placeholder", None)
-        if not isinstance(guide_table, QTableWidget):
+        guide_label = getattr(self, "related_guide_text", None)
+        if not isinstance(guide_label, QLabel):
             return
 
         lines = [
             "연관 키워드 분석 사용법",
-            "1. 실행 전 설정: '월간 발행량 / 전체 발행량' 중 하나를 먼저 선택하세요.",
-            "2. 설정 차이: 월간 발행량은 수집 정밀도가 높지만 시간이 더 걸리고, 전체 발행량은 더 빠르게 분석됩니다.",
-            "3. 버튼 차이: '분석 실행'은 입력창의 여러 키워드를 일괄 분석하고, '단일 키워드'는 1개 키워드만 빠르게 분석합니다.",
-            "4. 분석 시작: 키워드 입력 후 버튼을 누르거나, 여러 키워드는 '파일 업로드'를 사용하세요. (xlsx/csv, A열 기준)",
-            "5. 진행 확인: 하단 진행 막대와 로그 탭에서 단계별 상태를 확인할 수 있습니다.",
-            "6. 결과 표 항목: 키워드 / 월 검색량 / 월 블로그 발행량 / 콘텐츠 포화 지수",
-            "7. 표 정렬: 각 열 제목의 ↕를 클릭하면 오름차순/내림차순으로 정렬됩니다.",
-            "8. 추가 확장: '더 많은 연관 키워드 보기'를 누르면 현재 결과 기반으로 재분석합니다.",
-            "9. 저장: 분석 완료 후 '저장' 버튼으로 현재 결과를 파일로 저장하세요.",
+            "1. 먼저 키워드를 입력하세요: 예) 연말정산, 자동차보험, 다이어트 식단",
+            "2. 한 번에 여러 개 분석하려면: 키워드를 한 줄에 하나씩 입력하거나 '파일 업로드'를 사용하세요. (xlsx/csv, A열 기준)",
+            "3. 발행량 기준을 고르세요:",
+            "   - 월간 발행량: 최근 경쟁도를 보기 좋아요. (조금 더 느릴 수 있음)",
+            "   - 전체 발행량: 전체 누적 경쟁도를 빠르게 확인할 때 좋아요.",
+            "4. 버튼 선택 방법:",
+            "   - 분석 실행: 입력된 키워드를 일반 분석합니다.",
+            "   - 단일 키워드: 키워드 1개만 빠르게 확인합니다.",
+            "5. 분석 중에는 하단 진행 상태와 로그에서 현재 단계를 확인할 수 있습니다.",
+            "6. 결과 표 읽는 법:",
+            "   - 월 검색량: 사람들이 한 달에 얼마나 찾는지",
+            "   - 블로그 발행량: 해당 주제로 작성된 글 수",
+            "   - 콘텐츠 포화 지수: 낮을수록 기회가 큰 편 (경쟁이 비교적 낮음)",
+            "7. 정렬 방법: 각 열 제목의 ↕를 클릭하면 큰 값/작은 값 순으로 바꿔 볼 수 있습니다.",
+            "8. 결과가 적거나 아쉬우면 '더 많은 연관 키워드 보기'를 눌러 추가로 확장 분석하세요.",
+            "9. 원하는 결과가 나오면 '저장' 버튼으로 키워드 목록을 파일로 저장하세요.",
+            "10. 처음이라면: 키워드 1개로 먼저 테스트한 뒤, 파일 업로드 분석으로 확장하는 것을 추천합니다.",
         ]
+        mode = str(getattr(self, "current_theme_mode", "light")).lower()
+        if mode == "dark":
+            guide_label.setStyleSheet("color: #e5eef8;")
+        else:
+            guide_label.setStyleSheet("color: #1f3f55;")
 
-        guide_table.setSortingEnabled(False)
-        guide_table.clearContents()
-        guide_table.setRowCount(len(lines))
-        guide_table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        guide_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        guide_table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-
-        gray_title = QColor("#5f6368")
-        gray_body = QColor("#6f7680")
-
-        for row, text in enumerate(lines):
-            guide_table.setSpan(row, 0, 1, 4)
-            item = QTableWidgetItem(text)
-            item.setTextAlignment(int(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft))
-            item.setForeground(gray_title if row == 0 else gray_body)
-            if row == 0:
-                f = item.font()
-                f.setBold(True)
-                f.setPointSize(max(11, f.pointSize()))
-                item.setFont(f)
-            guide_table.setItem(row, 0, item)
-            guide_table.setRowHeight(row, 38 if row == 0 else 34)
+        guide_label.setText("\n".join(lines))
 
     def copy_selected_table_cells(self, table_widget):
         indexes = table_widget.selectedIndexes()
@@ -5777,6 +6081,209 @@ class KeywordExtractorMainWindow(QMainWindow):
         clipboard = QApplication.clipboard()
         if clipboard is not None:
             clipboard.setText("\n".join(lines))
+
+    def _copy_cell_from_item(self, item):
+        if item is None:
+            return False
+        cell_text = str(item.text() if item.text() is not None else "").strip()
+        if not cell_text:
+            return False
+        clipboard = QApplication.clipboard()
+        if clipboard is None:
+            return False
+        clipboard.setText(cell_text)
+        self.status_bar.showMessage(f"셀 복사됨: {cell_text}", 2000)
+        return True
+
+    def _show_table_context_menu(self, table_widget, pos):
+        global_pos = table_widget.viewport().mapToGlobal(pos)
+        item = table_widget.itemAt(pos)
+
+        menu = QMenu(table_widget)
+        copy_cell_action = QAction("이 셀 복사", menu)
+        copy_selected_action = QAction("선택 영역 복사 (Ctrl+C)", menu)
+
+        has_cell = (item is not None and bool(str(item.text() if item.text() is not None else "").strip()))
+        has_selection = bool(table_widget.selectedIndexes())
+
+        copy_cell_action.setEnabled(has_cell)
+        copy_selected_action.setEnabled(has_selection)
+
+        copy_cell_action.triggered.connect(lambda: self._copy_cell_from_item(item))
+        copy_selected_action.triggered.connect(lambda: self.copy_selected_table_cells(table_widget))
+
+        menu.addAction(copy_cell_action)
+        menu.addAction(copy_selected_action)
+        menu.exec(global_pos)
+
+    def _normalize_keyword_for_cache(self, text):
+        return str(text or "").replace("+", " ").strip()
+
+    def _keyword_cache_key(self, text):
+        normalized = self._normalize_keyword_for_cache(text)
+        return normalized.replace(" ", "").lower()
+
+    def _load_hybrid_keyword_cache(self):
+        default_payload = {"keywords": {}, "updated_at": ""}
+        try:
+            if not os.path.exists(self.hybrid_cache_path):
+                return default_payload
+            with open(self.hybrid_cache_path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+            if not isinstance(payload, dict):
+                return default_payload
+            keywords = payload.get("keywords", {})
+            if not isinstance(keywords, dict):
+                keywords = {}
+            return {
+                "keywords": keywords,
+                "updated_at": str(payload.get("updated_at", "")),
+            }
+        except Exception:
+            return default_payload
+
+    def _save_hybrid_keyword_cache(self):
+        payload = self.hybrid_keyword_cache if isinstance(self.hybrid_keyword_cache, dict) else {"keywords": {}, "updated_at": ""}
+        payload["updated_at"] = datetime.now().isoformat(timespec="seconds")
+        os.makedirs(os.path.dirname(self.hybrid_cache_path), exist_ok=True)
+        tmp_path = f"{self.hybrid_cache_path}.tmp"
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        os.replace(tmp_path, self.hybrid_cache_path)
+
+    def _tokenize_for_category(self, text):
+        return [t for t in re.split(r"[\s/,_\-.]+", str(text or "").lower()) if len(t) >= 2]
+
+    def _compute_category_scores_for_keyword(self, keyword):
+        key_compact = self._keyword_cache_key(keyword)
+        if not key_compact:
+            return {}
+        category_scores = {}
+        for category_name, seeds in self.category_seed_map.items():
+            tokens = set(self._tokenize_for_category(category_name))
+            for seed in seeds:
+                tokens.update(self._tokenize_for_category(seed))
+            score = 0.0
+            for token in tokens:
+                if token and token in key_compact:
+                    score += 1.0
+            if score > 0:
+                category_scores[category_name] = round(score, 3)
+        return category_scores
+
+    def _ingest_rows_to_hybrid_cache(self, rows, source_mode="related"):
+        if not isinstance(rows, list) or not rows:
+            return
+        cache = self.hybrid_keyword_cache if isinstance(self.hybrid_keyword_cache, dict) else {"keywords": {}, "updated_at": ""}
+        cache_keywords = cache.setdefault("keywords", {})
+        now_iso = datetime.now().isoformat(timespec="seconds")
+        changed = False
+
+        for row in rows:
+            keyword = self._normalize_keyword_for_cache(row.get("keyword", ""))
+            key = self._keyword_cache_key(keyword)
+            if not keyword or not key:
+                continue
+
+            monthly = int(row.get("monthly_total_search", 0))
+            monthly_pc = int(row.get("monthly_pc_search", 0))
+            monthly_mobile = int(row.get("monthly_mobile_search", 0))
+            blog_docs = int(row.get("blog_document_count", 0))
+            saturation = float(row.get("content_saturation_index", 0.0))
+            category_scores = self._compute_category_scores_for_keyword(keyword)
+            if not category_scores:
+                continue
+
+            existing = cache_keywords.get(key, {})
+            merged_categories = dict(existing.get("categories", {})) if isinstance(existing.get("categories", {}), dict) else {}
+            for cat, sc in category_scores.items():
+                prev = float(merged_categories.get(cat, 0.0))
+                merged_categories[cat] = max(prev, float(sc))
+
+            source_modes = list(existing.get("source_modes", [])) if isinstance(existing.get("source_modes", []), list) else []
+            if source_mode not in source_modes:
+                source_modes.append(source_mode)
+
+            cache_keywords[key] = {
+                "keyword": keyword,
+                "monthly_pc_search": monthly_pc if monthly_pc > 0 else int(existing.get("monthly_pc_search", 0)),
+                "monthly_mobile_search": monthly_mobile if monthly_mobile > 0 else int(existing.get("monthly_mobile_search", 0)),
+                "monthly_total_search": max(int(existing.get("monthly_total_search", 0)), monthly),
+                "blog_document_count": blog_docs if blog_docs > 0 else int(existing.get("blog_document_count", 0)),
+                "content_saturation_index": saturation if saturation >= 0 else float(existing.get("content_saturation_index", 0.0)),
+                "section_position": str(row.get("section_position", existing.get("section_position", "확인 필요"))),
+                "categories": merged_categories,
+                "source_modes": source_modes,
+                "first_seen_at": str(existing.get("first_seen_at", now_iso)),
+                "last_seen_at": now_iso,
+                "sample_count": int(existing.get("sample_count", 0)) + 1,
+            }
+            changed = True
+
+        if changed:
+            self.hybrid_keyword_cache = cache
+            self._save_hybrid_keyword_cache()
+
+    def _rank_cached_rows_for_category(self, category_name, limit):
+        cache = self.hybrid_keyword_cache if isinstance(self.hybrid_keyword_cache, dict) else {}
+        cache_keywords = cache.get("keywords", {})
+        if not isinstance(cache_keywords, dict):
+            return []
+
+        now = datetime.now()
+        ranked = []
+        for rec in cache_keywords.values():
+            if not isinstance(rec, dict):
+                continue
+            categories = rec.get("categories", {})
+            if not isinstance(categories, dict):
+                continue
+            category_score = float(categories.get(category_name, 0.0))
+            if category_score <= 0:
+                continue
+
+            keyword = self._normalize_keyword_for_cache(rec.get("keyword", ""))
+            if not keyword:
+                continue
+            monthly = int(rec.get("monthly_total_search", 0))
+            blog_docs = int(rec.get("blog_document_count", 0))
+            saturation = float(rec.get("content_saturation_index", 0.0))
+            seen_at_raw = str(rec.get("last_seen_at", "")).strip()
+            freshness_bonus = 0.0
+            if seen_at_raw:
+                try:
+                    seen_at = datetime.fromisoformat(seen_at_raw)
+                    age_hours = max(0.0, (now - seen_at).total_seconds() / 3600.0)
+                    freshness_bonus = math.exp(-age_hours / 48.0) * 2.0
+                except Exception:
+                    freshness_bonus = 0.0
+
+            # 고검색량 + 저포화 + 카테고리 적합 + 최근성 가중치
+            hybrid_score = (
+                (math.log1p(max(0, monthly)) * 0.65) +
+                ((100.0 / (1.0 + max(0.0, saturation))) * 0.25) +
+                (category_score * 0.8) +
+                freshness_bonus
+            )
+            ranked.append({
+                "keyword": keyword,
+                "monthly_pc_search": int(rec.get("monthly_pc_search", 0)),
+                "monthly_mobile_search": int(rec.get("monthly_mobile_search", 0)),
+                "monthly_total_search": monthly,
+                "blog_document_count": blog_docs,
+                "content_saturation_index": saturation,
+                "section_position": str(rec.get("section_position", "캐시")),
+                "_hybrid_score": hybrid_score,
+            })
+
+        ranked.sort(
+            key=lambda x: (
+                -float(x.get("_hybrid_score", 0.0)),
+                -int(x.get("monthly_total_search", 0)),
+                float(x.get("content_saturation_index", 0.0))
+            )
+        )
+        return ranked[:max(1, int(limit))]
 
     def _tick_related_spinner(self):
         if not hasattr(self, "related_spinner"):
@@ -5834,7 +6341,6 @@ class KeywordExtractorMainWindow(QMainWindow):
         for table in [
             getattr(self, "related_table", None),
             getattr(self, "category_table", None),
-            getattr(self, "related_table_placeholder", None),
         ]:
             if not table:
                 continue
@@ -5863,7 +6369,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             mode,
             keyword,
             self.category_seed_map.get(keyword, []),
-            offset=int(self.analysis_offset.get(mode, 0))
+            offset=int(self.analysis_offset.get(mode, 0)),
+            keep_existing=True
         )
 
     def _start_golden_analysis(
@@ -5897,6 +6404,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             webhook_url=credentials.get("usage_webhook_url", ""),
             webhook_token=credentials.get("usage_webhook_token", ""),
         )
+        GLOBAL_KEYWORD_REPORTER.configure(
+            machine_id=get_machine_id(),
+            webhook_url=credentials.get("keyword_collect_webhook_url", ""),
+            webhook_token=credentials.get("keyword_collect_webhook_token", ""),
+        )
 
         self.last_analysis_keyword[analysis_type] = keyword
         self.analysis_offset[analysis_type] = int(offset)
@@ -5921,11 +6433,14 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.weekday_ratio_chart.set_data([], [])
             self.age_ratio_chart.set_data([], [])
         else:
-            self.category_keyword_results = []
-            self.category_table.setRowCount(0)
-            self.category_save_button.setEnabled(False)
+            if not keep_existing:
+                self.category_keyword_results = []
+                self.category_table.setRowCount(0)
+                self.category_save_button.setEnabled(False)
             self.golden_start_button.setEnabled(False)
             self.category_continue_button.setEnabled(False)
+            self.golden_category_combo.setEnabled(False)
+            self.category_limit_spin.setEnabled(False)
         self.status_bar.showMessage("키워드 분석 중...")
         selected_mode = self._get_blog_count_mode()
         if analysis_type == "related" and self.related_single_mode:
@@ -6002,6 +6517,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             webhook_url=credentials.get("usage_webhook_url", ""),
             webhook_token=credentials.get("usage_webhook_token", ""),
         )
+        GLOBAL_KEYWORD_REPORTER.configure(
+            machine_id=get_machine_id(),
+            webhook_url=credentials.get("keyword_collect_webhook_url", ""),
+            webhook_token=credentials.get("keyword_collect_webhook_token", ""),
+        )
 
         self.current_analysis_mode = "related"
         self.related_keyword_results = []
@@ -6043,6 +6563,20 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_save_button.setEnabled(True)
         self.related_more_button.setEnabled(False)
         self.related_keyword_results = list(results or [])
+        try:
+            GLOBAL_KEYWORD_REPORTER.report_rows(
+                analysis_type="related",
+                rows=self.related_keyword_results,
+                seed_keyword="",
+                category_name="",
+                source_label="file_upload"
+            )
+        except Exception:
+            pass
+        try:
+            self._ingest_rows_to_hybrid_cache(self.related_keyword_results, source_mode="related_file")
+        except Exception:
+            pass
         self._set_related_table_guide_visible(not bool(self.related_keyword_results))
         self.apply_filters_for_mode("related")
         self.status_bar.showMessage(f"파일 분석 완료 ({len(self.related_keyword_results)}개)")
@@ -6076,37 +6610,48 @@ class KeywordExtractorMainWindow(QMainWindow):
             QMessageBox.warning(self, "안내", "표 결과가 없어 확장 분석을 진행할 수 없습니다.")
             return
 
-        sorted_rows = sorted(
-            rows,
-            key=lambda r: int(r.get("monthly_total_search", 0)),
-            reverse=True
-        )
-
-        # 표 결과를 검색량 내림차순으로 모두 순회하되, 1,000 초과 키워드만 재귀 확장 대상으로 사용
-        expand_seeds = []
+        eligible_rows = []
         seen_seed_keys = set()
-        for row in sorted_rows:
+        for row in rows:
             monthly = int(row.get("monthly_total_search", 0))
-            if monthly <= 1000:
+            saturation = float(row.get("content_saturation_index", 0.0))
+            if monthly <= 1000 or saturation < 10.0:
                 continue
             seed_text = str(row.get("keyword", "")).replace("+", " ").strip()
             seed_key = seed_text.replace(" ", "").lower()
             if not seed_text or seed_key in seen_seed_keys:
                 continue
             seen_seed_keys.add(seed_key)
-            expand_seeds.append(seed_text)
+            eligible_rows.append(row)
 
-        if not expand_seeds:
+        eligible_rows.sort(
+            key=lambda r: (
+                -int(r.get("monthly_total_search", 0)),
+                -float(r.get("content_saturation_index", 0.0))
+            )
+        )
+
+        if not eligible_rows:
             QMessageBox.information(
                 self,
                 "안내",
-                "현재 표 결과에서 월 검색량 1,000 초과 키워드가 없어\n"
-                "'더 많은 연관 키워드 보기' 재귀 확장을 적용할 수 없습니다."
+                "현재 결과에 아래 조건을 모두 만족하는 키워드가 없습니다.\n"
+                "- 월 검색량 1,000 초과\n"
+                "- 콘텐츠 포화 지수 10% 이상"
             )
             return
 
+        select_dialog = RelatedExpandSelectDialog(eligible_rows, self)
+        if select_dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        expand_seeds = select_dialog.selected_keywords()
+        if not expand_seeds:
+            QMessageBox.information(self, "안내", "선택한 키워드가 없습니다.")
+            return
+
         self.status_bar.showMessage(
-            f"확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과)"
+            f"선택 키워드 {len(expand_seeds)}개 추가 분석 시작 (기존 결과 유지)"
         )
         self._start_golden_analysis(
             "related",
@@ -6117,7 +6662,38 @@ class KeywordExtractorMainWindow(QMainWindow):
         )
 
     def start_category_golden_keyword_search(self):
-        QMessageBox.information(self, "안내", "카테고리 황금키워드 추천 기능은 업데이트 예정입니다.")
+        category_name = self.golden_category_combo.currentText().strip()
+        if not category_name:
+            QMessageBox.warning(self, "입력 오류", "카테고리를 선택해 주세요.")
+            return
+
+        category_limit = max(5, int(self.category_limit_spin.value()))
+        category_seeds = list(self.category_seed_map.get(category_name, []))
+        if not category_seeds:
+            tokenized = [t.strip() for t in re.split(r"[,/\s]+", category_name) if t.strip()]
+            category_seeds = [category_name] + [t for t in tokenized if t != category_name]
+            category_seeds = category_seeds[:6]
+
+        cached_rows = self._rank_cached_rows_for_category(category_name, category_limit)
+        if cached_rows:
+            self.category_keyword_results = list(cached_rows)
+            self.apply_filters_for_mode("category")
+            self.status_bar.showMessage(
+                f"카테고리 캐시 {len(cached_rows)}개 즉시 표시 완료, 실시간 보강 분석을 시작합니다."
+            )
+        else:
+            self.category_keyword_results = []
+            self.category_table.setRowCount(0)
+            self.category_save_button.setEnabled(False)
+            self.status_bar.showMessage("카테고리 캐시가 없어 실시간 분석을 시작합니다.")
+
+        self._start_golden_analysis(
+            "category",
+            category_name,
+            category_seeds=category_seeds,
+            offset=0,
+            keep_existing=bool(cached_rows)
+        )
 
     def on_golden_keyword_log(self, message):
         self.status_bar.showMessage(sanitize_display_text(message))
@@ -6186,7 +6762,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
-        self.golden_start_button.setEnabled(False)
+        self.golden_start_button.setEnabled(True)
+        self.golden_category_combo.setEnabled(True)
+        self.category_limit_spin.setEnabled(True)
         if analysis_type == "related":
             self._hide_related_loading()
         self.current_analysis_mode = ""
@@ -6210,7 +6788,22 @@ class KeywordExtractorMainWindow(QMainWindow):
                 self.related_keyword_results = incoming
             current_rows = self.related_keyword_results
         else:
-            self.category_keyword_results = results or []
+            incoming = results or []
+            if keep_existing and self.category_keyword_results:
+                existing_keys = {
+                    str(r.get("keyword", "")).replace("+", " ").strip().lower()
+                    for r in self.category_keyword_results
+                }
+                for row in incoming:
+                    key = str(row.get("keyword", "")).replace("+", " ").strip().lower()
+                    if key and key not in existing_keys:
+                        row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                        self.category_keyword_results.append(row)
+                        existing_keys.add(key)
+            else:
+                for row in incoming:
+                    row["keyword"] = str(row.get("keyword", "")).replace("+", " ").strip()
+                self.category_keyword_results = incoming
             current_rows = self.category_keyword_results
 
         if not current_rows:
@@ -6227,7 +6820,8 @@ class KeywordExtractorMainWindow(QMainWindow):
                 )
                 self.related_single_mode = False
             else:
-                self.category_continue_button.setEnabled(True)
+                self.category_continue_button.setEnabled(bool(self.last_analysis_keyword.get("category", "").strip()))
+                self.category_save_button.setEnabled(False)
             return
 
         if analysis_type == "related":
@@ -6235,8 +6829,23 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.related_more_button.setEnabled(not self.related_single_mode)
             self.related_single_mode = False
         else:
-            self.category_save_button.setEnabled(False)
-            self.category_continue_button.setEnabled(False)
+            self.category_save_button.setEnabled(True)
+            self.category_continue_button.setEnabled(True)
+        try:
+            self._ingest_rows_to_hybrid_cache(current_rows, source_mode=analysis_type)
+        except Exception:
+            pass
+        try:
+            category_name = self.golden_category_combo.currentText().strip() if analysis_type == "category" else ""
+            GLOBAL_KEYWORD_REPORTER.report_rows(
+                analysis_type=analysis_type,
+                rows=current_rows,
+                seed_keyword=self.last_analysis_keyword.get(analysis_type, ""),
+                category_name=category_name,
+                source_label="ui_analysis"
+            )
+        except Exception:
+            pass
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관 키워드 분석" if analysis_type == "related" else "카테고리 황금키워드 추천"
         self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
@@ -6245,14 +6854,16 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
-        self.golden_start_button.setEnabled(False)
+        self.golden_start_button.setEnabled(True)
+        self.golden_category_combo.setEnabled(True)
+        self.category_limit_spin.setEnabled(True)
         self._hide_related_loading()
         self.current_analysis_mode = ""
         self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
         self.related_single_mode = False
-        self.category_continue_button.setEnabled(False)
+        self.category_continue_button.setEnabled(bool(self.category_keyword_results))
         self.related_save_button.setEnabled(bool(self.related_keyword_results))
-        self.category_save_button.setEnabled(False)
+        self.category_save_button.setEnabled(bool(self.category_keyword_results))
         self.status_bar.showMessage("분석 실패")
         if "(429)" in str(error_message) or "too many" in str(error_message).lower():
             QMessageBox.warning(
@@ -6469,6 +7080,11 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         target_keyword = sanitize_display_text(target_keyword)
         msg_content = sanitize_display_text(msg_content)
+        if msg_content == "progress update":
+            if target_keyword and target_keyword != "전체":
+                msg_content = f"[{target_keyword}] 단계 처리 중"
+            else:
+                msg_content = "단계 처리 중"
         formatted_message = f"[{current_time}] {msg_content}"
         
         # comment removed (encoding issue)
