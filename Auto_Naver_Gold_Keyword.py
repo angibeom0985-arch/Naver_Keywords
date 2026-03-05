@@ -1498,11 +1498,14 @@ class MultiKeywordTextEdit(QTextEdit):
             link_metrics = painter.fontMetrics()
             link_width = link_metrics.horizontalAdvance(self._cta_text)
             link_x = (viewport_rect.width() - link_width) / 2
-            
-            painter.drawText(int(link_x), int(current_y + link_metrics.ascent()), self._cta_text)
+            bottom_margin = 26
+            link_top = min(current_y, viewport_rect.height() - (link_metrics.height() + bottom_margin))
+            link_top = max(link_top, 12)
+
+            painter.drawText(int(link_x), int(link_top + link_metrics.ascent()), self._cta_text)
             
             # comment removed (encoding issue)
-            self._link_rect = QRect(int(link_x), int(current_y), int(link_width), int(link_metrics.height() + 10))
+            self._link_rect = QRect(int(link_x), int(link_top), int(link_width), int(link_metrics.height() + 10))
 
     def mouseMoveEvent(self, event):
         """Handle mouse move for link hover."""
