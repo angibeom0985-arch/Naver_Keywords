@@ -5434,9 +5434,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.search_input = MultiKeywordTextEdit()
         self.search_input.setPlaceholderText(
             "사용 방법\n"
-            "1. 키워드를 한 줄에 하나씩 입력하세요.\n"
+            "1. 키워드는 여러 개 입력할 수 있습니다. (한 줄에 하나씩)\n"
             "2. Enter는 바로 추출 시작, Shift+Enter는 줄바꿈 가능\n"
-            "3. 동시 실행 개수를 조절해 여러 키워드를 처리할 수 있습니다."
+            "3. 동시 실행은 3개가 가장 안정적입니다. (권장: 3)"
         )
         # comment removed (encoding issue)
         self.search_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -5460,6 +5460,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.parallel_threads_spin.setValue(self.max_parallel_threads)
         self.parallel_threads_spin.setMinimumWidth(96)
         self.parallel_threads_spin.setMinimumHeight(42)
+        spin_font = self.parallel_threads_spin.font()
+        spin_font.setPointSize(max(15, spin_font.pointSize()))
+        spin_font.setBold(True)
+        self.parallel_threads_spin.setFont(spin_font)
         self.parallel_threads_spin.valueChanged.connect(self.on_max_parallel_threads_changed)
         
         self.start_button = QPushButton("키워드 추출 시작")
