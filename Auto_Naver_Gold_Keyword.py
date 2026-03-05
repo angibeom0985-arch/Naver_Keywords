@@ -5382,7 +5382,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                     min-width: 120px;
                     max-width: 170px;
                     min-height: 44px;
-                    font-size: 13px;
+                    font-size: 14px;
                     font-weight: 700;
                     border: 1px solid #3a4652;
                     border-top-left-radius: 8px;
@@ -5416,7 +5416,7 @@ class KeywordExtractorMainWindow(QMainWindow):
                 min-width: 120px;
                 max-width: 170px;
                 min-height: 44px;
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 700;
                 border: 1px solid #d0d0d0;
                 border-top-left-radius: 8px;
@@ -5555,12 +5555,14 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.parallel_threads_label = QLabel("동시 실행")
         self.parallel_threads_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.parallel_threads_label.setMinimumWidth(72)
+        self.parallel_threads_label.setFixedHeight(44)
+        self.parallel_threads_label.setObjectName("parallelThreadsLabel")
         self.parallel_threads_spin = QSpinBox()
         self.parallel_threads_spin.setObjectName("parallelThreadsSpin")
         self.parallel_threads_spin.setRange(1, 6)
         self.parallel_threads_spin.setValue(self.max_parallel_threads)
         self.parallel_threads_spin.setMinimumWidth(96)
-        self.parallel_threads_spin.setMinimumHeight(42)
+        self.parallel_threads_spin.setFixedHeight(44)
         self.parallel_threads_spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.parallel_threads_spin.valueChanged.connect(self.on_max_parallel_threads_changed)
         
@@ -5572,10 +5574,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         # '키워드 추출 시작' 폰트 톤에 맞춰 동시 실행 라벨/숫자를 통일
         base_font = self.start_button.font()
         label_font = QFont(base_font)
-        label_font.setBold(False)
+        label_font.setBold(True)
         self.parallel_threads_label.setFont(label_font)
         spin_font = QFont(base_font)
-        spin_font.setBold(False)
+        spin_font.setBold(True)
         self.parallel_threads_spin.setFont(spin_font)
         
         self.pause_button = QPushButton("일시정지")
@@ -6176,7 +6178,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QSpinBox#parallelThreadsSpin {
                 qproperty-alignment: 'AlignCenter';
-                font-size: 13px;
+                font-size: 14px;
                 font-weight: 700;
                 padding-left: 8px;
                 padding-right: 24px;
