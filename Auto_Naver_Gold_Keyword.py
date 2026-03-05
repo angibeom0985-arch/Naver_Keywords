@@ -114,10 +114,10 @@ SELENIUM_HEADLESS = False
 # comment removed (encoding issue)
 _current_window = None
 _crash_save_enabled = True
-MACHINE_ID_GUARD_HASH = "455b5b319b7b875afa6144cf27a649dfe51dc3632b38dafb1a22edfa9aa0c552"
+MACHINE_ID_GUARD_HASH = "2fdc588465f59c4c0946079ef89fdb342fd7a6deab964abb4eea39cf24967dd3"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
-MACHINE_ID_PREFIX = "Gold Keyword-"
+MACHINE_ID_PREFIX = "Gold-Keyword-"
 
 
 class ApiUsageReporter:
@@ -399,40 +399,60 @@ def _load_persisted_machine_id():
         try:
             if path.exists():
                 cached = path.read_text(encoding="utf-8-sig").strip()
-                if cached.startswith("MID-"):
-                    return cached
+                token = _normalize_machine_id_token(cached)
+                if token:
+                    return token
         except Exception:
             pass
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
             cached, _ = winreg.QueryValueEx(key, "MachineId")
             cached = str(cached).strip()
-            if cached.startswith("MID-"):
-                return cached
+            token = _normalize_machine_id_token(cached)
+            if token:
+                return token
     except Exception:
         pass
     return None
 
 
 def _save_persisted_machine_id(machine_id):
+    token = _normalize_machine_id_token(machine_id)
+    if not token:
+        return
     for path in _machine_id_cache_paths():
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(machine_id, encoding="utf-8")
+            path.write_text(token, encoding="utf-8")
         except Exception:
             pass
     try:
         with winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\AutoNaverKeyword") as key:
-            winreg.SetValueEx(key, "MachineId", 0, winreg.REG_SZ, machine_id)
+            winreg.SetValueEx(key, "MachineId", 0, winreg.REG_SZ, token)
     except Exception:
         pass
+
+
+def _normalize_machine_id_token(raw_value):
+    value = str(raw_value or "").strip()
+    if not value:
+        return None
+    for prefix in (MACHINE_ID_PREFIX, "Gold Keyword-", "Gold-Keyword-"):
+        if value.startswith(prefix):
+            value = value[len(prefix):].strip()
+            break
+    if value.startswith("MID-"):
+        value = value[4:].strip()
+    if re.fullmatch(r"[0-9A-Fa-f]{32}", value):
+        return value.upper()
+    return None
 
 
 def get_machine_id():
     """안정적인 머신 ID 생성/조회 (업데이트/재빌드 시에도 동일 PC면 유지)."""
     cached = _load_persisted_machine_id()
     if cached:
-        return cached if cached.startswith(MACHINE_ID_PREFIX) else f"{MACHINE_ID_PREFIX}{cached}"
+        return f"{MACHINE_ID_PREFIX}{cached}"
 
     parts = []
 
@@ -489,7 +509,7 @@ def get_machine_id():
         parts.append(f"FALLBACK:{fallback}")
 
     raw = "|".join(parts)
-    stable_id = "MID-" + hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
+    stable_id = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32].upper()
     _save_persisted_machine_id(stable_id)
     return f"{MACHINE_ID_PREFIX}{stable_id}"
 
@@ -508,7 +528,13 @@ def check_license_from_sheet(machine_id):
             if len(df.columns) >= 4:
                 # comment removed (encoding issue)
                 df.iloc[:, 2] = df.iloc[:, 2].astype(str).str.strip()
-                target_row = df[df.iloc[:, 2] == str(machine_id)]
+                machine_id_text = str(machine_id).strip()
+                candidates = [machine_id_text]
+                if machine_id_text.startswith("Gold-Keyword-"):
+                    token = machine_id_text.replace("Gold-Keyword-", "", 1).strip()
+                    if token:
+                        candidates.append(f"Gold Keyword-MID-{token}")
+                target_row = df[df.iloc[:, 2].isin(candidates)]
                 
                 if not target_row.empty:
                     expiration_date = str(target_row.iloc[0, 3]).strip()
