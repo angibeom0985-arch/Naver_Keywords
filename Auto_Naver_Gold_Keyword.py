@@ -4432,11 +4432,13 @@ class ParallelKeywordThread(QThread):
     error = pyqtSignal(str)
     log = pyqtSignal(str, str)
     
-    def __init__(self, keyword, save_dir, extract_autocomplete=True):
+    def __init__(self, keyword, save_dir, extract_autocomplete=True, window_slot=0, total_windows=1):
         super().__init__()
         self.keyword = keyword
         self.save_dir = save_dir
         self.extract_autocomplete = extract_autocomplete
+        self.window_slot = int(window_slot)
+        self.total_windows = max(1, int(total_windows))
         self.driver = None
         self.searcher = None
         self.is_running = True
@@ -4446,7 +4448,10 @@ class ParallelKeywordThread(QThread):
             self.log.emit(self.keyword, f"'{self.keyword}' 검색을 시작합니다...")
             
             # comment removed (encoding issue)
-            self.driver = create_chrome_driver()
+            self.driver = create_chrome_driver(
+                window_slot=self.window_slot,
+                total_windows=self.total_windows
+            )
             if not self.driver:
                 self.error.emit(f"'{self.keyword}' 브라우저 생성 실패")
                 return
@@ -4763,7 +4768,7 @@ DARK_STYLESHEET = """
 """
 
 
-def create_chrome_driver(log_callback=None, force_headless=False):
+def create_chrome_driver(log_callback=None, force_headless=False, window_slot=0, total_windows=1):
     """Description"""
     try:
         if log_callback:
@@ -4801,6 +4806,29 @@ def create_chrome_driver(log_callback=None, force_headless=False):
         driver = webdriver.Chrome(service=service, options=options)
         driver.set_page_load_timeout(20)
         driver.implicitly_wait(5)
+
+        if not (force_headless or SELENIUM_HEADLESS):
+            try:
+                screen_w, screen_h = 1920, 1080
+                if os.name == "nt":
+                    user32 = ctypes.windll.user32
+                    screen_w = int(user32.GetSystemMetrics(0))
+                    screen_h = int(user32.GetSystemMetrics(1))
+
+                total = max(1, int(total_windows))
+                slot = max(0, int(window_slot))
+                cols = max(1, min(4, math.ceil(math.sqrt(total))))
+                rows = max(1, math.ceil(total / cols))
+
+                usable_h = max(600, screen_h - 80)
+                cell_w = max(640, screen_w // cols)
+                cell_h = max(420, usable_h // rows)
+                x = (slot % cols) * cell_w
+                y = (slot // cols) * cell_h
+
+                driver.set_window_rect(x, y, cell_w, cell_h)
+            except Exception:
+                pass
         
         driver.get("about:blank")
         
@@ -6990,18 +7018,24 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.stop_requested = False
         
         # comment removed (encoding issue)
-        for keyword in keywords:
+        for idx, keyword in enumerate(keywords):
             log_widget = SmartProgressTextEdit(min_height=100, max_height=800)
             log_widget.setReadOnly(True)
             self.progress_tabs.addTab(log_widget, keyword)
             self.log_widgets[keyword] = log_widget
             
             # comment removed (encoding issue)
-            if keywords.index(keyword) == 0:
+            if idx == 0:
                 self.progress_tabs.setCurrentIndex(1)
         
         for i, keyword in enumerate(keywords):
-            thread = ParallelKeywordThread(keyword, save_dir, True)
+            thread = ParallelKeywordThread(
+                keyword,
+                save_dir,
+                True,
+                window_slot=i,
+                total_windows=len(keywords)
+            )
             thread.finished.connect(self.on_thread_finished)
             thread.error.connect(self.on_thread_error)
             thread.log.connect(self.update_progress)
