@@ -1473,7 +1473,8 @@ class MultiKeywordTextEdit(QTextEdit):
             
             # comment removed (encoding issue)
             total_content_height = text_block_height + spacing_between + link_h
-            start_y = (viewport_rect.height() - total_content_height) / 2 + metrics.ascent()
+            centered_y = (viewport_rect.height() - total_content_height) / 2 + metrics.ascent()
+            start_y = max(36 + metrics.ascent(), centered_y)
             
             current_y = start_y
             
@@ -5041,19 +5042,19 @@ class KeywordExtractorMainWindow(QMainWindow):
         nav_layout.setContentsMargins(10, 6, 10, 4)
         nav_layout.setSpacing(8)
         left_slot = QWidget()
-        left_slot.setFixedWidth(260)
+        left_slot.setFixedWidth(320)
         left_slot_layout = QHBoxLayout(left_slot)
         left_slot_layout.setContentsMargins(0, 0, 0, 0)
         left_slot_layout.setSpacing(8)
         self.theme_light_button = QPushButton("라이트")
         self.theme_light_button.setObjectName("themeLightButton")
         self.theme_light_button.setCheckable(True)
-        self.theme_light_button.setFixedWidth(124)
+        self.theme_light_button.setFixedWidth(150)
         self.theme_light_button.clicked.connect(lambda: self.apply_theme("light"))
         self.theme_dark_button = QPushButton("다크")
         self.theme_dark_button.setObjectName("themeDarkButton")
         self.theme_dark_button.setCheckable(True)
-        self.theme_dark_button.setFixedWidth(124)
+        self.theme_dark_button.setFixedWidth(150)
         self.theme_dark_button.clicked.connect(lambda: self.apply_theme("dark"))
         left_slot_layout.addWidget(self.theme_light_button)
         left_slot_layout.addWidget(self.theme_dark_button)
@@ -5203,6 +5204,15 @@ class KeywordExtractorMainWindow(QMainWindow):
                 QPushButton:hover:!checked {
                     background: #28483a;
                 }
+                QPushButton#themeLightButton, QPushButton#themeDarkButton {
+                    min-width: 0px;
+                    max-width: 150px;
+                    min-height: 34px;
+                    padding: 6px 10px;
+                    border-radius: 8px;
+                    font-size: 13px;
+                    font-weight: 800;
+                }
             """
         return """
             QPushButton {
@@ -5223,6 +5233,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QPushButton:hover:!checked {
                 background: #dff0e7;
+            }
+            QPushButton#themeLightButton, QPushButton#themeDarkButton {
+                min-width: 0px;
+                max-width: 150px;
+                min-height: 34px;
+                padding: 6px 10px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 800;
             }
         """
 
@@ -5306,15 +5325,15 @@ class KeywordExtractorMainWindow(QMainWindow):
                 QTabWidget#progressTabs QTabBar::tab {
                     background: #242b33;
                     color: #d9e3ec;
-                    padding: 1px 6px;
-                    min-width: 40px;
-                    max-width: 68px;
-                    min-height: 20px;
-                    font-size: 12px;
-                    font-weight: 400;
+                    padding: 6px 12px;
+                    min-width: 170px;
+                    max-width: 220px;
+                    min-height: 44px;
+                    font-size: 15px;
+                    font-weight: 700;
                     border: 1px solid #3a4652;
-                    border-top-left-radius: 6px;
-                    border-top-right-radius: 6px;
+                    border-top-left-radius: 8px;
+                    border-top-right-radius: 8px;
                     margin-right: 2px;
                 }
                 QTabWidget#progressTabs QTabBar::tab:selected {
@@ -5340,15 +5359,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             }
             QTabWidget#progressTabs QTabBar::tab {
                 background: #f0f0f0;
-                padding: 1px 6px;
-                min-width: 40px;
-                max-width: 68px;
-                min-height: 20px;
-                font-size: 12px;
-                font-weight: 400;
+                padding: 6px 12px;
+                min-width: 170px;
+                max-width: 220px;
+                min-height: 44px;
+                font-size: 15px;
+                font-weight: 700;
                 border: 1px solid #d0d0d0;
-                border-top-left-radius: 6px;
-                border-top-right-radius: 6px;
+                border-top-left-radius: 8px;
+                border-top-right-radius: 8px;
                 margin-right: 2px;
             }
             QTabWidget#progressTabs QTabBar::tab:selected {
