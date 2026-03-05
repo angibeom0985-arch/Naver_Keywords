@@ -1402,8 +1402,11 @@ class MultiKeywordTextEdit(QTextEdit):
         self.setMouseTracking(True)
         
         # comment removed (encoding issue)
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        v_scroll = self.verticalScrollBar()
+        if v_scroll is not None:
+            v_scroll.valueChanged.connect(self._on_placeholder_scroll_changed)
         
         # comment removed (encoding issue)
         self.setStyleSheet(f"""
@@ -1443,6 +1446,12 @@ class MultiKeywordTextEdit(QTextEdit):
         self._placeholder_scroll_offset = 0
         self._placeholder_scroll_max = 0
         self.update()
+
+    def _on_placeholder_scroll_changed(self, value):
+        if self.toPlainText().strip():
+            return
+        self._placeholder_scroll_offset = max(0, int(value))
+        self.update()
         
     def paintEvent(self, event):
         """Custom paint event for placeholder and CTA."""
@@ -1465,8 +1474,14 @@ class MultiKeywordTextEdit(QTextEdit):
             lines = self._placeholder_text.split('\n')
             metrics = painter.fontMetrics()
             line_height = metrics.height()
-            line_spacing = 1.45
-            text_block_height = (len(lines) * line_height * line_spacing)
+            line_spacing = 1.12
+            blank_line_spacing = 0.45
+            text_block_height = 0.0
+            for line in lines:
+                if line.strip():
+                    text_block_height += line_height * line_spacing
+                else:
+                    text_block_height += line_height * blank_line_spacing
             
             viewport_rect = viewport.rect()
             padding_left = 60
@@ -1481,13 +1496,21 @@ class MultiKeywordTextEdit(QTextEdit):
             self._placeholder_scroll_max = max(0, int(total_content_height - visible_height))
             self._placeholder_scroll_offset = max(0, min(self._placeholder_scroll_offset, self._placeholder_scroll_max))
             start_y = 24 + metrics.ascent() - self._placeholder_scroll_offset
+            v_scroll = self.verticalScrollBar()
+            if v_scroll is not None:
+                v_scroll.setRange(0, self._placeholder_scroll_max)
+                v_scroll.setPageStep(max(1, visible_height))
+                v_scroll.setValue(self._placeholder_scroll_offset)
             
             current_y = start_y
             
             # comment removed (encoding issue)
             for i, line in enumerate(lines):
                 painter.drawText(int(viewport_rect.left() + padding_left), int(current_y), line)
-                current_y += (line_height * line_spacing)
+                if line.strip():
+                    current_y += (line_height * line_spacing)
+                else:
+                    current_y += (line_height * blank_line_spacing)
             
             current_y += spacing_between
             
@@ -1561,6 +1584,9 @@ class MultiKeywordTextEdit(QTextEdit):
                 )
             elif delta > 0:
                 self._placeholder_scroll_offset = max(0, self._placeholder_scroll_offset - step)
+            v_scroll = self.verticalScrollBar()
+            if v_scroll is not None:
+                v_scroll.setValue(self._placeholder_scroll_offset)
             self.update()
             event.accept()
             return
