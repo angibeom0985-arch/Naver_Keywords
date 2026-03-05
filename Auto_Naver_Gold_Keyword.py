@@ -959,15 +959,17 @@ class ReadOnlyCellDelegate(QStyledItemDelegate):
         return editor
 
     def setEditorData(self, editor, index):
-        editor.setText(str(index.data() or ""))
-        editor.deselect()
+        if isinstance(editor, QLineEdit):
+            editor.setText(str(index.data() or ""))
+            editor.deselect()
 
     def setModelData(self, editor, model, index):
         # read-only editor: keep original model value
         return
 
     def updateEditorGeometry(self, editor, option, index):
-        editor.setGeometry(option.rect.adjusted(2, 0, -2, 0))
+        if isinstance(editor, QLineEdit):
+            editor.setGeometry(option.rect.adjusted(2, 0, -2, 0))
 
 
 class InsightChartWidget(QWidget):
@@ -6011,7 +6013,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         menu = QMenu(table_widget)
         copy_cell_action = menu.addAction("이 셀 복사")
         copy_selected_action = menu.addAction("선택 영역 복사")
-        if not index.isValid():
+        if copy_cell_action is not None and not index.isValid():
             copy_cell_action.setEnabled(False)
 
         selected_action = menu.exec(table_widget.viewport().mapToGlobal(pos))
@@ -6021,10 +6023,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         if clipboard is None:
             return
 
-        if selected_action == copy_cell_action and index.isValid():
+        if copy_cell_action is not None and selected_action == copy_cell_action and index.isValid():
             clipboard.setText(str(index.data() or ""))
             return
-        if selected_action == copy_selected_action:
+        if copy_selected_action is not None and selected_action == copy_selected_action:
             self.copy_selected_table_cells(table_widget)
 
     def _tick_related_spinner(self):
