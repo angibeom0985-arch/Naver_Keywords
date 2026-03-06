@@ -6319,7 +6319,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             "[마무리]\n"
             "15) 저장 버튼도 결과가 있을 때만 표시됩니다.\n"
             "16) 저장 버튼을 눌러 현재 표 결과를 xlsx 파일로 보관하세요.\n"
-            "17) 처음에는 입력 키워드 3~5개로 시작해 품질을 확인한 뒤 범위를 늘리는 것을 권장합니다."
+            "17) 목표는 콘텐츠 포화 지수 10% 이하(황금 키워드) 발굴입니다.\n"
+            "18) 처음에는 입력 키워드 3~5개로 시작해 품질을 확인한 뒤 범위를 늘리는 것을 권장합니다."
         )
 
     def _populate_category_guide_text(self):
@@ -6711,9 +6712,12 @@ class KeywordExtractorMainWindow(QMainWindow):
             seen_seed_keys.add(seed_key)
             candidates.append(row)
 
+        # 목표: 포화지수 10%에 가까운 키워드를 우선 확장
         candidates.sort(
-            key=lambda r: (int(r.get("monthly_total_search", 0)), -float(r.get("content_saturation_index", 0.0))),
-            reverse=True
+            key=lambda r: (
+                abs(float(r.get("content_saturation_index", 0.0)) - 10.0),
+                -int(r.get("monthly_total_search", 0)),
+            )
         )
 
         if not candidates:
@@ -6782,9 +6786,12 @@ class KeywordExtractorMainWindow(QMainWindow):
             seen_seed_keys.add(seed_key)
             candidates.append(row)
 
+        # 목표: 포화지수 10%에 가까운 키워드를 우선 확장
         candidates.sort(
-            key=lambda r: (int(r.get("monthly_total_search", 0)), -float(r.get("content_saturation_index", 0.0))),
-            reverse=True
+            key=lambda r: (
+                abs(float(r.get("content_saturation_index", 0.0)) - 10.0),
+                -int(r.get("monthly_total_search", 0)),
+            )
         )
 
         if not candidates:
@@ -6953,7 +6960,13 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.category_continue_button.setEnabled(True)
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "사용자 주제 중 황금키워드 추천"
-        self.status_bar.showMessage(f"{mode_name} 완료 ({len(current_rows)}개)")
+        golden_count = sum(
+            1 for row in current_rows
+            if float(row.get("content_saturation_index", 0.0)) <= 10.0
+        )
+        self.status_bar.showMessage(
+            f"{mode_name} 완료 ({len(current_rows)}개, 황금 키워드 {golden_count}개)"
+        )
 
     def on_golden_keyword_error(self, error_message):
         self.related_keyword_button.setEnabled(True)
