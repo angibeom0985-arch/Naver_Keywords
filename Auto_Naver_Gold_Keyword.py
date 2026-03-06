@@ -5008,11 +5008,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             try:
                 # comment removed (encoding issue)
                 exp_date = datetime.strptime(str(expiration_date).strip(), '%Y-%m-%d')
-                today = datetime.now()
+                today = datetime.now().date()
                 
-                if exp_date < today:
+                if today > exp_date.date():
                     # comment removed (encoding issue)
-                    self.show_license_dialog(machine_id, expired=True)
+                    self.show_license_dialog(machine_id, expired=True, expiry_date=expiration_date)
                 else:
                     # comment removed (encoding issue)
                     self.usage_label.setText(f"사용 기간: {expiration_date}까지")
@@ -5023,10 +5023,10 @@ class KeywordExtractorMainWindow(QMainWindow):
             # comment removed (encoding issue)
             self.show_license_dialog(machine_id)
             
-    def show_license_dialog(self, machine_id, expired=False):
+    def show_license_dialog(self, machine_id, expired=False, expiry_date=None):
         """라이선스 상태에 맞는 안내창 표시"""
         if expired:
-            dialog = ExpiredDialog(datetime.now().strftime("%Y-%m-%d"))
+            dialog = ExpiredDialog(str(expiry_date or datetime.now().strftime("%Y-%m-%d")))
         else:
             dialog = UnregisteredDialog(machine_id)
         dialog.exec()
@@ -7301,10 +7301,10 @@ def main():
         try:
             # comment removed (encoding issue)
             expiry_date = datetime.strptime(expiry_date_str, '%Y-%m-%d')
-            current_date = datetime.now()
+            current_date = datetime.now().date()
             
             # comment removed (encoding issue)
-            if current_date > expiry_date + pd.Timedelta(days=1):
+            if current_date > expiry_date.date():
                 safe_print(f"라이선스 만료: {expiry_date_str}")
                 app_dummy = QApplication.instance() or QApplication(sys.argv)
                 
