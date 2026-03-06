@@ -1264,55 +1264,6 @@ class RelatedExpandSeedDialog(QDialog):
         total_count = self.list_widget.count()
         self.selection_status_label.setText(f"선택됨: {selected_count} / {total_count}")
 
-        painter.setPen(QPen(QColor("#adb5bd"), 1))
-        painter.drawLine(left, top, left, bottom)
-        painter.drawLine(left, bottom, right, bottom)
-
-        if self.chart_type == "line":
-            points = []
-            count = len(self.values)
-            for i, value in enumerate(self.values):
-                x = left + int(plot_w * i / max(1, count - 1))
-                y = bottom - int((value / max_val) * plot_h)
-                points.append((x, y))
-            painter.setPen(QPen(QColor("#2f9e44"), 2))
-            for i in range(1, len(points)):
-                painter.drawLine(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1])
-            painter.setBrush(QColor("#2f9e44"))
-            for x, y in points:
-                painter.drawEllipse(x - 2, y - 2, 4, 4)
-        else:
-            count = len(self.values)
-            bar_w = max(10, int(plot_w / max(1, count * 1.7)))
-            gap = max(4, int((plot_w - bar_w * count) / max(1, count - 1))) if count > 1 else 0
-            x = left
-            painter.setBrush(QColor("#4dabf7"))
-            painter.setPen(QPen(QColor("#339af0"), 1))
-            for value in self.values:
-                h = int((value / max_val) * plot_h)
-                painter.drawRect(x, bottom - h, bar_w, h)
-                x += bar_w + gap
-
-        painter.setPen(QPen(QColor("#6c757d"), 1))
-        painter.setFont(QFont("Malgun Gothic", 8))
-        if self.labels:
-            if self.chart_type == "bar" and len(self.labels) <= 12:
-                step = 1
-            else:
-                step = max(1, len(self.labels) // 6)
-            if self.chart_type == "line":
-                for i in range(0, len(self.labels), step):
-                    x = left + int(plot_w * i / max(1, len(self.labels) - 1))
-                    painter.drawText(x - 20, bottom + 16, 40, 12, Qt.AlignmentFlag.AlignCenter, self.labels[i])
-            else:
-                count = len(self.values)
-                bar_w = max(10, int(plot_w / max(1, count * 1.7)))
-                gap = max(4, int((plot_w - bar_w * count) / max(1, count - 1))) if count > 1 else 0
-                x = left + bar_w // 2
-                for i in range(0, len(self.labels), step):
-                    xpos = x + i * (bar_w + gap)
-                    painter.drawText(xpos - 32, bottom + 18, 64, 14, Qt.AlignmentFlag.AlignCenter, self.labels[i])
-
 
 def emergency_save_data():
     """Emergency backup for crash situations."""
