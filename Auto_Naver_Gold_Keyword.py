@@ -117,7 +117,7 @@ _crash_save_enabled = True
 MACHINE_ID_GUARD_HASH = "TO_BE_UPDATED"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
-MACHINE_ID_PREFIX = "Gold-Keywords-"
+MACHINE_ID_PREFIX = "Gold-Keyword-"
 
 
 class ApiUsageReporter:
