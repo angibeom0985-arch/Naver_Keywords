@@ -5742,6 +5742,7 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         self.related_save_button = QPushButton("저장")
         self.related_save_button.setEnabled(False)
+        self.related_save_button.setVisible(False)
         self.related_save_button.clicked.connect(lambda: self.save_results_for_mode("related"))
         left_layout.addLayout(left_top)
 
@@ -5802,6 +5803,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_more_button = QPushButton("더 많은 연관 키워드 보기")
         self.related_more_button.clicked.connect(self.start_related_keyword_analysis_more)
         self.related_more_button.setEnabled(False)
+        self.related_more_button.setVisible(False)
         self.related_more_button.setObjectName("moreLinkButton")
         related_more_row.addWidget(self.related_more_button)
         related_more_row.addSpacing(10)
@@ -6240,18 +6242,23 @@ class KeywordExtractorMainWindow(QMainWindow):
             "   - 단일 키워드: 현재 입력된 1개 키워드만 빠르게 분석\n"
             "   - 파일 업로드: xlsx/csv 파일 A열 키워드를 일괄 분석\n\n"
             "[분석 중 확인할 것]\n"
-            "4) 상단 진행 상태와 기록을 보면서 현재 단계(수집/검색량/포화지수)를 확인하세요.\n"
-            "5) 분석이 끝나면 표에 키워드, 월 검색량, 발행량, 콘텐츠 포화 지수가 표시됩니다.\n\n"
+            "4) 진행 상태에서 현재 단계(수집 -> 검색량 계산 -> 포화 지수 계산)를 확인하세요.\n"
+            "5) 데이터 수가 많을수록 시간이 길어질 수 있으니 먼저 소량 키워드로 테스트하세요.\n"
+            "6) 분석 완료 시 표에 키워드, 월 검색량, 발행량, 콘텐츠 포화 지수가 표시됩니다.\n\n"
             "[결과 읽는 법]\n"
-            "6) 월 검색량: 높을수록 수요가 많은 키워드입니다.\n"
-            "7) 콘텐츠 포화 지수: 낮을수록 경쟁이 덜한 편입니다.\n"
-            "8) 열 제목(↕)을 클릭해 정렬하면 우선순위를 쉽게 정할 수 있습니다.\n\n"
+            "7) 월 검색량: 높을수록 수요가 많은 키워드입니다.\n"
+            "8) 월 블로그 발행량: 높을수록 현재 작성된 문서가 많은 키워드입니다.\n"
+            "9) 콘텐츠 포화 지수: 낮을수록 경쟁이 덜한 편입니다.\n"
+            "10) 열 제목(↕)을 클릭해 정렬하면 우선순위를 빠르게 고를 수 있습니다.\n"
+            "11) 표 셀을 선택한 뒤 Ctrl+C로 복사할 수 있습니다.\n\n"
             "[추가 확장 분석]\n"
-            "9) 더 많은 연관 키워드 보기를 누르면, 조건 키워드 목록 창이 열립니다.\n"
-            "10) 목록에서 원하는 키워드를 선택해 추가 분석하면 기존 결과는 유지되고\n"
-            "    새 결과가 아래에 이어서 추가됩니다.\n\n"
+            "12) 더 많은 연관 키워드 보기는 1차 결과가 있을 때만 표시됩니다.\n"
+            "13) 버튼을 누르면 조건 키워드 선택 창이 열립니다.\n"
+            "14) 선택한 키워드로 추가 분석하면 기존 결과는 유지되고 새 결과가 아래에 누적됩니다.\n\n"
             "[마무리]\n"
-            "11) 저장 버튼을 눌러 현재 표 결과를 파일로 저장하세요."
+            "15) 저장 버튼도 결과가 있을 때만 표시됩니다.\n"
+            "16) 저장 버튼을 눌러 현재 표 결과를 xlsx 파일로 보관하세요.\n"
+            "17) 처음에는 입력 키워드 3~5개로 시작해 품질을 확인한 뒤 범위를 늘리는 것을 권장합니다."
         )
 
     def _populate_category_guide_text(self):
@@ -6355,6 +6362,15 @@ class KeywordExtractorMainWindow(QMainWindow):
             return
         self.related_table_stack.setCurrentIndex(0 if visible else 1)
 
+    def _update_related_action_buttons(self, has_results, allow_more=False):
+        show = bool(has_results)
+        if hasattr(self, "related_save_button"):
+            self.related_save_button.setVisible(show)
+            self.related_save_button.setEnabled(show)
+        if hasattr(self, "related_more_button"):
+            self.related_more_button.setVisible(show)
+            self.related_more_button.setEnabled(show and bool(allow_more))
+
     def _set_category_table_guide_visible(self, visible):
         if not hasattr(self, "category_table_stack"):
             return
@@ -6451,12 +6467,11 @@ class KeywordExtractorMainWindow(QMainWindow):
             if not keep_existing:
                 self.related_keyword_results = []
                 self.related_table.setRowCount(0)
-                self.related_save_button.setEnabled(False)
                 self._set_related_table_guide_visible(True)
+            self._update_related_action_buttons(False, False)
             self.related_keyword_button.setEnabled(False)
             self.related_single_button.setEnabled(False)
             self.related_upload_button.setEnabled(False)
-            self.related_more_button.setEnabled(False)
             self.related_progress_total = 0
             loading_text = "작업 중... 단일 키워드 지표를 계산하고 있습니다." if self.related_single_mode else "작업 중... 키워드를 수집하고 있습니다."
             self._show_related_loading(loading_text, indeterminate=True)
@@ -6551,8 +6566,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_results = []
         self.related_table.setRowCount(0)
         self._set_related_table_guide_visible(True)
-        self.related_save_button.setEnabled(False)
-        self.related_more_button.setEnabled(False)
+        self._update_related_action_buttons(False, False)
         self.related_keyword_button.setEnabled(False)
         self.related_upload_button.setEnabled(False)
         self.related_progress_total = 0
@@ -6584,9 +6598,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
-        self.related_save_button.setEnabled(True)
-        self.related_more_button.setEnabled(False)
         self.related_keyword_results = list(results or [])
+        self._update_related_action_buttons(bool(self.related_keyword_results), False)
         self._set_related_table_guide_visible(not bool(self.related_keyword_results))
         self.apply_filters_for_mode("related")
         self.status_bar.showMessage(f"파일 분석 완료 ({len(self.related_keyword_results)}개)")
@@ -6604,8 +6617,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_keyword_button.setEnabled(True)
         self.related_single_button.setEnabled(True)
         self.related_upload_button.setEnabled(True)
-        self.related_save_button.setEnabled(bool(self.related_keyword_results))
-        self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
+        self._update_related_action_buttons(
+            bool(self.related_keyword_results),
+            bool(self.last_analysis_keyword.get("related", "").strip())
+        )
         self.status_bar.showMessage("파일 분석 실패")
         QMessageBox.critical(self, "파일 분석 오류", str(error_message))
 
@@ -6853,7 +6868,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not current_rows:
             self.status_bar.showMessage("분석 완료 (결과 없음)")
             if analysis_type == "related":
-                self.related_more_button.setEnabled(not self.related_single_mode)
+                self._update_related_action_buttons(False, not self.related_single_mode)
                 self.related_keyword_results = []
                 self.apply_filters_for_mode("related")
                 QMessageBox.information(
@@ -6869,8 +6884,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             return
 
         if analysis_type == "related":
-            self.related_save_button.setEnabled(True)
-            self.related_more_button.setEnabled(not self.related_single_mode)
+            self._update_related_action_buttons(True, not self.related_single_mode)
             self.related_single_mode = False
         else:
             self.category_save_button.setEnabled(True)
@@ -6886,10 +6900,12 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_start_button.setEnabled(True)
         self._hide_related_loading()
         self.current_analysis_mode = ""
-        self.related_more_button.setEnabled(bool(self.last_analysis_keyword.get("related", "").strip()))
         self.related_single_mode = False
         self.category_continue_button.setEnabled(False)
-        self.related_save_button.setEnabled(bool(self.related_keyword_results))
+        self._update_related_action_buttons(
+            bool(self.related_keyword_results),
+            bool(self.last_analysis_keyword.get("related", "").strip())
+        )
         self.category_save_button.setEnabled(False)
         self.status_bar.showMessage("분석 실패")
         if "(429)" in str(error_message) or "too many" in str(error_message).lower():
