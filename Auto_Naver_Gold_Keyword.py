@@ -77,7 +77,7 @@ from PyQt6.QtWidgets import (
     QAbstractItemView, QScroller, QStackedLayout, QMenu, QStyledItemDelegate,
     QListWidget, QListWidgetItem, QDialogButtonBox, QSplitter
 )
-from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect
+from PyQt6.QtCore import QThread, pyqtSignal, Qt, QEvent, QSettings, QDir, QTimer, QUrl, QRect, QPoint
 from PyQt6.QtGui import (
     QPixmap, QKeySequence, QFont, QTransform, QIcon, QShortcut,
     QPainter, QColor, QDesktopServices, QCursor, QPen
@@ -1107,6 +1107,61 @@ class InsightChartWidget(QWidget):
                 Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
                 f"{v:.1f}"
             )
+
+        count = len(self.values)
+        if count <= 0:
+            return
+
+        # X labels
+        painter.setPen(QPen(QColor("#6c757d"), 1))
+        painter.setFont(QFont("Malgun Gothic", 8))
+
+        if count == 1:
+            x_positions = [left + (plot_w // 2)]
+        else:
+            step = plot_w / float(max(1, count - 1))
+            x_positions = [int(left + (i * step)) for i in range(count)]
+
+        for i, label in enumerate(self.labels[:count]):
+            x = x_positions[i]
+            text = str(label)
+            if len(text) > 7:
+                text = text[:7] + "..."
+            painter.drawText(
+                x - 26,
+                bottom + 8,
+                52,
+                24,
+                Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
+                text
+            )
+
+        if self.chart_type == "bar":
+            # Bar chart rendering
+            if count == 1:
+                bar_w = min(36, plot_w // 2)
+            else:
+                bar_w = max(6, min(24, int((plot_w / count) * 0.55)))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor("#03c75a"))
+            for i, value in enumerate(self.values):
+                h = int((max(0.0, float(value)) / max_val) * plot_h)
+                x = x_positions[i] - (bar_w // 2)
+                y = bottom - h
+                painter.drawRoundedRect(QRect(x, y, bar_w, h), 3, 3)
+        else:
+            # Line chart rendering
+            points = []
+            for i, value in enumerate(self.values):
+                y = bottom - int((max(0.0, float(value)) / max_val) * plot_h)
+                points.append(QPoint(x_positions[i], y))
+            painter.setPen(QPen(QColor("#03c75a"), 2))
+            for i in range(1, len(points)):
+                painter.drawLine(points[i - 1], points[i])
+            painter.setBrush(QColor("#03c75a"))
+            painter.setPen(QPen(QColor("#028a4a"), 1))
+            for pt in points:
+                painter.drawEllipse(pt, 3, 3)
 
 
 class RelatedExpandSeedDialog(QDialog):
@@ -6187,7 +6242,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             self.insight_group.setMinimumHeight(220)
             self.insight_group.setMaximumHeight(16777215)
             if hasattr(self, "insight_title_label"):
-                self.insight_title_label.setVisible(True)
+                self.insight_title_label.setVisible(False)
 
     def _init_result_table(self, table_widget):
         table_widget.setColumnCount(4)
@@ -6798,11 +6853,11 @@ class KeywordExtractorMainWindow(QMainWindow):
     def on_keyword_insight(self, insight):
         if not insight:
             self._set_insight_collapsed(True)
-            self.insight_title_label.setText("인사이트 데이터를 불러오지 못했습니다.")
+            self.insight_title_label.setText("")
             return
 
         self._set_insight_collapsed(False)
-        self.insight_title_label.setText("인사이트")
+        self.insight_title_label.setText("")
         month_ratio = insight.get("month_ratio", [])
         weekday_ratio = insight.get("weekday_ratio", [])
         age_ratio = insight.get("age_ratio", [])
