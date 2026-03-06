@@ -118,6 +118,7 @@ MACHINE_ID_GUARD_HASH = "TO_BE_UPDATED"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
 MACHINE_ID_PREFIX = "Gold-Keyword-"
+LICENSE_RECHECK_INTERVAL_MINUTES = 60
 
 
 class ApiUsageReporter:
@@ -5235,6 +5236,9 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.related_spinner_timer = QTimer(self)
         self.related_spinner_timer.setInterval(120)
         self.related_spinner_timer.timeout.connect(self._tick_related_spinner)
+        self.license_recheck_timer = QTimer(self)
+        self.license_recheck_timer.setInterval(LICENSE_RECHECK_INTERVAL_MINUTES * 60 * 1000)
+        self.license_recheck_timer.timeout.connect(self.check_license_info)
         
         # comment removed (encoding issue)
         self.setup_crash_protection()
@@ -5296,6 +5300,8 @@ class KeywordExtractorMainWindow(QMainWindow):
         
         # comment removed (encoding issue)
         QTimer.singleShot(100, self.check_license_info)
+        self.license_recheck_timer.start()
+        safe_print(f"라이선스 주기 재검증 활성화: {LICENSE_RECHECK_INTERVAL_MINUTES}분")
         
         try:
             signal.signal(signal.SIGINT, handle_signal)
@@ -5989,7 +5995,6 @@ class KeywordExtractorMainWindow(QMainWindow):
                 "휠체어컬링", "올림픽",
             ],
         }
-
         self.category_golden_hits = {}
         self._load_category_seed_memory()
 
