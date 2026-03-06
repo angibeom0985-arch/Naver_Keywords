@@ -117,7 +117,7 @@ _crash_save_enabled = True
 MACHINE_ID_GUARD_HASH = "TO_BE_UPDATED"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
-MACHINE_ID_PREFIX = "Gold-Keyword-"
+MACHINE_ID_PREFIX = "Gold-Keywords-"
 
 
 class ApiUsageReporter:
@@ -445,11 +445,8 @@ def _normalize_machine_id_token(raw_value):
     value = str(raw_value or "").strip()
     if not value:
         return None
-    # 구버전 접두사는 1회 마이그레이션을 위해 읽기만 허용
-    for prefix in (MACHINE_ID_PREFIX, "Gold Keyword-"):
-        if value.startswith(prefix):
-            value = value[len(prefix):].strip()
-            break
+    if value.startswith(MACHINE_ID_PREFIX):
+        value = value[len(MACHINE_ID_PREFIX):].strip()
     if re.fullmatch(r"[0-9A-Fa-f]{32}", value):
         return value.upper()
     return None
