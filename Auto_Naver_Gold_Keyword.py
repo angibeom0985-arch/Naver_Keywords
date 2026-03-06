@@ -6073,8 +6073,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_category_combo.addItems(list(self.category_seed_map.keys()))
         self.golden_category_combo.setObjectName("categoryCenterCombo")
         self.golden_category_combo.setEditable(True)
+        self.golden_category_combo.setMaxVisibleItems(len(self.category_seed_map))
         self.golden_category_combo.setMinimumWidth(220)
         self.golden_category_combo.setFixedHeight(44)
+        combo_view = self.golden_category_combo.view()
+        if combo_view is not None:
+            combo_view.setMinimumHeight(420)
+            combo_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         combo_line_edit = self.golden_category_combo.lineEdit()
         if combo_line_edit is not None:
             combo_line_edit.setReadOnly(True)
