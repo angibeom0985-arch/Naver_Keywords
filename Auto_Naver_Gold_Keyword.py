@@ -124,23 +124,17 @@ class ApiUsageReporter:
     def __init__(self):
         self._lock = threading.Lock()
         self.machine_id = ""
-        self.webhook_url = ""
-        self.webhook_token = ""
         self.local_total = 0
 
-    def configure(self, machine_id="", webhook_url="", webhook_token=""):
+    def configure(self, machine_id=""):
         with self._lock:
             if machine_id:
                 self.machine_id = str(machine_id).strip()
-            self.webhook_url = str(webhook_url or "").strip()
-            self.webhook_token = str(webhook_token or "").strip()
 
     def increment(self, delta=1):
         with self._lock:
             self.local_total += int(delta)
             machine_id = self.machine_id
-            webhook_url = self.webhook_url
-            webhook_token = self.webhook_token
             local_total = self.local_total
 
         # 로컬 누적 저장
@@ -153,23 +147,6 @@ class ApiUsageReporter:
             }
             with open(usage_file, "w", encoding="utf-8") as f:
                 json.dump(payload_local, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-
-        # 스프레드시트 업데이트(선택): Apps Script 웹앱 URL 필요
-        if not webhook_url:
-            return
-        try:
-            body = {
-                "machine_id": machine_id,
-                "delta": int(delta),
-                "local_total": local_total,
-                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            }
-            headers = {"Content-Type": "application/json"}
-            if webhook_token:
-                headers["X-Usage-Token"] = webhook_token
-            requests.post(webhook_url, headers=headers, json=body, timeout=2.5)
         except Exception:
             pass
 
@@ -339,8 +316,6 @@ def get_embedded_api_credentials():
         "searchad_customer_id": "3010221",
         "naver_client_id": "GSiFqhyeZrtRo1PAR0RF",
         "naver_client_secret": "1TV2afJdhU",
-        "usage_webhook_url": "https://script.google.com/macros/s/AKfycbz3WZH9J1uRwXzzsFLlyH3gZkwI7eFrO_fSxDdOa7bLk0TU0_WXZaa3XC1marNnRBebVw/exec?token=david_usage_2026_01",
-        "usage_webhook_token": "david_usage_2026_01",
     }
 
 
@@ -355,8 +330,6 @@ def load_api_credentials_from_file():
     api_file = get_settings_dir() / "api_keys.json"
     embedded = get_embedded_api_credentials()
     credentials = {key: str(embedded.get(key, "")).strip() for key in required_keys}
-    credentials["usage_webhook_url"] = str(embedded.get("usage_webhook_url", "")).strip()
-    credentials["usage_webhook_token"] = str(embedded.get("usage_webhook_token", "")).strip()
 
     if api_file.exists():
         try:
@@ -366,10 +339,6 @@ def load_api_credentials_from_file():
                 raise ValueError("api_keys.json 형식이 올바르지 않습니다.")
 
             for key in required_keys:
-                value = str(data.get(key, "")).strip()
-                if value:
-                    credentials[key] = value
-            for key in ["usage_webhook_url", "usage_webhook_token"]:
                 value = str(data.get(key, "")).strip()
                 if value:
                     credentials[key] = value
@@ -6476,8 +6445,6 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         API_USAGE_REPORTER.configure(
             machine_id=get_machine_id(),
-            webhook_url=credentials.get("usage_webhook_url", ""),
-            webhook_token=credentials.get("usage_webhook_token", ""),
         )
 
         self.last_analysis_keyword[analysis_type] = keyword
@@ -6583,8 +6550,6 @@ class KeywordExtractorMainWindow(QMainWindow):
 
         API_USAGE_REPORTER.configure(
             machine_id=get_machine_id(),
-            webhook_url=credentials.get("usage_webhook_url", ""),
-            webhook_token=credentials.get("usage_webhook_token", ""),
         )
 
         self.current_analysis_mode = "related"
