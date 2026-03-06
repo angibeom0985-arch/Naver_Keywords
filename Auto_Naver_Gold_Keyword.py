@@ -1165,17 +1165,26 @@ class InsightChartWidget(QWidget):
 
 
 class RelatedExpandSeedDialog(QDialog):
-    def __init__(self, candidates, parent=None):
+    def __init__(self, candidates, parent=None, source_total_count=None):
         super().__init__(parent)
         self.setWindowTitle("확장 분석 키워드 선택")
         self.resize(640, 520)
         self._candidates = list(candidates or [])
+        self._source_total_count = int(source_total_count or 0)
 
         layout = QVBoxLayout(self)
-        guide = QLabel(
-            "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과 키워드입니다.\n"
-            "추가 분석할 키워드를 선택한 뒤 '선택 키워드 분석'을 눌러 주세요."
-        )
+        if self._source_total_count > 0:
+            guide_text = (
+                "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과 키워드입니다.\n"
+                f"현재 결과 {self._source_total_count}개 중 조건 충족 {len(self._candidates)}개가 표시됩니다.\n"
+                "추가 분석할 키워드를 선택한 뒤 '선택 키워드 분석'을 눌러 주세요."
+            )
+        else:
+            guide_text = (
+                "조건: 월 검색량 1,000 초과 + 콘텐츠 포화 지수 10% 초과 키워드입니다.\n"
+                "추가 분석할 키워드를 선택한 뒤 '선택 키워드 분석'을 눌러 주세요."
+            )
+        guide = QLabel(guide_text)
         guide.setWordWrap(True)
         layout.addWidget(guide)
 
@@ -6708,7 +6717,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             )
             return
 
-        picker = RelatedExpandSeedDialog(candidates, self)
+        picker = RelatedExpandSeedDialog(candidates, self, source_total_count=len(rows))
         if picker.exec() != QDialog.DialogCode.Accepted:
             return
         expand_seeds = picker.selected_keywords()
@@ -6779,7 +6788,7 @@ class KeywordExtractorMainWindow(QMainWindow):
             )
             return
 
-        picker = RelatedExpandSeedDialog(candidates, self)
+        picker = RelatedExpandSeedDialog(candidates, self, source_total_count=len(rows))
         if picker.exec() != QDialog.DialogCode.Accepted:
             return
         expand_seeds = picker.selected_keywords()
