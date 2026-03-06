@@ -4427,16 +4427,126 @@ class KeywordHunter:
             )
 
         merged = {}
-        for idx, seed in enumerate(selected_seeds, start=1):
+        # 이어서 실행(사용자 선택 시드)에서는 연관키워드 발굴과 동일한 확장 수집 방식을 사용
+        use_expanded_collection = bool(seed_keywords)
+        if use_expanded_collection:
+            term_candidates = []
+            seen_term_keys = set()
+            volume_threshold = 1000
+            max_nodes_per_root = 120
+            max_children_per_node = 80
+
+            for idx, seed in enumerate(selected_seeds, start=1):
+                if progress_callback:
+                    progress_callback(f"[{idx}/{len(selected_seeds)}] '{seed}' 확장 수집 중")
+
+                required_key = self._keyword_key(seed)
+                base_terms = self._collect_naver_candidates(
+                    seed,
+                    progress_callback=None,
+                    required_key=required_key
+                ) or []
+                for item in base_terms:
+                    term = self._normalize_keyword(item.get("keyword", ""))
+                    tkey = self._keyword_key(term)
+                    if not tkey or tkey in seen_term_keys:
+                        continue
+                    seen_term_keys.add(tkey)
+                    term_candidates.append({"keyword": term, "source": item.get("source", "연관")})
+
+                queue = deque([seed])
+                visited = {self._keyword_key(seed)}
+                expanded_nodes = 0
+                while queue and expanded_nodes < max_nodes_per_root:
+                    current_seed = queue.popleft()
+                    expanded_nodes += 1
+                    try:
+                        rel_rows = self.get_searchad_related_keywords(current_seed) or []
+                    except Exception:
+                        rel_rows = []
+                    if not rel_rows:
+                        continue
+                    for rel in rel_rows[:max_children_per_node]:
+                        term = self._normalize_keyword(rel.get("keyword", ""))
+                        tkey = self._keyword_key(term)
+                        if not tkey:
+                            continue
+                        if tkey not in seen_term_keys:
+                            seen_term_keys.add(tkey)
+                            term_candidates.append({"keyword": term, "source": "요청기반 연관(재귀)"})
+                        monthly_total = int(rel.get("monthly_total_search", 0))
+                        if monthly_total > volume_threshold and tkey not in visited:
+                            visited.add(tkey)
+                            queue.append(term)
+                    time.sleep(0.02)
+
+            if not term_candidates:
+                term_candidates = [{"keyword": s, "source": "seed"} for s in selected_seeds if s]
+
             if progress_callback:
-                progress_callback(f"[{idx}/{len(selected_seeds)}] '{seed}' 연관 키워드 수집 중")
-            rows = self.get_searchad_related_keywords(seed)
-            for row in rows:
-                key = row["keyword"]
+                progress_callback(f"확장 수집 완료: 후보 {len(term_candidates)}개 검색량/포화지수 분석")
+
+            # 속도 개선: 시드별 검색광고 연관 결과를 선매핑
+            base_volume_map = {}
+            for seed in selected_seeds:
+                try:
+                    rows = self.get_searchad_related_keywords(seed)
+                except Exception:
+                    rows = []
+                for r in rows:
+                    k = self._keyword_key(r.get("keyword", ""))
+                    if not k:
+                        continue
+                    payload = {
+                        "keyword": self._normalize_keyword(r.get("keyword", "")),
+                        "monthly_pc_search": int(r.get("monthly_pc_search", 0)),
+                        "monthly_mobile_search": int(r.get("monthly_mobile_search", 0)),
+                        "monthly_total_search": int(r.get("monthly_total_search", 0)),
+                    }
+                    prev = base_volume_map.get(k)
+                    if prev is None or payload["monthly_total_search"] > int(prev.get("monthly_total_search", 0)):
+                        base_volume_map[k] = payload
+
+            for idx, candidate in enumerate(term_candidates, start=1):
+                term = self._normalize_keyword(candidate.get("keyword", ""))
+                if not term:
+                    continue
+                if progress_callback and idx % 25 == 0:
+                    progress_callback(f"[{idx}/{len(term_candidates)}] 확장 후보 검색량 매핑 중")
+
+                tkey = self._keyword_key(term)
+                row = base_volume_map.get(tkey)
+                if row is None:
+                    try:
+                        row = self._resolve_term_volume_row(term)
+                    except Exception:
+                        row = None
+
+                if row is None:
+                    row = {
+                        "keyword": term,
+                        "monthly_pc_search": 0,
+                        "monthly_mobile_search": 0,
+                        "monthly_total_search": 0,
+                    }
+
+                key = self._keyword_key(row.get("keyword", ""))
+                if not key:
+                    continue
                 prev = merged.get(key)
-                if prev is None or int(row["monthly_total_search"]) > int(prev["monthly_total_search"]):
+                if prev is None or int(row.get("monthly_total_search", 0)) > int(prev.get("monthly_total_search", 0)):
                     merged[key] = row
-            time.sleep(0.05)
+        else:
+            for idx, seed in enumerate(selected_seeds, start=1):
+                if progress_callback:
+                    progress_callback(f"[{idx}/{len(selected_seeds)}] '{seed}' 연관 키워드 수집 중")
+                rows = self.get_searchad_related_keywords(seed)
+                for row in rows:
+                    key = row["keyword"]
+                    prev = merged.get(key)
+                    if prev is None or int(row["monthly_total_search"]) > int(prev["monthly_total_search"]):
+                        merged[key] = row
+                time.sleep(0.05)
 
         keyword_rows = list(merged.values())
         if not keyword_rows:
