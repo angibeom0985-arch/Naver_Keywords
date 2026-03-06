@@ -117,7 +117,7 @@ _crash_save_enabled = True
 MACHINE_ID_GUARD_HASH = "TO_BE_UPDATED"
 MACHINE_ID_APPROVAL_FILE = 'machine_id_change_approval.txt'
 MACHINE_ID_APPROVAL_TOKEN = 'I_APPROVE_MACHINE_ID_CHANGE'
-MACHINE_ID_PREFIX = "Gold Keyword-"
+MACHINE_ID_PREFIX = "Gold-Keyword-"
 
 
 class ApiUsageReporter:
@@ -445,12 +445,11 @@ def _normalize_machine_id_token(raw_value):
     value = str(raw_value or "").strip()
     if not value:
         return None
-    for prefix in (MACHINE_ID_PREFIX, "Gold Keyword-", "Gold-Keyword-"):
+    # 구버전 접두사는 1회 마이그레이션을 위해 읽기만 허용
+    for prefix in (MACHINE_ID_PREFIX, "Gold Keyword-"):
         if value.startswith(prefix):
             value = value[len(prefix):].strip()
             break
-    if value.startswith("MID-"):
-        value = value[4:].strip()
     if re.fullmatch(r"[0-9A-Fa-f]{32}", value):
         return value.upper()
     return None
@@ -524,7 +523,7 @@ def get_machine_id():
 
 def check_license_from_sheet(machine_id):
     """Description"""
-    sheet_url = "https://docs.google.com/spreadsheets/d/1YxiLMs7NEbKj0ZuEhx8zdKH-Hz0co2dd3OFxbZSEQS0/export?format=csv&gid=0"
+    sheet_url = "https://docs.google.com/spreadsheets/d/1Ooj_BnlIiYC7a1de-csqmXxnGjTwXU5d2q5smi_Os30/export?format=csv&gid=0"
     try:
         safe_print(f"라이선스 확인 중... ID: {machine_id}")
         response = requests.get(sheet_url, timeout=5)
@@ -546,6 +545,8 @@ def check_license_from_sheet(machine_id):
                 
                 if not target_row.empty:
                     expiration_date = str(target_row.iloc[0, 3]).strip()
+                    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", expiration_date):
+                        return None
                     return expiration_date
                 
         return None
@@ -5019,11 +5020,8 @@ class KeywordExtractorMainWindow(QMainWindow):
                     # comment removed (encoding issue)
                     self.usage_label.setText(f"사용 기간: {expiration_date}까지")
                     self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
-            except:
-                # comment removed (encoding issue)
-                # comment removed (encoding issue)
-                self.usage_label.setText(f"사용 기간: {expiration_date}")
-                self.usage_label.setStyleSheet(f"font-size: 13px; font-weight: bold; color: {NAVER_GREEN};")
+            except Exception:
+                self.show_license_dialog(machine_id)
         else:
             # comment removed (encoding issue)
             self.show_license_dialog(machine_id)
@@ -7332,12 +7330,10 @@ def main():
                 raise
                 
         except ValueError:
-            # comment removed (encoding issue)
-            safe_print(f"라이선스 날짜 형식 확인 필요: {expiry_date_str}")
-            window = KeywordExtractorMainWindow()
-            window.usage_label.setText(f"사용 기간: {expiry_date_str}")
-            window.showMaximized()
-            sys.exit(app.exec())
+            safe_print(f"라이선스 날짜 형식 오류 - 실행 차단: {expiry_date_str}")
+            dialog = UnregisteredDialog(machine_id)
+            dialog.exec()
+            sys.exit(0)
             
     else:
         # comment removed (encoding issue)
