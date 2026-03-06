@@ -3154,6 +3154,7 @@ class KeywordHunter:
         self.searchad_cache = {}
         self.blog_count_cache = {}
         self.keyword_insight_cache = {}
+        self.keyword_hot_cache = {}
         self.blog_count_driver = None
         self.usage_callback = usage_callback
         self._last_request_at = {"검색광고 API": 0.0, "네이버 검색 API": 0.0}
@@ -3782,6 +3783,54 @@ class KeywordHunter:
         }
         self.keyword_insight_cache[cache_key] = insight
         return insight
+
+    def _evaluate_current_month_hotness(self, keyword):
+        key = self._normalize_keyword(keyword)
+        if not key:
+            return {"is_hot": False, "hot_score": 0.0, "current_ratio": 0.0}
+        cache_key = key.lower()
+        cached = self.keyword_hot_cache.get(cache_key)
+        if cached is not None:
+            return dict(cached)
+
+        result = {"is_hot": False, "hot_score": 0.0, "current_ratio": 0.0}
+        try:
+            insight = self.get_keyword_insight(key)
+            month_ratio = list(insight.get("month_ratio", []) or [])
+            if not month_ratio:
+                self.keyword_hot_cache[cache_key] = result
+                return dict(result)
+
+            current_month = datetime.now().strftime("%Y-%m")
+            current_value = None
+            previous_values = []
+            for row in month_ratio:
+                label = str(row.get("label", "")).strip()
+                value = float(row.get("value", 0.0))
+                if label == current_month:
+                    current_value = value
+                else:
+                    previous_values.append(value)
+
+            if current_value is None:
+                # 이번 달 데이터가 아직 없으면 최신 월을 현재로 간주
+                current_value = float(month_ratio[-1].get("value", 0.0))
+                previous_values = [float(x.get("value", 0.0)) for x in month_ratio[:-1]]
+
+            baseline = (sum(previous_values) / len(previous_values)) if previous_values else max(current_value, 1.0)
+            hot_score = (current_value / baseline) if baseline > 0 else current_value
+            # 현재 월 비중이 평균 대비 10% 이상 높으면 이슈성으로 판단
+            is_hot = hot_score >= 1.10
+            result = {
+                "is_hot": bool(is_hot),
+                "hot_score": float(hot_score),
+                "current_ratio": float(current_value),
+            }
+        except Exception:
+            result = {"is_hot": False, "hot_score": 0.0, "current_ratio": 0.0}
+
+        self.keyword_hot_cache[cache_key] = result
+        return dict(result)
 
     def calculate_content_saturation_index(self, monthly_search, blog_docs):
         # 콘텐츠 포화지수(%) = (콘텐츠양 / 월 검색량) * 100
@@ -4562,6 +4611,32 @@ class KeywordHunter:
         )
         related_first = [r for r in ranked_rows if self._category_relevance(relevance_text, r["keyword"]) > 0]
         source_rows = related_first if related_first else ranked_rows
+
+        # 최초 카테고리 실행은 "이번 달 이슈성"을 반영해 우선순위를 조정
+        if not use_expanded_collection and source_rows:
+            hot_pool_limit = min(len(source_rows), max(max_candidates * 6, 40))
+            hot_pool = source_rows[:hot_pool_limit]
+            hot_rows = []
+            hot_keys = set()
+            for idx, row in enumerate(hot_pool, start=1):
+                if progress_callback and idx % 10 == 0:
+                    progress_callback(f"이달 이슈 키워드 판별 중... {idx}/{len(hot_pool)}")
+                hot_info = self._evaluate_current_month_hotness(str(row.get("keyword", "")))
+                if hot_info.get("is_hot"):
+                    enriched = dict(row)
+                    enriched["_hot_score"] = float(hot_info.get("hot_score", 0.0))
+                    hot_rows.append(enriched)
+                    hot_keys.add(self._keyword_key(enriched.get("keyword", "")))
+
+            if hot_rows:
+                hot_rows.sort(key=lambda x: (-float(x.get("_hot_score", 0.0)), -int(x.get("monthly_total_search", 0))))
+                remain_rows = [r for r in source_rows if self._keyword_key(r.get("keyword", "")) not in hot_keys]
+                source_rows = hot_rows + remain_rows
+                if progress_callback:
+                    progress_callback(
+                        f"이달 이슈 우선 반영: {len(hot_rows)}개 키워드를 상단 우선순위로 배치"
+                    )
+
         prefilter_limit = min(len(source_rows), max(max_candidates * 4, 150))
         source_rows = source_rows[:prefilter_limit]
         if progress_callback:
