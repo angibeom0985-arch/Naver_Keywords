@@ -6194,6 +6194,11 @@ class KeywordExtractorMainWindow(QMainWindow):
         right_top.addWidget(self.category_continue_button)
         right_top.addWidget(self.category_save_button)
         right_layout.addLayout(right_top)
+        self.category_recommend_hint = QLabel(
+            "안내: 결과에서 마음에 드는 키워드를 선택해 '이어서 실행'하면 더 세분화된 추천을 받을 수 있습니다."
+        )
+        self.category_recommend_hint.setObjectName("summaryHint")
+        right_layout.addWidget(self.category_recommend_hint)
 
         self.category_sort_hint = QLabel("")
         self.category_sort_hint.setObjectName("sortHint")
@@ -6832,6 +6837,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.golden_keyword_thread.start()
 
     def start_related_keyword_analysis(self):
+        self._append_keywords_to_selected_category(
+            [self.related_keyword_input.text().strip()],
+            source_label="연관키워드 입력"
+        )
         self._start_golden_analysis(
             "related",
             self.related_keyword_input.text().strip(),
@@ -6841,6 +6850,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         )
 
     def start_single_keyword_analysis(self):
+        self._append_keywords_to_selected_category(
+            [self.related_keyword_input.text().strip()],
+            source_label="연관키워드 입력"
+        )
         self._start_golden_analysis(
             "related",
             self.related_keyword_input.text().strip(),
@@ -7217,6 +7230,10 @@ class KeywordExtractorMainWindow(QMainWindow):
         else:
             self.category_save_button.setEnabled(True)
             self.category_continue_button.setEnabled(True)
+            self._append_keywords_to_selected_category(
+                [str(row.get("keyword", "")) for row in current_rows],
+                source_label="추천 결과"
+            )
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "사용자 주제 중 황금키워드 추천"
         golden_count = sum(
@@ -7323,6 +7340,40 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.settings.set_max_parallel_threads(self.max_parallel_threads)
         self.status_bar.showMessage(f"동시 실행 개수: {self.max_parallel_threads}")
 
+    def _normalize_topic_keyword(self, raw):
+        text = str(raw or "").replace("+", " ").strip()
+        text = re.sub(r"\s+", " ", text)
+        if not text:
+            return ""
+        low = text.lower()
+        if low in ("nan", "none", "null", "키워드", "keyword"):
+            return ""
+        return text
+
+    def _append_keywords_to_selected_category(self, keywords, source_label="입력"):
+        if not hasattr(self, "golden_category_combo"):
+            return 0
+        category_name = str(self.golden_category_combo.currentText() or "").strip()
+        if not category_name:
+            return 0
+
+        current = list(self.category_seed_map.get(category_name, []))
+        seen = {self._normalize_topic_keyword(x).replace(" ", "").lower() for x in current}
+        seen.discard("")
+        added = 0
+        for raw in (keywords or []):
+            token = self._normalize_topic_keyword(raw)
+            key = token.replace(" ", "").lower()
+            if not token or not key or key in seen:
+                continue
+            current.append(token)
+            seen.add(key)
+            added += 1
+        if added > 0:
+            self.category_seed_map[category_name] = current
+            self.status_bar.showMessage(f"{category_name}: {source_label} 키워드 {added}개를 주제 시드에 추가했습니다.")
+        return added
+
     def on_category_selection_changed(self, text):
         selected = str(text or "").strip()
         if not selected:
@@ -7347,6 +7398,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not keywords:
             QMessageBox.warning(self, "입력 오류", "유효한 키워드를 입력해 주세요.")
             return
+        self._append_keywords_to_selected_category(keywords, source_label="키워드 검색")
         
         save_dir = self.save_path_input.text().strip()
         if not save_dir:
