@@ -6799,11 +6799,12 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.status_bar.showMessage(
             f"카테고리 확장 루트 {len(expand_seeds)}개 선택 (월 검색량 1,000 초과 + 포화지수 10% 초과)"
         )
+        next_offset = len(self.category_keyword_results or [])
         self._start_golden_analysis(
             "category",
             category_name,
             category_seeds=expand_seeds,
-            offset=0,
+            offset=next_offset,
             keep_existing=True
         )
 
