@@ -5013,6 +5013,7 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.setWindowTitle("네이버 연관키워드 추출기")
         self.resize(1200, 800)
         self.showMaximized()
+        QTimer.singleShot(0, self._ensure_maximized_on_start)
         
         # comment removed (encoding issue)
         self.settings = Settings()
@@ -5048,6 +5049,13 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.setup_chrome_driver()
         self.current_theme_mode = "light"
         self.apply_theme(self.settings.get_theme_mode(), save=False)
+
+    def _ensure_maximized_on_start(self):
+        try:
+            self.setWindowState(self.windowState() | Qt.WindowState.WindowMaximized)
+            self.showMaximized()
+        except Exception:
+            pass
 
     def check_license_info(self):
         """Description"""
