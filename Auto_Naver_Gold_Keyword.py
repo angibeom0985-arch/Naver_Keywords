@@ -1181,6 +1181,34 @@ class RelatedExpandSeedDialog(QDialog):
 
         self.list_widget = QListWidget()
         self.list_widget.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
+        self.list_widget.setAlternatingRowColors(True)
+        self.list_widget.setSpacing(2)
+        self.list_widget.setStyleSheet("""
+            QListWidget {
+                background: #ffffff;
+                border: 1px solid #cfd8d3;
+                border-radius: 8px;
+                padding: 4px;
+                font-size: 14px;
+                color: #1f2d26;
+            }
+            QListWidget::item {
+                padding: 6px 8px;
+                border-radius: 6px;
+            }
+            QListWidget::item:hover {
+                background: #eaf7f0;
+            }
+            QListWidget::item:selected {
+                background: #03c75a;
+                color: #ffffff;
+                font-weight: 700;
+            }
+            QListWidget::item:selected:active {
+                background: #028a4a;
+                color: #ffffff;
+            }
+        """)
         for row in self._candidates:
             keyword = str(row.get("keyword", "")).replace("+", " ").strip()
             monthly = int(row.get("monthly_total_search", 0))
@@ -1190,6 +1218,11 @@ class RelatedExpandSeedDialog(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, keyword)
             self.list_widget.addItem(item)
         layout.addWidget(self.list_widget, 1)
+        self.selection_status_label = QLabel("")
+        self.selection_status_label.setStyleSheet("color: #2f5f4a; font-weight: 700;")
+        layout.addWidget(self.selection_status_label)
+        self.list_widget.itemSelectionChanged.connect(self._update_selection_status)
+        self._update_selection_status()
 
         action_row = QHBoxLayout()
         select_all_btn = QPushButton("전체 선택")
@@ -1225,6 +1258,11 @@ class RelatedExpandSeedDialog(QDialog):
             seen.add(key)
             selected.append(keyword)
         return selected
+
+    def _update_selection_status(self):
+        selected_count = len(self.list_widget.selectedItems())
+        total_count = self.list_widget.count()
+        self.selection_status_label.setText(f"선택됨: {selected_count} / {total_count}")
 
         painter.setPen(QPen(QColor("#adb5bd"), 1))
         painter.drawLine(left, top, left, bottom)
