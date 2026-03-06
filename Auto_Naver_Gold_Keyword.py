@@ -5932,84 +5932,71 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.category_seed_map = {
 
 "비즈니스/경제": [
-"연말정산","소상공인정책자금","창업지원금","기준금리","환율전망","물가상승률","부가세신고","종합소득세","고용지원금","투자전략",
-"매출분석","경제전망","재테크","주식투자","배당주","ETF","펀드","채권","금리","대출","신용점수","신용등급","카드혜택",
-"절세","소득공제","세액공제","양도세","증여세","상속세","부동산투자","아파트분양","청약가점","임대사업","경제지표",
-"GDP","인플레이션","디플레이션","환율","금융시장","자산관리","포트폴리오","투자분석","시장분석","기업분석","공모주",
-"IPO","코스피","코스닥","나스닥","스타트업","벤처투자","기업가치","브랜딩","마케팅","광고","유통","무역","수출","수입",
-"관세","물가","소비","수요","공급","경제성장","경기침체","금융위기","투자심리","경제정책","재정정책","통화정책",
-"재무관리","자본시장","배당","이익","손실","흑자","적자","사업계획","사업전략","사업모델","프랜차이즈","사업자",
-"법인","법인설립","창업아이템","창업비용","창업컨설팅","사업분석","매출증가","고용","실업률","경제뉴스"
+"연말정산","소상공인정책자금","창업지원금","기준금리","환율전망","물가상승률",
+"부가세신고","종합소득세","고용지원금","투자전략","매출분석","경제전망",
+"코스피","해외주식","국내주식","양도소득세","지방소득세","투자","세금","계좌",
+"국민성장펀드","개인투자","학자금대출","금리","대출","공과금","에코마일리지",
+"전기","수도","도시가스","지역난방","에너지","마일리지","지방세","가스비",
+"관리비","국세환급금","소득공제","모기지론","주택연금",
+"출국장면세점","외교관면세점","귀금속면세점","시내면세점",
+"인터넷면세점","기내면세점","지정면세점","여행자보험"
 ],
 
 "IT/컴퓨터": [
-"생성형AI","AI툴","챗봇","노트북추천","그래픽카드","윈도우업데이트","보안패치","클라우드","코딩부트캠프","업무자동화",
-"사이버보안","데이터분석","AI자동화","프롬프트엔지니어링","GPT활용","노코드","RPA","파이썬","자바스크립트","웹개발",
-"앱개발","API","서버","DevOps","AWS","데이터사이언스","머신러닝","딥러닝","컴퓨터","PC","맥북","태블릿","스마트폰",
-"아이폰","안드로이드","IT자격증","정보처리기사","ADSP","네트워크","가상화","도커","쿠버네티스","CPU","RAM","SSD",
-"HDD","모니터","마우스","키보드","게이밍","게임","VR","AR","메타버스","블록체인","암호화폐","비트코인","이더리움",
-"NFT","핀테크","클라우드컴퓨팅","서버관리","네트워크장비","라우터","NAS","스토리지","백업","협업툴","노션","슬랙",
-"깃허브","깃","오픈소스","프로그래밍","코딩","알고리즘","소프트웨어","하드웨어","IT트렌드","디지털전환","자동화툴",
-"생산성툴","클라우드서비스","모바일앱","웹서비스","플랫폼","데이터엔지니어","시스템","시스템관리","IT보안"
-],
-
-"육아/결혼": [
-"어린이집입소","초등입학준비","신생아특례대출","육아휴직","돌잔치","웨딩박람회","결혼준비","예물예단","신혼집대출",
-"태교","이유식","아기수면교육","출산준비","육아템","유모차","아기옷","아기발달","아기장난감","분유","어린이집",
-"유치원","유아교육","초등교육","가정교육","부모교육","키즈카페","소아과","예방접종","산후조리","산후조리원",
-"웨딩드레스","웨딩촬영","신혼여행","결혼식장","혼수","백일잔치","신생아","영유아","유아","아동","어린이","놀이교육",
-"조기교육","육아용품","육아정보","육아서","부모상담","가족","가족생활","부부관계","결혼생활","아기목욕","아기마사지",
-"아기건강","아기식단","유아학습","초등공부","부모역할","육아스트레스","아기병원","소아치과","발달검사","육아지원",
-"출산지원","출산선물","육아선물","육아휴직급여","맞벌이육아","아기침대","아기방","기저귀","아기띠","아기용품",
-"육아상담","가족여행","육아블로그","아기교육","가정양육","부모커뮤니티"
+"생성형AI","AI툴","챗봇","노트북추천","그래픽카드","윈도우업데이트",
+"보안패치","클라우드","코딩부트캠프","업무자동화","사이버보안","데이터분석",
+"AI자동화","프롬프트엔지니어링","GPT활용","노코드","RPA","파이썬",
+"자바스크립트","웹개발","앱개발","API","서버","DevOps","AWS",
+"데이터사이언스","머신러닝","딥러닝","컴퓨터","PC","맥북","태블릿",
+"스마트폰","아이폰","안드로이드","IT자격증","정보처리기사","ADSP",
+"네트워크","가상화","도커","쿠버네티스","CPU","RAM","SSD","HDD",
+"모니터","마우스","키보드","게이밍","게임","VR","AR","메타버스",
+"블록체인","암호화폐","비트코인","이더리움","NFT","핀테크",
+"클라우드컴퓨팅","서버관리","네트워크장비","라우터","NAS",
+"스토리지","백업","협업툴","노션","슬랙","깃허브","깃",
+"오픈소스","프로그래밍","코딩","알고리즘","소프트웨어","하드웨어",
+"IT트렌드","디지털전환","자동화툴","생산성툴","클라우드서비스",
+"모바일앱","웹서비스","플랫폼","데이터엔지니어","시스템",
+"시스템관리","IT보안","엑셀칸에그림맞추기","갤럭시탭S11",
+"갤럭시탭S10FE","계산기","농지연금계산기","제미나이"
 ],
 
 "자동차": [
-"전기차보조금","자동차세","자동차보험갱신","중고차시세","하이브리드차","타이어교체","엔진오일교체","자동차검사",
-"주차요금","고속도로통행료","차박","렌터카","신차출시","SUV","연비","전기차","충전소","차량관리","자동차정비",
-"차량점검","자동차대출","차량리스","장기렌트","자동차할부","자동차매매","블랙박스","내비게이션","차량튜닝",
-"세차","디테일링","차량유지비","자동차시장","자동차뉴스","차량등록","차량판매","차량구매","자동차보험",
-"보험료","사고차","무사고","차량평가","차량진단","차량이력","옵션","옵션추가","차량가격","출고","출고대기",
-"차량성능","차량안전","자동차기술","전기차충전","자동차배터리","브레이크","브레이크패드","자동차부품",
-"차량정비소","정비센터","자동차튜닝","차량광택","손세차","자동세차","차량관리팁","자동차커뮤니티",
-"자동차동호회","자동차리뷰","자동차비교","차량추천","자동차딜러","차량프로모션","자동차할인","차량리스료",
-"렌트료","자동차금융","자동차시장분석"
+"법인택시","개인택시","택시운전자격","운전적성정밀검사","택시운전자격시험",
+"개인택시운송사업면허","무면허운전","음주운전","자동차관리","교통사고",
+"자동차보험","자동차손해보험","책임보험","대중교통","자전거","오토바이",
+"보행자교통법","부설주차장","안전도인증","기계식주차장","자동차구입",
+"자동차분쟁해결","주행거리계확인","자동차세금","자동차세감면","자동차세할인",
+"운전면허","연습운전면허","국제운전면허","도로주행시험","정기적성검사",
+"운전면허갱신","자율주행자동차","자동차안전기준","자율주행시스템",
+"임시운행","개인형이동장치","전동킥보드","전동이륜평행차","스로틀방식",
+"전기자전거","원동기장치","중고차","자동차등록원부","과태료",
+"이전등록","화물자동차","화물운송사업종사자격","결격사유",
+"운송사업허가","적재물배상","적재물배상책임보험","통행료",
+"자동차검사","고속버스","기차","코레일","기차위약금","코레일위약금"
 ],
 
-"여행": [
-"벚꽃명소","여름휴가","추석여행","연말해외여행","항공권특가","호텔특가","일본여행","동남아여행","유럽여행",
-"국내여행코스","여행자보험","축제일정","국내여행","해외여행","패키지여행","자유여행","배낭여행","신혼여행",
-"가족여행","여행경비","여행준비물","여권","비자","환전","호텔","리조트","펜션","게스트하우스","캠핑",
-"차박여행","온천여행","단풍여행","겨울여행","바다여행","섬여행","여행사진","여행블로그","여행정보",
-"여행추천","여행코스","여행일정","관광지","명소","휴양지","자연경관","산","바다","호수","폭포","섬",
-"국립공원","도시여행","문화유산","세계유산","유적지","박물관","미술관","시장","야시장","카페",
-"맛집","쇼핑","기념품","투어","가이드","렌터카","교통","지하철","버스","지도","여행앱",
-"여행플랜","여행리뷰","여행기록","사진명소","야경명소","일출명소","일몰명소","해변","트레킹",
-"하이킹","드라이브","로드트립"
-],
-
-"교육/학문": [
-"수능일정","중간고사대비","기말고사대비","대학입시","자격증시험일정","공무원시험","한국사능력검정",
-"토익일정","어학연수","논문주제","방학특강","국비지원교육","공부법","학습법","모의고사","수능",
-"대학","대학원","유학","영어회화","일본어","중국어","문법","독해","작문","수학","과학","물리",
-"화학","생물","지구과학","국어","문학","비문학","한국사","세계사","역사","지리","사회","경제",
-"정치","철학","심리학","교육학","논문","연구","통계","데이터분석","코딩","프로그래밍","파이썬",
-"AI","머신러닝","자격증","취업","공무원","공기업","면접","이력서","자소서","스펙","인턴",
-"자기계발","독서","독서법","시간관리","노트정리","학습계획","강의","인강","학원","과외",
-"스터디","스터디플래너","대학생","대학생활","전공","학점","장학금","졸업","졸업논문"
-],
-
-"사회/정치": [
-"총선","대선","지방선거","부동산정책","교육정책","세법개정","노동정책","최저임금","청년정책",
-"복지정책","기후정책","사회이슈","정치","정부","국회","정당","선거","투표","행정","입법",
-"사법","헌법","법률","법원","판결","재판","검찰","경찰","외교","안보","국방","국제정세",
-"무역","관세","제재","인권","민주주의","자유","평등","사회문제","범죄","치안","마약",
-"부패","시위","집회","사회운동","환경정책","탄소중립","에너지정책","전력정책","자원정책",
-"국가전략","인구","저출산","고령화","이민","난민","노동","근로","고용","실업","연금개혁",
-"건강보험","정치뉴스","정책브리핑","사회갈등","공공정책","지역정치","지방행정"
+"잡블": [
+"캠핑장","야영장","캠핑용품","텐트장소","텐트","야영지",
+"레포츠","물놀이","안전수칙","관광","관광불편신고센터",
+"해외여행","여권","비자","세관신고","검역신고","보안검색",
+"자동출입국심사","여행계약","여행상품",
+"동물등록","분실신고","사육준수사항","맹견키우기",
+"음악저작물","저작재산권","저작권등록","저작권침해",
+"저작권양도","저작권기증","저작권위탁관리",
+"민사소송","소송","이혼","상속","상속인","피상속인",
+"상속재산","유류분","유언","위자료","재산분할",
+"가정폭력","손해배상","장례","장례식","사망자",
+"재혼","중혼","후견인",
+"동계올림픽","알파인스키","바이애슬론",
+"크로스컨트리스키","아이스하키","스노보드",
+"휠체어컬링","올림픽"
 ]
 
 }
+
+        self.category_golden_hits = {}
+        self._load_category_seed_memory()
 
         split = HalfSplitSplitter(Qt.Orientation.Horizontal)
         split.setChildrenCollapsible(False)
@@ -7025,10 +7012,11 @@ class KeywordExtractorMainWindow(QMainWindow):
         if not category_name:
             QMessageBox.warning(self, "입력 오류", "카테고리를 선택해 주세요.")
             return
+        category_seeds = self._get_augmented_category_seeds(category_name)
         self._start_golden_analysis(
             "category",
             category_name,
-            category_seeds=self.category_seed_map.get(category_name, []),
+            category_seeds=category_seeds,
             offset=0,
             keep_existing=False
         )
@@ -7234,6 +7222,10 @@ class KeywordExtractorMainWindow(QMainWindow):
                 [str(row.get("keyword", "")) for row in current_rows],
                 source_label="추천 결과"
             )
+            self._record_category_golden_hits(
+                self.last_analysis_keyword.get("category", ""),
+                current_rows
+            )
         self.apply_filters_for_mode(analysis_type)
         mode_name = "연관키워드 중 황금키워드 발굴" if analysis_type == "related" else "사용자 주제 중 황금키워드 추천"
         golden_count = sum(
@@ -7340,6 +7332,127 @@ class KeywordExtractorMainWindow(QMainWindow):
         self.settings.set_max_parallel_threads(self.max_parallel_threads)
         self.status_bar.showMessage(f"동시 실행 개수: {self.max_parallel_threads}")
 
+    def _get_category_seed_memory_path(self):
+        try:
+            local_appdata = str(os.getenv("LOCALAPPDATA", "")).strip()
+            if local_appdata:
+                root = Path(local_appdata) / "AutoNaverKeyword"
+            else:
+                root = Path.home() / "AutoNaverKeyword"
+            root.mkdir(parents=True, exist_ok=True)
+            return root / "category_seed_memory.json"
+        except Exception:
+            return None
+
+    def _dedupe_keyword_list(self, items):
+        result = []
+        seen = set()
+        for raw in (items or []):
+            token = self._normalize_topic_keyword(raw)
+            key = token.replace(" ", "").lower()
+            if not token or not key or key in seen:
+                continue
+            seen.add(key)
+            result.append(token)
+        return result
+
+    def _load_category_seed_memory(self):
+        self.category_golden_hits = {}
+        path = self._get_category_seed_memory_path()
+        if path is None or not path.exists():
+            return
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                return
+            seed_map = data.get("seed_map", {})
+            if isinstance(seed_map, dict):
+                for category, extra_seeds in seed_map.items():
+                    if category not in self.category_seed_map:
+                        continue
+                    merged = list(self.category_seed_map.get(category, [])) + list(extra_seeds or [])
+                    self.category_seed_map[category] = self._dedupe_keyword_list(merged)
+
+            raw_hits = data.get("golden_hits", {})
+            if isinstance(raw_hits, dict):
+                for category, item in raw_hits.items():
+                    if category not in self.category_seed_map or not isinstance(item, dict):
+                        continue
+                    cleaned = {}
+                    for k, v in item.items():
+                        token = self._normalize_topic_keyword(k)
+                        if not token:
+                            continue
+                        try:
+                            cnt = int(v)
+                        except Exception:
+                            cnt = 0
+                        if cnt > 0:
+                            cleaned[token] = cnt
+                    if cleaned:
+                        self.category_golden_hits[category] = cleaned
+        except Exception:
+            return
+
+    def _save_category_seed_memory(self):
+        path = self._get_category_seed_memory_path()
+        if path is None:
+            return
+        try:
+            seed_map = {}
+            for category, seeds in self.category_seed_map.items():
+                deduped = self._dedupe_keyword_list(seeds)
+                if deduped:
+                    seed_map[category] = deduped[:300]
+
+            golden_hits = {}
+            for category, hits in (self.category_golden_hits or {}).items():
+                if not isinstance(hits, dict):
+                    continue
+                top = sorted(hits.items(), key=lambda x: (-int(x[1]), x[0]))[:300]
+                if top:
+                    golden_hits[category] = {k: int(v) for k, v in top}
+
+            payload = {
+                "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "seed_map": seed_map,
+                "golden_hits": golden_hits,
+            }
+            path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            return
+
+    def _get_augmented_category_seeds(self, category_name):
+        base = self._dedupe_keyword_list(self.category_seed_map.get(category_name, []))
+        hit_map = dict((self.category_golden_hits or {}).get(category_name, {}))
+        if not hit_map:
+            return base
+        hot = [k for k, _ in sorted(hit_map.items(), key=lambda x: (-int(x[1]), x[0]))]
+        return self._dedupe_keyword_list(hot + base)[:400]
+
+    def _record_category_golden_hits(self, category_name, rows):
+        category = str(category_name or "").strip()
+        if not category:
+            return
+        hit_map = dict((self.category_golden_hits or {}).get(category, {}))
+        changed = False
+        for row in (rows or []):
+            try:
+                saturation = float(row.get("content_saturation_index", 0.0))
+                monthly = int(row.get("monthly_total_search", 0))
+            except Exception:
+                continue
+            if monthly <= 0 or saturation > 10.0:
+                continue
+            token = self._normalize_topic_keyword(row.get("keyword", ""))
+            if not token:
+                continue
+            hit_map[token] = int(hit_map.get(token, 0)) + 1
+            changed = True
+        if changed:
+            self.category_golden_hits[category] = hit_map
+            self._save_category_seed_memory()
+
     def _normalize_topic_keyword(self, raw):
         text = str(raw or "").replace("+", " ").strip()
         text = re.sub(r"\s+", " ", text)
@@ -7370,7 +7483,8 @@ class KeywordExtractorMainWindow(QMainWindow):
             seen.add(key)
             added += 1
         if added > 0:
-            self.category_seed_map[category_name] = current
+            self.category_seed_map[category_name] = self._dedupe_keyword_list(current)
+            self._save_category_seed_memory()
             self.status_bar.showMessage(f"{category_name}: {source_label} 키워드 {added}개를 주제 시드에 추가했습니다.")
         return added
 
